@@ -9,7 +9,7 @@ devDependencies:
     specifier: 2.0.0-alpha.12
     version: 2.0.0-alpha.12
   vue:
-    specifier: ^3.5.22
+    specifier: 3.5.22
     version: 3.5.22
 
 packages:
