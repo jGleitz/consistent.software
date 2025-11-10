@@ -22,7 +22,12 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/vuejs/vitepress' }
-    ]
-  }
+      { icon: 'github', link: 'https://github.com/jGleitz/consistent.software' }
+    ],
+
+    search: {
+      provider: 'local'
+    }
+  },
+  cleanUrls: true
 })
