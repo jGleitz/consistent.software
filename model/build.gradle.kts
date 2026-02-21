@@ -3,7 +3,7 @@
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
-    kotlin("multiplatform") version "2.2.21"
+    kotlin("multiplatform") version "2.3.10"
     id("com.google.devtools.ksp") version "2.3.6"
     id("io.kotest") version "6.1.3"
 }
