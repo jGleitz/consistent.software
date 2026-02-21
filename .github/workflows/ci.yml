@@ -22,7 +22,7 @@ jobs:
 
 
       - name: Test
-        run: ./gradlew test
+        run: ./gradlew allTests
 
       - name: Upload test results
         if: always()
