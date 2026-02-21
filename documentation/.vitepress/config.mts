@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import markdownItDeflist from 'markdown-it-deflist'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -29,5 +30,11 @@ export default defineConfig({
       provider: 'local'
     }
   },
-  cleanUrls: true
+  cleanUrls: true,
+  markdown: {
+    math: true,
+    config(md) {
+      md.use(markdownItDeflist)
+    }
+  }
 })

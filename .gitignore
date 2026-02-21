@@ -1,1 +1,37 @@
+# Gradle
+.gradle/
+build/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+out/
+
+# Gradle wrapper
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+.vscode/
+*.swp
+*.swo
+*~
+
+# Node
 **/node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Kotlin
+.kotlin/

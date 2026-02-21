@@ -71,6 +71,13 @@
 }
 
 /**
+ * Sizes
+ * -------------------------------------------------------------------------- */
+:root {
+  --vp-d-paragraph-bottom: 16px;
+}
+
+/**
  * Component: Button
  * -------------------------------------------------------------------------- */
 
@@ -137,3 +144,13 @@
   --docsearch-primary-color: var(--vp-c-brand-1) !important;
 }
 
+.vp-doc {
+  dt, dfn {
+    font-style: normal;
+    font-variant-caps: small-caps;
+  }
+
+  dd {
+    margin-bottom: var(--vp-d-paragraph-bottom);
+  }
+}
