@@ -1,6 +1,5 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-import org.gradle.internal.declarativedsl.ignoreSomeNonDeclarativeSyntaxWeCurrentlyHaveNoSolutionFor
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
 plugins {
