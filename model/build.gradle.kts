@@ -49,3 +49,7 @@ repositories {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
 }
+
+val compileAll by tasks.registering {
+    dependsOn(kotlin.targets.flatMap { it.compilations.map { it.compileAllTaskName } })
+}
