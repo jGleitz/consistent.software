@@ -1,27 +1,33 @@
 package software.consistent.model
 
-import kotlin.jvm.JvmInline
+import kotlin.js.JsExport
 
-@JvmInline
-value class MString(val value: String) : MValue {
+@JsExport
+public data class MString(public val value: String) : MValue {
     override fun toString(): String = '"' + value + '"'
 }
 
-object TString : MType {
+@JsExport
+public object TString : MType {
     override fun toString(): String = "String"
 }
 
-@JvmInline
-value class MNumber(val value: Number) : MValue {
-    override fun toString() = value.toString()
+@JsExport
+public data class MNumber(public val value: Number) : MValue {
+    override fun toString(): String = value.toString()
 }
-object TNumber : MType {
+
+@JsExport
+public object TNumber : MType {
     override fun toString(): String = "Number"
 }
 
-class MSymbol(val description: String) : MValue {
-    override fun toString() = "#$description"
+@JsExport
+public class MSymbol(public val description: String) : MValue {
+    override fun toString(): String = "#$description"
 }
-object TSymbol : MType {
+
+@JsExport
+public object TSymbol : MType {
     override fun toString(): String = "Symbol"
 }

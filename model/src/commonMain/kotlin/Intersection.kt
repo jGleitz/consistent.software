@@ -1,6 +1,6 @@
 package software.consistent.model
 
-data class Intersection constructor(val types: List<MType>) : MType {
+internal data class Intersection constructor(val types: List<MType>) : MType {
     constructor(vararg types: MType) : this(types.toList())
 
     override fun normalize(): MType {
