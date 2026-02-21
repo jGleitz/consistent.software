@@ -1,16 +1,19 @@
 # See https://github.com/dorny/test-reporter?tab=readme-ov-file#recommended-setup-for-public-repositories
 # for more info on this workflow
 
-name: Test Reports
+name: Test Report
+
 on:
   workflow_run:
     workflows: [ CI ]
     types:
       - completed
+
 permissions:
   contents: read
   actions: read
   checks: write
+
 jobs:
   report:
     runs-on: ubuntu-latest
