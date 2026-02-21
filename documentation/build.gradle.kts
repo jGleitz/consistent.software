@@ -11,6 +11,7 @@ tasks.pnpmSetup.configure {
 
 val buildVitepressSite by tasks.registering(PnpmTask::class) {
     args = listOf("build")
+    dependsOn(tasks.pnpmInstall)
 
     inputs.dir(project.layout.projectDirectory.dir(".vitepress")).withPathSensitivity(RELATIVE)
     inputs.dir(project.layout.projectDirectory.dir("src")).withPathSensitivity(RELATIVE)
