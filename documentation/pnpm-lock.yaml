@@ -1725,7 +1725,7 @@ snapshots:
       - sugarss
       - terser
       - tsx
-      - typescript
+      - vue
       - universal-cookie
       - yaml
 

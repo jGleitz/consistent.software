@@ -36,5 +36,8 @@ export default defineConfig({
     config(md) {
       md.use(markdownItDeflist)
     }
-  }
+  },
+  outDir: "./build/site",
+  cacheDir: "./build/vitepress/cache",
+  srcDir: "./src/main/markdown"
 })

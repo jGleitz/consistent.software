@@ -1,1 +1,4 @@
-include(":model")
+include(
+    ":documentation",
+    ":model"
+)
