@@ -34,6 +34,12 @@ jobs:
       - name: Assemble
         run: ./gradlew compileAll assemble
 
+      - name: Upload Documentation
+        if: ${{ !cancelled() }}
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: documentation/build/site
+
       - name: Test
         run: ./gradlew allTests
 
@@ -43,11 +49,6 @@ jobs:
         with:
           name: test-results
           path: '**/build/test-results/'
-
-      - name: Upload Documentation
-        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
-        with:
-          path: documentation/build/site
 
   deploy:
     runs-on: ubuntu-latest
