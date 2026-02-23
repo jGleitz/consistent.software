@@ -5,7 +5,7 @@ name: Test Report
 
 on:
   workflow_run:
-    workflows: [ CI ]
+    workflows: [ Continuous Integration ]
     types:
       - completed
 
@@ -15,8 +15,10 @@ permissions:
   checks: write
 
 jobs:
-  report:
+  add:
+    name: Add
     runs-on: ubuntu-latest
+
     steps:
       - uses: dorny/test-reporter@b082adf0eced0765477756c2a610396589b8c637 # v2
         with:
