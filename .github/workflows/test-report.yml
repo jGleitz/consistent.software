@@ -5,7 +5,7 @@ name: Test Report
 
 on:
   workflow_run:
-    workflows: [Continuous Integration]
+    workflows: [Build]
     types:
       - completed
 

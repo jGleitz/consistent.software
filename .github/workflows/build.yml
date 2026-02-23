@@ -1,4 +1,4 @@
-name: Continuous Integration
+name: Build
 
 on:
   push:
@@ -6,12 +6,15 @@ on:
 
 jobs:
   should-run:
-    name: Check for Duplicate Run
+    name: Needed?
     runs-on: ubuntu-latest
+
     permissions:
       pull-requests: read
+
     outputs:
       result: ${{ steps.check.outputs.result }}
+
     steps:
       - name: Check for Open Pull Request
         id: check
@@ -27,11 +30,12 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-  assemble_and_test:
+  build:
     name: Assemble & Test
     needs: should-run
     if: needs.should-run.outputs.result == 'true'
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
 
@@ -44,7 +48,6 @@ jobs:
         with:
           java-version-file: .sdkmanrc
           distribution: temurin
-          cache: gradle
 
       - name: Set Up PNPM
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
@@ -58,20 +61,21 @@ jobs:
           cache: pnpm
           cache-dependency-path: documentation/pnpm-lock.yaml
 
-      - name: Configure Gradle
-        run: mkdir -p $HOME/.gradle && cp ./gradle.ci.properties $HOME/.gradle/gradle.properties
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
 
-      - name: Assemble
-        run: ./gradlew compileAll assemble
+      - name: Build
+        run: ./gradlew build --scan
 
       - name: Upload Documentation
         if: ${{ !cancelled() }}
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: documentation/build/site
-
-      - name: Test
-        run: ./gradlew allTests
 
       - name: Upload Test Results
         if: ${{ !cancelled() }}
@@ -84,7 +88,7 @@ jobs:
     name: Publish Documentation
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: assemble_and_test
+    needs: build
 
     permissions:
       pages: write

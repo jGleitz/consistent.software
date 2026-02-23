@@ -1,0 +1,26 @@
+name: Dependency Graph
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  submit:
+    name: Submit Dependency Graph
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set Up Java
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5
+        with:
+          java-version-file: .sdkmanrc
+          distribution: temurin
+
+      - name: Generate and Submit Dependency Graph
+        uses: gradle/actions/dependency-submission@v5
