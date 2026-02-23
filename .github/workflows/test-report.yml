@@ -27,4 +27,4 @@ jobs:
           path: '**/*.xml'
           reporter: java-junit
           max-annotations: '50'
-          fail-on-error: 'false'1
+          fail-on-error: 'false'
