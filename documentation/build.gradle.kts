@@ -23,10 +23,10 @@ val buildVitepressSite by tasks.registering(PnpmTask::class) {
 }
 
 val assemble =
-  tasks.named("assemble").configure {
+  tasks.named("assemble") {
     dependsOn(buildVitepressSite)
   }
 
-tasks.named("build").configure {
+tasks.named("build") {
   dependsOn(assemble)
 }

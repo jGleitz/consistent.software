@@ -87,7 +87,7 @@ val lint by tasks.registering {
   dependsOn("spotlessCheck")
 }
 
-tasks.named("check").configure {
+tasks.named("check") {
   dependsOn(lint)
 }
 
