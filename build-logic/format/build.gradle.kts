@@ -1,12 +1,11 @@
 plugins {
-    `kotlin-dsl`
+  `kotlin-dsl`
 }
 
 repositories {
-    gradlePluginPortal()
+  gradlePluginPortal()
 }
 
 dependencies {
-    implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.2.1")
+  implementation("com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.2.1")
 }
-

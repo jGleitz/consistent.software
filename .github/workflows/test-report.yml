@@ -5,7 +5,7 @@ name: Test Report
 
 on:
   workflow_run:
-    workflows: [ Continuous Integration ]
+    workflows: [Continuous Integration]
     types:
       - completed
 
@@ -24,7 +24,7 @@ jobs:
         with:
           artifact: test-results
           name: Test Results
-          path: '**/*.xml'
+          path: "**/*.xml"
           reporter: java-junit
-          max-annotations: '50'
-          fail-on-error: 'false'
+          max-annotations: "50"
+          fail-on-error: "false"

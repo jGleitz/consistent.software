@@ -13,7 +13,6 @@ gradle-app.setting
 !gradle/wrapper/gradle-wrapper.jar
 
 # IDE
-.idea/
 .project
 .classpath
 .c9/

@@ -1,0 +1,6 @@
+no-semi: true
+experimentalTernaries: true
+experimentalOperatorPosition: start
+# Prettier’s print width is not a hard maximum, so we choose a lower value than in .editorconfig
+# see https://prettier.io/docs/options#print-width
+printWidth: 100

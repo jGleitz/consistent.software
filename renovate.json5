@@ -1,5 +1,5 @@
 {
-    /* Simulate this configuration locally by running:
+  /* Simulate this configuration locally by running:
        podman run --rm \
            --mount type=bind,src="$(pwd)",dst=/repo \
            --workdir /repo \
@@ -8,22 +8,42 @@
            --env LOG_LEVEL=debug \
            renovate/renovate --dry-run=full --platform=local
     */
-    $schema: "https://docs.renovatebot.com/renovate-schema.json",
-    extends: [
-        "github>jGleitz/renovate-config:default.json5"
-    ],
-    customManagers: [
-        {
-            customType: "regex",
-            managerFilePatterns: [
-                "**/*.gradle.kts"
-            ],
-            matchStrings: [
-                'ktlint\\("(?<currentValue>[^"]+)"\\)'
-            ],
-            depNameTemplate: "com.pinterest.ktlint:ktlint-bom",
-            datasourceTemplate: "maven",
-            versioningTemplate: "gradle"
-        }
-    ]
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>jGleitz/renovate-config:default.json5"],
+  customManagers: [
+    // ktlint("1.8.0") inside a spotless {} block
+    {
+      customType: "regex",
+      managerFilePatterns: ["**/*.gradle.kts"],
+      matchStrings: ['ktlint\\("(?<currentValue>[\\d.]+)"\\)'],
+      depNameTemplate: "ktlint",
+      packageNameTemplate: "com.pinterest.ktlint:ktlint-bom",
+      datasourceTemplate: "maven",
+      versioningTemplate: "gradle",
+    },
+    // prettier("3.8.1") inside a spotless {} block
+    {
+      customType: "regex",
+      managerFilePatterns: ["**/*.gradle.kts"],
+      matchStrings: ['prettier\\("(?<currentValue>[\\d.]+)"\\)'],
+      datasourceTemplate: "npm",
+      depTypeTemplate: "devDependencies",
+      depNameTemplate: "prettier",
+    },
+    // prettier(mapOf(
+    //   "prettier" to "3.6.0",
+    //   "prettier-plugin-properties" to "0.3.1"
+    // ))
+    {
+      customType: "regex",
+      managerFilePatterns: ["**/*.gradle.kts"],
+      matchStringsStrategy: "recursive",
+      matchStrings: [
+        "prettier\\([^)]+\\)",
+        '"(?<depName>[^"]+)"\\s*to\\s*"(?<currentValue>[\\d.]+)"',
+      ],
+      datasourceTemplate: "npm",
+      depTypeTemplate: "devDependencies",
+    },
+  ],
 }

@@ -1,20 +1,23 @@
 ---
 title: Metamodel
 ---
+
 <!--@include: ./math-definitions.md-->
+
 # Metamodel
 
 ::: info Goal
-Define an architecture to represent a breadth of real-world entities as *structured data* (models).
-Specify *four operations* to act on models: create, read, update and delete (CRUD).
-Design a rich system of types, costraints and invariants, such that any CRUD operation always yields a *semantically correct* model.
+Define an architecture to represent a breadth of real-world entities as _structured data_ (models).
+Specify _four operations_ to act on models: create, read, update and delete (CRUD).
+Design a rich system of types, costraints and invariants, such that any CRUD operation always yields a _semantically correct_ model.
 :::
 
 We will define the following concepts:
- * [primitive data](#primitive-data)
- * models
- * identifiers
- * references
+
+- [primitive data](#primitive-data)
+- models
+- identifiers
+- references
 
 ## Types
 
@@ -27,6 +30,7 @@ We will define $\types$ throughout this document.
 
 The empty set $\emptyset$ is a type, representing the fact that an expression cannot take any valid value.
 An expression having $\emptyset$ as its type is an error.
+
 $$
     \emptyset\in\types
 $$
@@ -34,6 +38,7 @@ $$
 ### Union Types
 
 The <dfn>union type</dfn> $T_1\cup T_2$ of two types $T_1$ and $T_2$ is a type, representing _either_ $T_1$ or $T_2$:
+
 $$
     \forall T_1,T_2\in\types\colon \left(T_1\cup T_2\right)\in\types
 $$
@@ -41,6 +46,7 @@ $$
 ### Intersection Types
 
 The <dfn>intersection type</dfn> $T_1\cap T_2$ of two types $T_1$ and $T_2$ is a type, representing _both_ $T_1$ and $T_2$:
+
 $$
 \forall T_1,T_2\in\types\colon \left(T_1\cap T_2\right)\in\types
 $$
@@ -91,7 +97,7 @@ Value-based labels
 : A [sequence](https://en.wikipedia.org/wiki/Sequence) of [unicode characters](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G8085).
 
 Reference-based labels
-:  
+:
 
 We denote the set of labels $\labels$.
 
@@ -109,7 +115,3 @@ We denote the set of all model parts $\modelparts$.
 $$
     \modelparts \coloneqq \left\{L\rightarrow\types \:\mid\: L \subset\labels \,\land\, \lvert L\rvert \in\mathbb{N}^+ \right\}
 $$
-
-
-
-
