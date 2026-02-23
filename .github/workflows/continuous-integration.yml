@@ -33,7 +33,7 @@ jobs:
           cache-dependency-path: documentation/pnpm-lock.yaml
 
       - name: Configure Gradle
-        run: cp ./gradle.ci.properties $HOME/.gradle/gradle.properties
+        run: mkdir -p $HOME/.gradle && cp ./gradle.ci.properties $HOME/.gradle/gradle.properties
 
       - name: Assemble
         run: ./gradlew compileAll assemble
