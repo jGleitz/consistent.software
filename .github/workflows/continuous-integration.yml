@@ -58,6 +58,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: documentation/pnpm-lock.yaml
 
+      - name: Configure Gradle
+        run: mkdir -p $HOME/.gradle && cp ./gradle.ci.properties $HOME/.gradle/gradle.properties
+
       - name: Assemble
         run: ./gradlew compileAll assemble
 
@@ -75,7 +78,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: test-results
-          path: '**/build/test-results/'
+          path: "**/build/test-results/"
 
   publish_documentation:
     name: Publish Documentation
