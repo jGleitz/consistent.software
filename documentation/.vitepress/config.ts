@@ -30,7 +30,6 @@ export default defineConfig({
       provider: 'local'
     }
   },
-  base: "/consistent.software/",
   cleanUrls: true,
   markdown: {
     math: true,
