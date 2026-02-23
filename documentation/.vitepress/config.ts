@@ -1,5 +1,5 @@
-import { defineConfig } from "vitepress";
-import markdownItDeflist from "markdown-it-deflist";
+import { defineConfig } from "vitepress"
+import markdownItDeflist from "markdown-it-deflist"
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -37,10 +37,10 @@ export default defineConfig({
   markdown: {
     math: true,
     config(md) {
-      md.use(markdownItDeflist);
+      md.use(markdownItDeflist)
     },
   },
   outDir: "./build/site",
   cacheDir: "./build/vitepress/cache",
   srcDir: "./src/main/markdown",
-});
+})

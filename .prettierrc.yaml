@@ -1,4 +1,4 @@
-no-semi: true
+semi: false
 experimentalTernaries: true
 experimentalOperatorPosition: start
 # Prettier’s print width is not a hard maximum, so we choose a lower value than in .editorconfig
