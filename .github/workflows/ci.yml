@@ -2,13 +2,14 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
   pull_request:
 
 jobs:
   ci:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout
