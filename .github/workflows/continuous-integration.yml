@@ -16,7 +16,7 @@ jobs:
       - name: Check for Open Pull Request
         id: check
         run: |
-          if [[ "$GITHUB_EVENT_NAME" == "push" ]]; then
+          if [[ "$GITHUB_EVENT_NAME" == "push" && "$GITHUB_REF_NAME" != "main" ]]; then
             open_prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REF_NAME" --state open --json number --jq 'length')
             if [[ "$open_prs" -gt 0 ]]; then
               echo "result=false" >> "$GITHUB_OUTPUT"
