@@ -1,6 +1,8 @@
 package software.consistent.model
 
-internal data class Intersection constructor(val types: List<MType>) : MType {
+internal data class Intersection constructor(
+    val types: List<MType>,
+) : MType {
     constructor(vararg types: MType) : this(types.toList())
 
     override fun normalize(): MType {
@@ -15,9 +17,10 @@ internal data class Intersection constructor(val types: List<MType>) : MType {
     override fun toString() = types.joinToString(prefix = "(", separator = " & ", postfix = ")")
 
     companion object {
-        private fun flatten(type: MType): Sequence<MType> = when (type) {
-            is Intersection -> type.types.asSequence()
-            else -> sequenceOf(type)
-        }
+        private fun flatten(type: MType): Sequence<MType> =
+            when (type) {
+                is Intersection -> type.types.asSequence()
+                else -> sequenceOf(type)
+            }
     }
 }

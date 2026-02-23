@@ -3,7 +3,9 @@ package software.consistent.model
 import kotlin.js.JsExport
 
 @JsExport
-public data class MString(public val value: String) : MValue {
+public data class MString(
+    public val value: String,
+) : MValue {
     override fun toString(): String = '"' + value + '"'
 }
 
@@ -13,7 +15,9 @@ public object TString : MType {
 }
 
 @JsExport
-public data class MNumber(public val value: Number) : MValue {
+public data class MNumber(
+    public val value: Number,
+) : MValue {
     override fun toString(): String = value.toString()
 }
 
@@ -23,7 +27,9 @@ public object TNumber : MType {
 }
 
 @JsExport
-public class MSymbol(public val description: String) : MValue {
+public class MSymbol(
+    public val description: String,
+) : MValue {
     override fun toString(): String = "#$description"
 }
 

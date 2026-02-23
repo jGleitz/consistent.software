@@ -2,6 +2,7 @@ import com.github.gradle.node.pnpm.task.PnpmTask
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 
 plugins {
+    id("format")
     id("com.github.node-gradle.node") version "7.1.0"
 }
 
@@ -21,10 +22,11 @@ val buildVitepressSite by tasks.registering(PnpmTask::class) {
     outputs.cacheIf { true }
 }
 
-val assemble by tasks.registering {
-    dependsOn(buildVitepressSite)
-}
+val assemble =
+    tasks.named("assemble").configure {
+        dependsOn(buildVitepressSite)
+    }
 
-val build by tasks.registering {
+tasks.named("build").configure {
     dependsOn(assemble)
 }
