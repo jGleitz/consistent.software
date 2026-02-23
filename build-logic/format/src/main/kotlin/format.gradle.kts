@@ -1,6 +1,7 @@
 import com.diffplug.gradle.spotless.FormatExtension
 
 plugins {
+  base
   id("com.diffplug.spotless")
 }
 
