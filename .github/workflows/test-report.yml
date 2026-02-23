@@ -15,8 +15,8 @@ permissions:
   checks: write
 
 jobs:
-  add:
-    name: Add
+  add_report:
+    name: Annotate Test Results on Pull Request
     runs-on: ubuntu-latest
 
     steps:
@@ -27,4 +27,4 @@ jobs:
           path: '**/*.xml'
           reporter: java-junit
           max-annotations: '50'
-          fail-on-error: 'false'
+          fail-on-error: 'false'1
