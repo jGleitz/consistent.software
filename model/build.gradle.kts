@@ -37,7 +37,7 @@ kotlin {
   sourceSets {
     named("nonNativeTest") {
       dependencies {
-        implementation("io.kotest:kotest-framework-engine:6.1.3")
+        implementation("io.kotest:kotest-framework-engine:6.1.4")
         implementation("ch.tutteli.atrium:atrium-fluent:1.2.0")
       }
     }
