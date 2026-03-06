@@ -7,17 +7,16 @@ import software.consistent.model.TString
 import software.consistent.model.TSymbol
 
 object TestTypes {
+  val strings = sequenceOf(MString("foo"), TString)
+  val numbers = sequenceOf(MNumber(42), TNumber)
+  val symbols = sequenceOf(MSymbol("test"), TSymbol)
+
   val all: Sequence<MType> =
-    sequenceOf(
-      MString("foo"),
-      TString,
-      MString("foo") union MString("bar"),
-      (MString("foo") union MString("bar")) intersect (MString("bar") union MString("baz")),
-      MNumber(42),
-      TNumber,
-      MSymbol("test"),
-      TSymbol,
-    )
+    strings + numbers + symbols +
+      sequenceOf(
+        MString("foo") union MString("bar"),
+        (MString("foo") union MString("bar")) intersect (MString("bar") union MString("baz")),
+      )
 
   val withSupertypes: Sequence<WithSupertype> =
     sequenceOf(

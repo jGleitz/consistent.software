@@ -1,6 +1,6 @@
 package software.consistent.model
 
-internal data class Intersection constructor(
+internal data class Intersection(
   val types: List<MType>,
 ) : MType {
   constructor(vararg types: MType) : this(types.toList())
@@ -13,6 +13,8 @@ internal data class Intersection constructor(
       else -> Intersection(typeSet)
     }
   }
+
+  override fun includedBy(other: MType): Boolean = types.all { it.includedBy(other) }
 
   override fun toString() = types.joinToString(prefix = "(", separator = " & ", postfix = ")")
 

@@ -1,12 +1,13 @@
 package software.consistent.model
 
-import kotlin.js.JsExport
-import kotlin.js.JsName
-
-@JsExport
-public data class MRecord(
+internal data class MRecord(
   val entries: Map<String, MType>,
-) {
-  @JsName("of")
-  public constructor(vararg entries: Pair<String, MType>) : this(entries.toMap())
+) : MType {
+  constructor(vararg entries: Pair<String, MType>) : this(entries.toMap())
+
+  override fun includedBy(other: MType): Boolean =
+    other is MRecord &&
+      entries.all { (key, type) ->
+        other.entries[key]?.let { type.includedBy(it) } ?: true
+      }
 }

@@ -1,39 +1,43 @@
 package software.consistent.model
 
-import kotlin.js.JsExport
+internal data class MString(
+  val value: String,
+) : MType {
+  override fun includedBy(other: MType): Boolean = other == this || other == TString
 
-@JsExport
-public data class MString(
-  public val value: String,
-) : MValue {
   override fun toString(): String = '"' + value + '"'
 }
 
-@JsExport
-public object TString : MType {
+internal object TString : MType {
+  override fun includedBy(other: MType): Boolean = other == TString
+
   override fun toString(): String = "String"
 }
 
-@JsExport
-public data class MNumber(
-  public val value: Number,
-) : MValue {
+internal data class MNumber(
+  val value: Number,
+) : MType {
+  override fun includedBy(other: MType): Boolean = other == this || other == TNumber
+
   override fun toString(): String = value.toString()
 }
 
-@JsExport
-public object TNumber : MType {
+internal object TNumber : MType {
+  override fun includedBy(other: MType): Boolean = other == TNumber
+
   override fun toString(): String = "Number"
 }
 
-@JsExport
-public class MSymbol(
-  public val description: String,
-) : MValue {
+internal class MSymbol(
+  val description: String,
+) : MType {
   override fun toString(): String = "#$description"
+
+  override fun includedBy(other: MType): Boolean = other == this || other == TSymbol
 }
 
-@JsExport
-public object TSymbol : MType {
+internal object TSymbol : MType {
+  override fun includedBy(other: MType): Boolean = other == TSymbol
+
   override fun toString(): String = "Symbol"
 }

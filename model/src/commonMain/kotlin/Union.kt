@@ -1,6 +1,6 @@
 package software.consistent.model
 
-internal data class Union constructor(
+internal data class Union(
   val types: List<MType>,
 ) : MType {
   constructor(vararg types: MType) : this(types.toList())
@@ -13,6 +13,8 @@ internal data class Union constructor(
       else -> Union(typeSet)
     }
   }
+
+  override fun includedBy(other: MType): Boolean = types.any { it.includedBy(other) }
 
   override fun toString() = types.joinToString(prefix = "(", separator = " | ", postfix = ")")
 

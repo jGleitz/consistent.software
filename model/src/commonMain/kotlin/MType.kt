@@ -9,6 +9,8 @@ public interface MType {
   public infix fun intersect(other: MType): MType = Intersection(this, other)
 
   public fun normalize(): MType = this
-}
 
-public interface MValue : MType
+  public fun includedBy(other: MType): Boolean
+
+  public fun includes(other: MType): Boolean = other.includedBy(this)
+}
