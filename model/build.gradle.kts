@@ -43,7 +43,7 @@ kotlin {
     }
     jvmTest {
       dependencies {
-        implementation("io.kotest:kotest-runner-junit5:6.1.4")
+        implementation("io.kotest:kotest-runner-junit5:6.1.5")
       }
     }
   }
