@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 plugins {
   kotlin("multiplatform") version "2.3.20"
   id("com.google.devtools.ksp") version "2.3.6"
-  id("io.kotest") version "6.1.7"
+  id("io.kotest") version "6.1.8"
   id("format")
 }
 
