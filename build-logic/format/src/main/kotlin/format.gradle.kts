@@ -32,7 +32,7 @@ spotless {
     from(projectDir) {
       include("**/*.md")
     }
-    prettier("3.8.2").configFile(prettierRc)
+    prettier("3.8.3").configFile(prettierRc)
   }
 
   format("json") {
@@ -40,14 +40,14 @@ spotless {
       include("**/*.json")
       include("**/*.json5")
     }
-    prettier("3.8.2").configFile(prettierRc)
+    prettier("3.8.3").configFile(prettierRc)
   }
 
   format("yaml") {
     from(projectDir) {
       include("**/*.yml")
     }
-    prettier("3.8.2").configFile(prettierRc)
+    prettier("3.8.3").configFile(prettierRc)
   }
 
   format("typescript") {
@@ -55,14 +55,14 @@ spotless {
       include("**/*.ts")
       include("**/*.tsx")
     }
-    prettier("3.8.2").configFile(prettierRc)
+    prettier("3.8.3").configFile(prettierRc)
   }
 
   format("css") {
     from(projectDir) {
       include("**/*.css")
     }
-    prettier("3.8.2").configFile(prettierRc)
+    prettier("3.8.3").configFile(prettierRc)
   }
 
   format("properties") {
@@ -71,7 +71,7 @@ spotless {
     }
     prettier(
       mapOf(
-        "prettier" to "3.8.2",
+        "prettier" to "3.8.3",
         "prettier-plugin-properties" to "0.3.1",
       ),
     ).configFile(prettierRc)
