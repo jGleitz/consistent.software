@@ -16,7 +16,7 @@ importers:
         version: 5.2.0
       vitepress:
         specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17(markdown-it-mathjax3@5.2.0)(postcss@8.5.14)
+        version: 2.0.0-alpha.17(markdown-it-mathjax3@5.2.0)(postcss@8.5.15)
       vue:
         specifier: 3.5.34
         version: 3.5.34
@@ -205,8 +205,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@iconify-json/simple-icons@1.2.82':
-    resolution: {integrity: sha512-4p978qHx8eD/QBOhgBzp/p7uS3OO2KCnVpFPJTUvuhuDXv1Hr4RcxcZ5MWc6ptkf/3Dlb1xb23068OtPyx10mA==}
+  '@iconify-json/simple-icons@1.2.83':
+    resolution: {integrity: sha512-6Pp9V++XisT9RKH7FB4RLPqUDzcmLtSma0ovOEIoEWGrXtHwBFsH7oN1z8vvCVCb95fb87QgR46/zRLyN9Y3kg==}
 
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
@@ -685,8 +685,8 @@ packages:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
     engines: {node: '>=12'}
 
-  postcss@8.5.14:
-    resolution: {integrity: sha512-SoSL4+OSEtR99LHFZQiJLkT59C5B1amGO1NzTwj7TT1qCUgUO6hxOvzkOYxD+vMrXBM3XJIKzokoERdqQq/Zmg==}
+  postcss@8.5.15:
+    resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
     engines: {node: ^10 || ^12 || >=14}
 
   property-information@7.1.0:
@@ -919,7 +919,7 @@ snapshots:
   '@esbuild/win32-x64@0.27.7':
     optional: true
 
-  '@iconify-json/simple-icons@1.2.82':
+  '@iconify-json/simple-icons@1.2.83':
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -1132,7 +1132,7 @@ snapshots:
       '@vue/shared': 3.5.34
       estree-walker: 2.0.2
       magic-string: 0.30.21
-      postcss: 8.5.14
+      postcss: 8.5.15
       source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.5.34':
@@ -1344,7 +1344,7 @@ snapshots:
 
   picomatch@4.0.4: {}
 
-  postcss@8.5.14:
+  postcss@8.5.15:
     dependencies:
       nanoid: 3.3.12
       picocolors: 1.1.1
@@ -1462,18 +1462,18 @@ snapshots:
       esbuild: 0.27.7
       fdir: 6.5.0(picomatch@4.0.4)
       picomatch: 4.0.4
-      postcss: 8.5.14
+      postcss: 8.5.15
       rollup: 4.60.4
       tinyglobby: 0.2.16
     optionalDependencies:
       fsevents: 2.3.3
 
-  vitepress@2.0.0-alpha.17(markdown-it-mathjax3@5.2.0)(postcss@8.5.14):
+  vitepress@2.0.0-alpha.17(markdown-it-mathjax3@5.2.0)(postcss@8.5.15):
     dependencies:
       '@docsearch/css': 4.6.3
       '@docsearch/js': 4.6.3
       '@docsearch/sidepanel-js': 4.6.3
-      '@iconify-json/simple-icons': 1.2.82
+      '@iconify-json/simple-icons': 1.2.83
       '@shikijs/core': 3.23.0
       '@shikijs/transformers': 3.23.0
       '@shikijs/types': 3.23.0
@@ -1491,7 +1491,7 @@ snapshots:
       vue: 3.5.34
     optionalDependencies:
       markdown-it-mathjax3: 5.2.0
-      postcss: 8.5.14
+      postcss: 8.5.15
     transitivePeerDependencies:
       - '@types/node'
       - async-validator
