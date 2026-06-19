@@ -1,3 +1,15 @@
 rootProject.name = "build-logic"
 
-include("format")
+dependencyResolutionManagement {
+  versionCatalogs {
+    create("buildLibs") {
+      from(files("../gradle/buildLibs.versions.toml"))
+    }
+  }
+}
+
+include(
+  "format",
+  "multiplatform",
+  "nodejs",
+)

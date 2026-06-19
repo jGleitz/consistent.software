@@ -7,8 +7,9 @@ repositories {
 }
 
 dependencies {
-  implementation(buildLibs.plugin.spotless)
-  implementation(project(":nodejs"))
+  implementation(buildLibs.plugin.kotlin.multiplatform)
+  implementation(buildLibs.plugin.kotest)
+  implementation(buildLibs.plugin.ksp)
 }
 
 tasks.validatePlugins {

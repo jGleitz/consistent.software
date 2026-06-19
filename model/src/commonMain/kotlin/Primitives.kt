@@ -9,7 +9,7 @@ internal data class MString(
 }
 
 internal object TString : MType {
-  override fun includedBy(other: MType): Boolean = other == TString
+  override fun includedBy(other: MType): Boolean = other == TString || other.includes(this)
 
   override fun toString(): String = "String"
 }

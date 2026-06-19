@@ -1,18 +1,18 @@
+import com.github.gradle.node.NodePlugin
+import com.github.gradle.node.pnpm.task.PnpmInstallTask
 import com.github.gradle.node.pnpm.task.PnpmTask
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 
 plugins {
+  id("nodejs")
   id("format")
-  id("com.github.node-gradle.node") version "7.1.0"
 }
 
-tasks.pnpmSetup.configure {
-  enabled = false
-}
+val pnpmInstall = nodeJs.registerPnpmInstall()
 
 val buildVitepressSite by tasks.registering(PnpmTask::class) {
   args = listOf("build")
-  dependsOn(tasks.pnpmInstall)
+  dependsOn(pnpmInstall)
 
   inputs.dir(project.layout.projectDirectory.dir(".vitepress")).withPathSensitivity(RELATIVE)
   inputs.dir(project.layout.projectDirectory.dir("src")).withPathSensitivity(RELATIVE)

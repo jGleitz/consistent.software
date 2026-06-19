@@ -1,0 +1,7 @@
+[versions]
+kotest = "6.1.4"
+
+[libraries]
+kotest-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
+kotest-runner-junit5 = {module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+atrium-fluent = "ch.tutteli.atrium:atrium-fluent:1.2.0"
