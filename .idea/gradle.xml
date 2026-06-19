@@ -11,6 +11,8 @@
                 <projects>
                   <project path="$PROJECT_DIR$/build-logic" />
                   <project path="$PROJECT_DIR$/build-logic/format" />
+                  <project path="$PROJECT_DIR$/build-logic/multiplatform" />
+                  <project path="$PROJECT_DIR$/build-logic/nodejs" />
                 </projects>
               </build>
             </builds>
@@ -22,8 +24,13 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/build-logic/format" />
+            <option value="$PROJECT_DIR$/build-logic/multiplatform" />
+            <option value="$PROJECT_DIR$/build-logic/nodejs" />
             <option value="$PROJECT_DIR$/documentation" />
+            <option value="$PROJECT_DIR$/json" />
             <option value="$PROJECT_DIR$/model" />
+            <option value="$PROJECT_DIR$/parsers" />
+            <option value="$PROJECT_DIR$/parsers/json" />
           </set>
         </option>
       </GradleProjectSettings>

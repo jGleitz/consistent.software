@@ -1,13 +1,20 @@
 import com.diffplug.gradle.spotless.FormatExtension
+import com.diffplug.gradle.spotless.SpotlessTask
 
 plugins {
   base
-  id("com.diffplug.spotless")
+  com.diffplug.spotless
+  id("nodejs")
 }
 
 repositories {
   mavenCentral() // to download dependencies of the checkers
 }
+
+// TODO move into dependency catalog
+val prettierVersion = "3.8.3"
+// TODO move into dependency catalog
+val klintVersion = "1.8.0"
 
 val prettierRc = rootProject.projectDir.resolve(".prettierrc.yaml")
 
@@ -17,7 +24,7 @@ spotless {
       from(projectDir.resolve("src")) {
         include("**/*.kt")
       }
-      ktlint("1.8.0")
+      ktlint(klintVersion)
     }
   }
 
@@ -25,14 +32,14 @@ spotless {
     from(projectDir) {
       include("**/*.gradle.kts")
     }
-    ktlint("1.8.0")
+    ktlint(klintVersion)
   }
 
   format("markdown") {
     from(projectDir) {
       include("**/*.md")
     }
-    prettier("3.8.3").configFile(prettierRc)
+    csPrettier()
   }
 
   format("json") {
@@ -40,14 +47,14 @@ spotless {
       include("**/*.json")
       include("**/*.json5")
     }
-    prettier("3.8.3").configFile(prettierRc)
+    csPrettier()
   }
 
   format("yaml") {
     from(projectDir) {
       include("**/*.yml")
     }
-    prettier("3.8.3").configFile(prettierRc)
+    csPrettier()
   }
 
   format("typescript") {
@@ -55,27 +62,25 @@ spotless {
       include("**/*.ts")
       include("**/*.tsx")
     }
-    prettier("3.8.3").configFile(prettierRc)
+    csPrettier()
   }
 
   format("css") {
     from(projectDir) {
       include("**/*.css")
     }
-    prettier("3.8.3").configFile(prettierRc)
+    csPrettier()
   }
 
   format("properties") {
     from(projectDir) {
       include("**/*.properties")
+      // this file is auto-updated by Renovate & Gradle, which have their own formatting rules
+      exclude("gradle/wrapper/gradle-wrapper.properties")
     }
-    prettier(
-      mapOf(
-        "prettier" to "3.8.3",
-        "prettier-plugin-properties" to "0.3.1",
-      ),
-    ).configFile(prettierRc)
-      .config(mapOf("plugins" to listOf("prettier-plugin-properties")))
+    csPrettier(
+      "prettier-plugin-properties" to "0.3.1",
+    ).config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
 }
 
@@ -126,3 +131,26 @@ fun FormatExtension.from(
     config.execute(this)
   },
 )
+
+fun FormatExtension.csPrettier(vararg plugins: Pair<String, String>): FormatExtension.PrettierConfig =
+  configurePrettier(
+    prettier(
+      mapOf(
+        "prettier" to prettierVersion,
+        *plugins,
+      ),
+    ),
+  )
+
+fun FormatExtension.csPrettier(): FormatExtension.PrettierConfig = configurePrettier(prettier(prettierVersion))
+
+private fun Project.configurePrettier(prettier: FormatExtension.PrettierConfig) =
+  prettier.configFile(prettierRc).nodeExecutable(nodeJs.nodeExecutable).npmExecutable(nodeJs.npmExecutable)
+
+afterEvaluate {
+  tasks.withType<SpotlessTask>().configureEach {
+    if (stepsInternalRoundtrip.steps.any { it.name == "prettier-format" }) {
+      dependsOn(nodeJs.npmSetupTask)
+    }
+  }
+}

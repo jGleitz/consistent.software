@@ -7,8 +7,7 @@ repositories {
 }
 
 dependencies {
-  implementation(buildLibs.plugin.spotless)
-  implementation(project(":nodejs"))
+  api(buildLibs.plugin.nodejs)
 }
 
 tasks.validatePlugins {
