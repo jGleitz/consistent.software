@@ -5,5 +5,5 @@ kotlin-multiplatform = "2.3.10"
 plugin-kotlin-multiplatform = {module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin-multiplatform" }
 plugin-spotless = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.3.0"
 plugin-kotest = "io.kotest:io.kotest.gradle.plugin:6.1.4"
-plugin-ksp = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.6"
+plugin-ksp = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.9"
 plugin-nodejs = "com.github.node-gradle.node:com.github.node-gradle.node.gradle.plugin:7.1.0"
