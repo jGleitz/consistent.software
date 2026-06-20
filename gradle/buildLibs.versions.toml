@@ -1,5 +1,5 @@
 [versions]
-kotlin-multiplatform = "2.3.10"
+kotlin-multiplatform = "2.4.0"
 
 [libraries]
 plugin-kotlin-multiplatform = {module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin-multiplatform" }
