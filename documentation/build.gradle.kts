@@ -10,7 +10,7 @@ plugins {
 
 val pnpmInstall = nodeJs.registerPnpmInstall()
 
-val buildVitepressSite by tasks.registering(PnpmTask::class) {
+val buildVitepressSite = tasks.register<PnpmTask>("buildVitepressSite") {
   args = listOf("build")
   dependsOn(pnpmInstall)
 
