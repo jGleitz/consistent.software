@@ -1,0 +1,2 @@
+[libraries]
+ktreesitter-runtime = "io.github.tree-sitter:ktreesitter:0.25.1"

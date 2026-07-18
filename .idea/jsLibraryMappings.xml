@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <excludedPredefinedLibrary name="consistent.software/parsers/json/build/spotless-prettier-node-modules-a974065d407413eff8cc1c65ed6d0dc1/node_modules" />
+  </component>
+</project>
