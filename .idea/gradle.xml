@@ -27,10 +27,7 @@
             <option value="$PROJECT_DIR$/build-logic/multiplatform" />
             <option value="$PROJECT_DIR$/build-logic/nodejs" />
             <option value="$PROJECT_DIR$/documentation" />
-            <option value="$PROJECT_DIR$/json" />
             <option value="$PROJECT_DIR$/model" />
-            <option value="$PROJECT_DIR$/parsers" />
-            <option value="$PROJECT_DIR$/parsers/json" />
           </set>
         </option>
       </GradleProjectSettings>
