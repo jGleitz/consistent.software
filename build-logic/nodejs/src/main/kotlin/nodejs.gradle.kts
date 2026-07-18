@@ -36,7 +36,7 @@ if (project.path == rootProject.path) {
   val nodeBinDir = nodePath.computeNodeBinDir(nodeExtension.resolvedNodeDir, nodeExtension.resolvedPlatform)
   val nodeExecutable = computeNodeExec(nodeExtension, nodeBinDir).map(::File)
 
-  val linkNodeInstallation by project.tasks.registering(SymlinkDirTask::class) {
+  val linkNodeInstallation = project.tasks.register<SymlinkDirTask>("linkNodeInstallation") {
     group = NodePlugin.NODE_GROUP
     dependsOn(NodeSetupTask.NAME)
     mustRunAfter(NpmSetupTask.NAME, PnpmSetupTask.NAME)
@@ -44,7 +44,7 @@ if (project.path == rootProject.path) {
     link = nodeJsExtension.nodeDir
   }
 
-  val linkNodeBinary by project.tasks.registering(SymlinkFileTask::class) {
+  val linkNodeBinary = project.tasks.register<SymlinkFileTask>("linkNodeBinary") {
     group = NodePlugin.NODE_GROUP
     dependsOn(NodeSetupTask.NAME)
     mustRunAfter(NpmSetupTask.NAME, PnpmSetupTask.NAME)

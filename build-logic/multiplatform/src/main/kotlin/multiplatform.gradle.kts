@@ -8,6 +8,6 @@ repositories {
   mavenCentral()
 }
 
-val compileAll by tasks.registering {
+val compileAll = tasks.register("compileAll") {
   dependsOn(kotlin.targets.flatMap { target -> target.compilations.map { it.compileAllTaskName } })
 }
