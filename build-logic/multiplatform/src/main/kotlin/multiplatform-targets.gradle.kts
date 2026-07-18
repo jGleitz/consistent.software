@@ -2,8 +2,17 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 
+val jvmMajorVersion =
+  Regex("""(?m)^java=(\d+)""")
+    .find(rootProject.projectDir.resolve(".sdkmanrc").readText())
+    ?.groupValues
+    ?.get(1)
+    ?.toInt()
+    ?: error("No java=<version> entry found in .sdkmanrc")
+
 kotlin {
   jvm()
+  jvmToolchain(jvmMajorVersion)
   js {
     browser()
     nodejs()
