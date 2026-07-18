@@ -79,6 +79,7 @@ spotless {
       exclude("gradle/wrapper/gradle-wrapper.properties")
     }
     csPrettier(
+      // TODO move into dependency catalog
       "prettier-plugin-properties" to "0.3.1",
     ).config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
@@ -117,6 +118,7 @@ fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree =
         "**/.gradle/**",
         "**/build/**",
         "**/.idea/**",
+        "**/kotlin-js-store/**",
       )
     }
     exclude("yarn.lock", "pnpm-lock.yaml")
