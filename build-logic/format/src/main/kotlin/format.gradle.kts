@@ -85,13 +85,15 @@ spotless {
   }
 }
 
-val format = tasks.register("format") {
-  dependsOn("spotlessApply")
-}
+val format =
+  tasks.register("format") {
+    dependsOn("spotlessApply")
+  }
 
-val lint = tasks.register("lint") {
-  dependsOn("spotlessCheck")
-}
+val lint =
+  tasks.register("lint") {
+    dependsOn("spotlessCheck")
+  }
 
 tasks.named("check") {
   dependsOn(lint)
