@@ -1,5 +1,5 @@
 [versions]
-kotest = "6.2.3"
+kotest = "6.2.4"
 
 [libraries]
 kotest-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
