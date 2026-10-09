@@ -74,7 +74,9 @@
  * Sizes
  * -------------------------------------------------------------------------- */
 :root {
+  --vp-d-paragraph-top: 16px;
   --vp-d-paragraph-bottom: 16px;
+  --vp-d-paragraph-line-height: 28px;
 }
 
 /**
@@ -145,5 +147,32 @@
 
   dd {
     margin-bottom: var(--vp-d-paragraph-bottom);
+
+    p,
+    ul,
+    ol {
+      margin-top: calc(var(--vp-d-paragraph-top) * 0.3);
+      margin-bottom: calc(var(--vp-d-paragraph-bottom) * 0.3);
+    }
   }
+
+  ul,
+  ol {
+    margin-left: 1.25em;
+
+    &.inline {
+      display: inline flex;
+      flex-wrap: wrap;
+      column-gap: 2.3em;
+      margin-top: 0;
+
+      & li {
+        margin: 0;
+      }
+    }
+  }
+}
+
+p.inline {
+  display: inline-block;
 }

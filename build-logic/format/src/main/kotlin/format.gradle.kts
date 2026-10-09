@@ -40,6 +40,7 @@ spotless {
       include("**/*.md")
     }
     csPrettier()
+    toggleOffOn("@formatter:off", "@formatter:on")
   }
 
   format("json") {

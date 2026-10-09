@@ -8,103 +8,113 @@ title: Metamodel
 
 ::: info Goal
 Define an architecture to represent a breadth of real-world entities as _structured data_ (models).
-Specify _four operations_ to act on models: create, read, update and delete (CRUD).
-Design a rich system of types, costraints and invariants, such that any CRUD operation always yields a _semantically correct_ model.
+Specify _two operations_ to act on models: reading and writing.
+Design a rich system of types, costraints, and invariants, such that any operation always yields a _semantically correct_ model.
 :::
 
 We will define the following concepts:
 
-- [primitive data](#primitive-data)
+- [values](#values)
 - models
 - identifiers
 - references
 
-## Types
+## Labels
 
-The metamodel knows types.
-Types are sets representing possible values some expression can take.
-We denote the set of all types $\types$, which is a set of sets.
-We will define $\types$ throughout this document.
+Going forward, we will need to assign labels to values.
+To be able to refer to labels in mathematical notation, we define the set $\labeldomain$ of all labels.
+By convention, we will understand strings in formulas typset in monospace font to be elements of $\labeldomain$, like $\label{name}$ or $\label{id}$.
 
-### Empty Type
+## Values
 
-The empty set $\emptyset$ is a type, representing the fact that an expression cannot take any valid value.
-An expression having $\emptyset$ as its type is an error.
+We denote the set of all model values $\valuedomain$. There are different kinds of values:
 
-$$
-    \emptyset\in\types
-$$
-
-### Union Types
-
-The <dfn>union type</dfn> $T_1\cup T_2$ of two types $T_1$ and $T_2$ is a type, representing _either_ $T_1$ or $T_2$:
-
-$$
-    \forall T_1,T_2\in\types\colon \left(T_1\cup T_2\right)\in\types
-$$
-
-### Intersection Types
-
-The <dfn>intersection type</dfn> $T_1\cap T_2$ of two types $T_1$ and $T_2$ is a type, representing _both_ $T_1$ and $T_2$:
-
-$$
-\forall T_1,T_2\in\types\colon \left(T_1\cap T_2\right)\in\types
-$$
-
-## Primitive Data
-
-A primitive datum is the atomic building block out of which models are specified.
-‘Atomic’ in the sense that a primitive datum is not composed of something else, and that it is indivisible.
-
-:::info Not Extensible
-We currently don’t plan for the types of primitive data to be extensible.
-Instead, the available primitive data types are baked into the metamodel.
-We might revise this decision if a compelling use case for externally defined primitive data types is found.
-:::
-
-The metamodel knows these primitive types:
-
+<!-- @formatter:off -->
 Numbers
-: A number is any [rational number](https://en.wikipedia.org/wiki/Rational_number).
-We denote the set of primitive numbers $\tNumber$.
+: A number is any of the [rational numbers](https://en.wikipedia.org/wiki/Rational_number), which we denote $\numberdomain$.
 
-Strings
-: A string is a finite [sequence](https://en.wikipedia.org/wiki/Sequence) of [unicode characters](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G8085).
-We denote the set of primitive strings $\tString$.
+  Examples:
+    - $-3$
+    - $0$
+    - $42$
+    - $\frac{11}{3}$
+    - $9\,223\,372\,036\,854\,775\,808$
+    {.inline}
 
-Tags
-: Tags are well-known values, distinct from other primitive data.
-We denote the set of primitive tags $\tTag$.
+<!-- Strings-->
+<!--: A string is a finite [sequence](https://en.wikipedia.org/wiki/Sequence) of [assigned code points in Unicode 17.0.0](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G18444).-->
+<!--We denote the set of string values $\stringdomain$.-->
 
-Any primitive datum forms a type:
+Bags
+: A bag is a finite [multiset](https://en.wikipedia.org/wiki/Multiset) of values.
+  We denote the set of bags over a set $X$ as $\bags{X}$.
+
+  Examples:
+    - $\left\{1, 2, 1, 2\right\}$
+    - $\left\{42\right\}$
+    - $\left\{\right\}$
+    - $\left\{\left\{0, \left\{0\right\}, 0 , 1\right\}, \left\{1, 1\right\}, 0\right\}$
+    {.inline}
+
+Lists
+: A list is a finite [sequence](https://en.wikipedia.org/wiki/Sequence) of values.
+  We denote the set of lists over a set $X$ as $\lists{X}$.
+
+  Examples:
+    - $\left(1, 2, 3, 4\right)$
+    - $\left(5, 0, 5\right)$
+    - $\left(\right)$
+    - $\left(\left(1\right), 0, \left\{1\right\}\right)$
+  {.inline}
+
+Records
+: Records assign [labels](#labels) to values.
+  They are finite, partial functions from labels to values.
+  We denote the set of records over a set $X$ as $\records{X}$.
+
+  Examples:
+    - $\left[\label{count}\mapsto 42\right]$
+    - $\left[\label{dice\_rolls}\mapsto \left\{3, 3, 1, 6\right\},\,\label{ball\_picks}\mapsto \left(0,0, 1,1,0\right)\right]$
+
+<!-- @formatter:on -->
+
+### Layered Construction
+
+The value kinds above are mutually recursive: bags, lists, and records contain values, which themselves may be bags, lists, or records. To give this a well-defined foundation, we construct $\valuedomain$ in layers.
+
+**Definition (Value Hierarchy).** We define an ascending sequence of sets $(\layer{n})_{n \in \mathbb{N}}$ by induction:
 
 $$
-\begin{align}
-    \forall n\in\tNumber &\colon \left\{n\right\}\in\types \\
-    \forall s\in\tString &\colon \left\{s\right\}\in\types \\
-    \forall t\in\tTag &\colon \left\{t\right\}\in\types \\
-\end{align}
+\begin{aligned}
+  \layer{0} &\coloneqq \numberdomain \\
+  \layer{n+1} &\coloneqq \layer{n} \;\sqcup\; \bags{\layer{n}} \;\sqcup\; \lists{\layer{n}} \;\sqcup\; \records{\layer{n}}
+\end{aligned}
 $$
+
+Each layer $\layer{n+1}$ contains all values from the previous layer $\layer{n}$, plus all bags, lists, and records formed from those values.
+
+**Definition (Value Domain).** The set of all values is the union of all layers:
+
+$$
+\valuedomain \coloneqq \bigcup_{n \in \mathbb{N}} \layer{n}
+$$
+
+**Theorem (Fixed Point).** $\valuedomain$ satisfies the equation:
+
+$$
+\valuedomain = \numberdomain \;\sqcup\; \bags{\valuedomain} \;\sqcup\; \lists{\valuedomain} \;\sqcup\; \records{\valuedomain}
+$$
+
+_Proof sketch._
+
+- ($\supseteq$): Numbers are in $\layer{0} \subseteq \valuedomain$. Any bag, list, or record over $\valuedomain$ involves finitely many values, all lying in some layer $\layer{N}$. Thus it belongs to $\layer{N+1} \subseteq \valuedomain$.
+- ($\subseteq$): By induction, each $\layer{n} \subseteq \numberdomain \sqcup \bags{\valuedomain} \sqcup \lists{\valuedomain} \sqcup \records{\valuedomain}$, so their union $\valuedomain$ is contained in the right-hand side. ∎
+
+**Theorem (Well-Foundedness).** Every value $v \in \valuedomain$ has a unique _minimal layer_ $\ell(v) \in \mathbb{N}$, the least $n$ such that $v \in \layer{n}$. If $v$ is a compound value (bag, list, or record), all its immediate constituents have strictly smaller layer: $\ell(\text{constituent}) < \ell(v)$.
+
+This ensures the [axiom of regularity](https://en.wikipedia.org/wiki/Axiom_of_regularity): there are no infinite descending chains of membership.
 
 ## Models
-
-### Labels
-
-A label asrcibes meaning to a datum.
-There are two types of labels:
-
-Value-based labels
-: A [sequence](https://en.wikipedia.org/wiki/Sequence) of [unicode characters](https://www.unicode.org/versions/Unicode17.0.0/core-spec/chapter-2/#G8085).
-
-Reference-based labels
-:
-
-We denote the set of labels $\labels$.
-
-::: tip Not Strings
-Labels are distinct from primitive strings!
-An label also does not form a type.
-:::
 
 ### Model Part
 
@@ -115,3 +125,5 @@ We denote the set of all model parts $\modelparts$.
 $$
     \modelparts \coloneqq \left\{L\rightarrow\types \:\mid\: L \subset\labels \,\land\, \lvert L\rvert \in\mathbb{N}^+ \right\}
 $$
+
+<!--@include: ./type-system.md-->

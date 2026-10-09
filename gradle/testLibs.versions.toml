@@ -3,5 +3,7 @@ kotest = "6.2.4"
 
 [libraries]
 kotest-framework = { module = "io.kotest:kotest-framework-engine", version.ref = "kotest" }
-kotest-runner-junit5 = {module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-property-extraArbs = "io.kotest:kotest-property-arbs:3.0.1"
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 atrium-fluent = "ch.tutteli.atrium:atrium-fluent:1.2.0"

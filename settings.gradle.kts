@@ -21,6 +21,8 @@ dependencyResolutionManagement {
 
 include(
   ":documentation",
+  ":library:exact-numbers",
+  ":library:monospace-layout",
   ":model",
 )
 

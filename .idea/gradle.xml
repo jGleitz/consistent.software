@@ -10,6 +10,7 @@
               <build path="$PROJECT_DIR$/build-logic" name="build-logic">
                 <projects>
                   <project path="$PROJECT_DIR$/build-logic" />
+                  <project path="$PROJECT_DIR$/build-logic/codedoc" />
                   <project path="$PROJECT_DIR$/build-logic/format" />
                   <project path="$PROJECT_DIR$/build-logic/multiplatform" />
                   <project path="$PROJECT_DIR$/build-logic/nodejs" />
@@ -23,10 +24,14 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/build-logic" />
+            <option value="$PROJECT_DIR$/build-logic/codedoc" />
             <option value="$PROJECT_DIR$/build-logic/format" />
             <option value="$PROJECT_DIR$/build-logic/multiplatform" />
             <option value="$PROJECT_DIR$/build-logic/nodejs" />
             <option value="$PROJECT_DIR$/documentation" />
+            <option value="$PROJECT_DIR$/library" />
+            <option value="$PROJECT_DIR$/library/exact-numbers" />
+            <option value="$PROJECT_DIR$/library/monospace-layout" />
             <option value="$PROJECT_DIR$/model" />
           </set>
         </option>

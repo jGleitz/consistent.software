@@ -9,6 +9,7 @@ dependencyResolutionManagement {
 }
 
 include(
+  "codedoc",
   "format",
   "multiplatform",
   "nodejs",

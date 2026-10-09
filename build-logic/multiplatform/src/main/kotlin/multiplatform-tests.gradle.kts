@@ -5,13 +5,15 @@ plugins {
 
 kotlin {
   sourceSets {
-    named("nonNativeTest") {
+    commonTest {
       dependencies {
         implementation(testLibs["kotest-framework"])
         implementation(testLibs["atrium-fluent"])
       }
     }
-    jvmTest {
+
+    // use named { it == "name"}.configureEach to configure the dependency only when the target is present, without requiring it.
+    named { it == "jvmTest" }.configureEach {
       dependencies {
         runtimeOnly(testLibs["kotest-runner-junit5"])
       }

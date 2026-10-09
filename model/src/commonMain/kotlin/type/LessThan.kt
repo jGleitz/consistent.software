@@ -1,0 +1,18 @@
+package software.consistent.model.type
+
+import software.consistent.model.type.solvers.DisjunctIntervalUnion
+import software.consistent.model.value.Value
+
+public sealed interface LessThan : Type {
+  public val comparisonValue: Value.Number
+
+  public companion object {
+    public operator fun invoke(comparisonValue: Value.Number): LessThan = LessThanImpl(comparisonValue)
+  }
+}
+
+private class LessThanImpl(override val comparisonValue: Value.Number) : LessThan,
+  SolvableType by UsingSolver(DisjunctIntervalUnion(1) {
+    it.appendBoundary(comparisonValue, isInclusive = false)
+    it.leftOpen = true
+  })
