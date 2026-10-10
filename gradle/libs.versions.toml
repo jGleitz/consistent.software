@@ -1,1 +1,5 @@
+# Don’t use the [versions] block to ensure dependencies use the same version. Instead, ensure that Renovate is set up to group their
+# updates. Renovate already has rules for many monorepos per default.
+
 [libraries]
+unicodewidth = "io.github.kotlinmania:unicode-width-kotlin:0.1.1"

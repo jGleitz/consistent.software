@@ -1,7 +1,7 @@
 plugins {
   id("nodejs")
   id("format")
-  kotlin("multiplatform") version buildLibs.versions.kotlin.multiplatform apply false
+  alias(buildLibs.plugins.kotlin.multiplatform) apply false
 }
 
 tasks.wrapper {
