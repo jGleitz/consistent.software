@@ -47,6 +47,18 @@ Only when a human and an agent both wrote content in the same commit, keep the h
 
 `--worktree` requires `extensions.worktreeConfig`. If Git rejects the command, stop and ask a maintainer; never write these settings to repository-wide or global configuration.
 
+## GitHub
+
+- Act on issues and PRs only as far as the task requires. Do not create unrelated issues, PRs, or releases.
+- Apart from commit authorship, you act on GitHub under the identity of the human who launched you.
+- Because GitHub shows that human as the author, end everything you write there with this footer: PR titles excluded, but PR descriptions, issues, comments, review comments, and discussion posts included. Use the same agent name as in your commit identity, and put a blank line before the footer so that it forms its own paragraph:
+
+  ```markdown
+  <sub>Written by the AI agent Agent Name.</sub>
+  ```
+
+  When you edit something you posted earlier, keep the footer. Don't add it to text a human wrote. If you change a human's text for any reason beyond checking TODO items, say what you changed in a separate comment that carries the footer.
+
 ## Branches and Pushes
 
 - Never commit to or push `main`. Changes reach it only through PRs.
