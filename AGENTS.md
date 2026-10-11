@@ -2,11 +2,18 @@
 
 Read the sibling [`README.md`](README.md) and the `README.md` of every directory you work in before you start. They are as binding as this file. The AI harness should inject relevant `AGENTS.md`s automatically, but not READMEs. `AGENT.md`s hold only agent-specific rules; everything humans need, too, lives in the READMEs.
 
+## Worktree vs In-Project Changes
+
+Before editing any files, judge whether your task shall be done in a separate worktree or in the current folder. Here is some guidance:
+
+  * If your task starts at a clean commit state and shall be committed, you most likely should use your own worktree.
+  * If your task makes sense only in the context of the current, dirty, project folder state and there is no other indication for using a worktree, you should likely edit the current folder.
+
+If you are unsure, ask the user for clarification on whether to use a worktree or the current folder.
+
 ## Worktrees
 
-If you work on a task on your own, you must do so in your own worktree. This does not apply when you’re called in to help or pair program in existing work.
-
-When applicable, every agent task shall use its own branch and its own worktree. Never share a worktree with another task or a human; taking over the worktree of a stopped agent is the one exception.
+When using a worktree, every agent task shall use its own branch and its own worktree. Never share a worktree with another task or a human; taking over the worktree of a stopped agent is the one exception.
 
 1. Fetch, then create the worktree under `../consistent.software-worktrees/<branch>` relative to the root checkout (this location survives reboots; create the directory if it is missing):
 
