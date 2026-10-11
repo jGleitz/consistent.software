@@ -10,6 +10,16 @@
     */
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["github>jGleitz/renovate-config:default.json5"],
+  packageRules: [
+    {
+      // VitePress 2.0.0-alpha.20 requires markdown-it-mathjax3@^4.
+      // Recheck VitePress's peerDependencies when upgrading VitePress and
+      // update or remove this restriction once newer plugin versions are supported.
+      matchManagers: ["npm"],
+      matchPackageNames: ["markdown-it-mathjax3"],
+      allowedVersions: "^4",
+    },
+  ],
   customManagers: [
     // pnpm = "12.11.2"
     {
