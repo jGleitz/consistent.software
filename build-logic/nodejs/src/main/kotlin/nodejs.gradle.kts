@@ -6,6 +6,7 @@ import com.github.gradle.node.task.NodeSetupTask
 import com.github.gradle.node.util.Platform
 import com.github.gradle.node.variant.VariantComputer
 import com.github.gradle.node.variant.computeNodeExec
+import org.gradle.api.artifacts.VersionCatalogsExtension
 
 val nodeJsExtension = project.extensions.create<NodeJsExtension>("nodeJs", project)
 
@@ -17,7 +18,15 @@ if (project.path == rootProject.path) {
 
 NodeExtension[project].apply {
   version = nodeJsExtension.nodeJsVersion
-  // TODO define the version of pnpm and have it updated by renovate
+  pnpmVersion =
+    provider {
+      project.extensions
+        .getByType<VersionCatalogsExtension>()
+        .named("buildLibs")
+        .findVersion("pnpm")
+        .get()
+        .requiredVersion
+    }
 
   // we don’t actually download anything in child projects, but the node plugin uses this property to
   // decide which file layout it expects
@@ -30,6 +39,10 @@ NodeExtension[project].apply {
 if (project.path == rootProject.path) {
   project.plugins.apply(NodePlugin::class.java)
   val nodeExtension = NodeExtension[project]
+  project.tasks.named<PnpmSetupTask>(PnpmSetupTask.NAME) {
+    // Approve pnpm's install scripts only for this project-local global installation.
+    args.add(nodeExtension.pnpmVersion.map { "--allow-scripts=pnpm@$it" })
+  }
   val nodePath = VariantComputer()
 
   val nodeDir = nodeExtension.resolvedNodeDir

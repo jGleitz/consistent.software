@@ -11,6 +11,15 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["github>jGleitz/renovate-config:default.json5"],
   customManagers: [
+    // pnpm = "12.11.2"
+    {
+      customType: "regex",
+      managerFilePatterns: ["/^gradle/buildLibs\\.versions\\.toml$/"],
+      matchStrings: ['(?:^|\\n)pnpm\\s*=\\s*"(?<currentValue>[^"]+)"'],
+      datasourceTemplate: "npm",
+      depNameTemplate: "pnpm",
+      versioningTemplate: "npm",
+    },
     // ktlint("1.8.0") inside a spotless {} block
     {
       customType: "regex",
