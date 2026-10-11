@@ -1,8 +1,10 @@
 package software.consistent.data.type.solvers
 
+import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.util.compareEach
 import software.consistent.data.value.Value
+import software.consistent.data.value.monospaceLayout
 
 internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue, ValueUnion<TValue>> {
   private class Positive<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : ValueUnion<TValue> {
@@ -14,7 +16,9 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun anyMember() = orderedMembers.first()
     override val members get() = orderedMembers.asSequence()
     override fun isFinite() = true
+    override fun isTriviallyEmpty() = isEmpty()
     override fun isEmpty() = orderedMembers.isEmpty()
+    override fun isTriviallyComplete() = false
     override fun isComplete() = false
 
     override fun cardinality(max: Int) = orderedMembers.size
@@ -48,6 +52,17 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
 
       is Negative<*> -> ComparisonCase.isLower
     }
+
+    override val monospaceLayout
+      get() = when (orderedMembers.size) {
+        0 -> Monospace.atom("∅")
+        1 -> orderedMembers.first().monospaceLayout
+        else -> Monospace.line("∪") {
+          orderedMembers.map { it.monospaceLayout }
+        }
+      }
+
+    override fun toString() = monospaceLayout.renderToString()
   }
 
   private class Negative<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : ValueUnion<TValue> {
@@ -56,15 +71,12 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     }
 
     override fun contains(value: TValue) = value !in orderedMembers
-
+    override fun isTriviallyEmpty() = false
     override fun isEmpty() = false
-
+    override fun isTriviallyComplete() = isComplete()
     override fun isComplete() = orderedMembers.isEmpty()
-
     override fun isFinite() = false
-
     override fun cardinality(max: Int) = throw mustNotRequestCardinalityOfInfiniteType()
-
     override fun anyMember() = TODO("Not yet implemented")
 
     override val members get() = throw mustNotRequestMembersOfInfiniteType()
@@ -97,6 +109,17 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
       is Positive<*> -> ComparisonCase.isHigher
       is Negative<TValue> -> compareEach(this.orderedMembers).toEach(other.orderedMembers, using = ::normalizationOrder).case
     }
+
+    override val monospaceLayout
+      get() = when (orderedMembers.size) {
+        0 -> Monospace.atom("AnySymbol") // TODO this class is supposed to be agnostic! We probably need a subclass.
+        1 -> orderedMembers.first().monospaceLayout.withPrefix("¬")
+        else -> Monospace.line("∩") {
+          orderedMembers.map { it.monospaceLayout.withPrefix("¬") }
+        }
+      }
+
+    override fun toString() = monospaceLayout.renderToString()
   }
 
   companion object {

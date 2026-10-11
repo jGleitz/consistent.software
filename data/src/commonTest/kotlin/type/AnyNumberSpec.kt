@@ -13,7 +13,7 @@ class AnyNumberSpec : DescribeSpec({
   describe(AnyNumber::class.simpleName!!) {
     it("contains any number") {
       checkAll(Arb.value.number()) { number ->
-        expect(AnyNumber()).toContain(number)
+        expect(AnyNumber()).toAllow(number)
       }
     }
 
@@ -21,7 +21,7 @@ class AnyNumberSpec : DescribeSpec({
       nameFn = { "contains no ${it.name}" },
       ValuePartition.entries.filter { it != Number }) { valuePartition ->
       checkAll(Arb.value(valuePartition)) { value ->
-        expect(AnyNumber()).notToContain(value)
+        expect(AnyNumber()).toForbid(value)
       }
     }
   }

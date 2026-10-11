@@ -1,36 +1,43 @@
-package software.consistent.model.formatting.monospacelayout
+package software.consistent.data.formatting.monospacelayout
 
-import software.consistent.model.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE
+import software.consistent.data.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE
 import kotlin.jvm.JvmInline
 
 @JvmInline
 internal value class LayoutTarget(private val out: Appendable) {
   @IgnorableReturnValue
   context(layout: LayoutContext)
-  internal fun append(value: Char) = apply {
-    out.append(value)
-    layout.state.position += 1
+  internal fun append(value: CharSequence) = when (value) {
+    is CharSequenceWithWidth -> append(value)
+    else -> append(value.toString())
   }
 
   @IgnorableReturnValue
   context(layout: LayoutContext)
-  internal fun append(value: CharSequence) = apply {
-    // we assume that value doesn’t contain newlines because all fragment implementation check their inputs
+  internal fun append(value: String) = apply {
+    // we assume that value doesn’t contain newlines because all fragment implementations check their inputs
     out.append(value)
-    layout.state.position += value.length
+    layout.state.remainingWidthBeforeLineBreak -= value.printWidth
+  }
+
+  @IgnorableReturnValue
+  context(layout: LayoutContext)
+  internal fun append(value: CharSequenceWithWidth) = apply {
+    // we assume that value doesn’t contain newlines because all fragment implementations check their inputs
+    out.append(value)
+    layout.state.remainingWidthBeforeLineBreak -= value.printWidth
   }
 
   @IgnorableReturnValue
   context(layout: LayoutContext)
   internal fun appendNewline() = apply {
     out.append(NEWLINE)
-    layout.state.position = 0
-    layout.state.boxesEntered = 0
+    layout.state.resetForNewLine()
   }
 
   @IgnorableReturnValue
   context(layout: LayoutContext)
-  internal fun appendIndent() = append(layout.state.indent)
+  internal fun appendIndent() = append(layout.state.currentIndent)
 
   @IgnorableReturnValue
   context(layout: LayoutContext)

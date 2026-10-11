@@ -13,7 +13,7 @@ class AnySymbolSpec : DescribeSpec({
   describe(AnySymbol::class.simpleName!!) {
     it("contains any symbol") {
       checkAll(Arb.value.symbol()) { symbol ->
-        expect(AnySymbol()).toContain(symbol)
+        expect(AnySymbol()).toAllow(symbol)
       }
     }
 
@@ -21,7 +21,7 @@ class AnySymbolSpec : DescribeSpec({
       nameFn = { "contains no ${it.name}" },
       ValuePartition.entries.filter { it != Symbol }) { valuePartition ->
       checkAll(Arb.value(valuePartition)) { value ->
-        expect(AnySymbol()).notToContain(value)
+        expect(AnySymbol()).toForbid(value)
       }
     }
   }

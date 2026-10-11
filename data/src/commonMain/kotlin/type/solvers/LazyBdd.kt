@@ -113,11 +113,10 @@ internal sealed interface LazyBdd<TValue, Atom : ValueSet.NormalizationComparabl
   abstract class Top<TValue, Atom : ValueSet.NormalizationComparable<TValue, Atom>, Bdd : LazyBdd<TValue, Atom, Bdd>> :
     LazyBdd<TValue, Atom, Bdd> {
     override fun contains(value: TValue) = true
-
+    override fun isTriviallyEmpty() = false
     override fun isEmpty() = false
-
+    override fun isTriviallyComplete() = true
     override fun isComplete() = true
-
     override fun isFinite() = false
 
     override fun cardinality(max: Int) = throw mustNotRequestCardinalityOfInfiniteType()
@@ -142,17 +141,13 @@ internal sealed interface LazyBdd<TValue, Atom : ValueSet.NormalizationComparabl
   abstract class Bottom<TValue, Atom : ValueSet.NormalizationComparable<TValue, Atom>, Bdd : LazyBdd<TValue, Atom, Bdd>> :
     LazyBdd<TValue, Atom, Bdd> {
     override fun contains(value: TValue) = false
-
+    override fun isTriviallyEmpty() = true
     override fun isEmpty() = true
-
+    override fun isTriviallyComplete() = false
     override fun isComplete() = false
-
     override fun isFinite() = true
-
     override fun cardinality(max: Int) = 0
-
     override fun anyMember() = null
-
     override val members get() = emptySequence<TValue>()
 
     override fun with(otherSet: Bdd) = otherSet

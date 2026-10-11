@@ -1,5 +1,6 @@
 package software.consistent.data.type.solvers
 
+import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.invariants.checkInvariant
 import software.consistent.data.value.Value
 import kotlin.jvm.JvmInline
@@ -41,10 +42,13 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     ): MapSolver = Node(discriminator, ifTrue, regardless, ifFalse)
 
     override fun top(): MapSolver = Top
-
     override fun bottom(): MapSolver = Bottom
 
+    override fun isTriviallyEmpty() = false
+
     override fun isEmpty() = searchConjunction { it.isEmpty().takeIf { r -> !r } } ?: true
+
+    override fun isTriviallyComplete() = false
 
     override fun isComplete() = (!this).isEmpty()
 
@@ -80,6 +84,32 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     override fun without(otherSet: MapSolver) = this overlapWith !otherSet
 
     override fun isSubsetOf(largerSet: MapSolver) = (this without largerSet).isEmpty()
+
+    override val monospaceLayout
+      get() = Monospace.line("∪", 3) {
+        when (ifTrue) {
+          Bottom -> Unit
+          Top -> -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+          else -> -Monospace.line("∩", 2) {
+            -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+            -ifTrue.monospaceLayout.containerWrappedIn("(", ")")
+          }
+        }
+        when (regardless) {
+          Bottom -> Unit
+          else -> -regardless.monospaceLayout.containerWrappedIn("(", ")")
+        }
+        when (ifFalse) {
+          Bottom -> Unit
+          Top -> -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+          else -> -Monospace.line("∩", 2) {
+            -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+            -ifFalse.monospaceLayout.containerWrappedIn("(", ")")
+          }
+        }
+      }
+
+    override fun toString() = monospaceLayout.renderToString()
   }
 
   private object Top : LazyBdd.Top<Value.Map, MapComponent, MapSolver>(), MapSolver {
@@ -91,6 +121,10 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       accumulator: Conjunction,
       consumer: (Conjunction) -> Result?
     ) = consumer(accumulator)
+
+    override val monospaceLayout get() = Monospace.atom("AnyMap")
+
+    override fun toString() = monospaceLayout.renderToString()
   }
 
   private object Bottom : LazyBdd.Bottom<Value.Map, MapComponent, MapSolver>(), MapSolver {
@@ -102,6 +136,10 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       accumulator: Conjunction,
       consumer: (Conjunction) -> Result?
     ) = null
+
+    override val monospaceLayout get() = Monospace.atom("∅")
+
+    override fun toString() = monospaceLayout.renderToString()
   }
 
   class Conjunction(
@@ -226,20 +264,27 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       consumer(positive, coveredNegatives)
     } else negativesIterator.withNext { negative ->
       val positiveNegativeKeyOverlap = positive.keys overlapWith negative.keys
-      if (!positiveNegativeKeyOverlap.isEmpty()) {
-        searchPartitions(
+      if (positiveNegativeKeyOverlap.isEmpty()) {
+        searchPartitions(positive, coveredNegatives, negativesIterator, consumer)
+      } else {
+        val overlapResult = searchPartitions(
           positive.copy(keys = positiveNegativeKeyOverlap),
           coveredNegatives + negative,
           negativesIterator,
           consumer
         )
-          ?: searchPartitions(
-            positive.copy(keys = positive.keys without negative.keys),
+        if (overlapResult != null) overlapResult
+        else {
+          val positiveWithoutNegativeKeys = positive.keys without negative.keys
+          if (positiveWithoutNegativeKeys.isEmpty()) null
+          else searchPartitions(
+            positive.copy(keys = positiveWithoutNegativeKeys),
             coveredNegatives,
             negativesIterator,
             consumer
           )
-      } else searchPartitions(positive, coveredNegatives, negativesIterator, consumer)
+        }
+      }
     }
 
     private inline fun <T, R> ListIterator<T>.withNext(consumer: (T) -> R): R = consumer(next()).also {
@@ -263,8 +308,10 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
         }
       }
 
-      operator fun plus(component: MapComponent): DisjunctKeyMapComponents =
-        DisjunctKeyMapComponents(buildList {
+      operator fun plus(component: MapComponent): DisjunctKeyMapComponents {
+        if (component.values.isEmpty()) return empty()
+
+        return DisjunctKeyMapComponents(buildList {
           var toAdd: MapComponent? = component
 
           for (preExisting in components) {
@@ -298,6 +345,7 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
 
           if (toAdd != null) add(toAdd)
         })
+      }
 
       fun lastOrNull() = components.lastOrNull()
 

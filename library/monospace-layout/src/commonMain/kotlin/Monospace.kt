@@ -1,80 +1,146 @@
-package software.consistent.model.formatting.monospacelayout
+package software.consistent.data.formatting.monospacelayout
 
-import software.consistent.model.formatting.monospacelayout.layouts.*
+import software.consistent.data.formatting.monospacelayout.layouts.InternalMonospaceLayout.Companion.intern
+import software.consistent.data.formatting.monospacelayout.layouts.LineLayout
+import software.consistent.data.formatting.monospacelayout.layouts.ListLayout
+import software.consistent.data.formatting.monospacelayout.layouts.MonospaceAtom
+import software.consistent.data.formatting.monospacelayout.layouts.MonospaceLayout
 import kotlin.jvm.JvmInline
 
 public object Monospace {
   // region atom
   public fun atom(content: CharSequence): MonospaceLayout = MonospaceAtom(content)
 
-  public inline fun atom(builderFun: StringBuilder.() -> Unit): MonospaceLayout =
-    atom(StringBuilder().apply(builderFun))
+  public inline fun atom(builderFun: AtomBuilder.() -> Unit): MonospaceLayout =
+    atom(AtomBuilder().apply(builderFun).build())
 
-  public inline fun atom(expectedSize: Int, builderFun: StringBuilder.() -> Unit): MonospaceLayout =
-    atom(StringBuilder(expectedSize).apply(builderFun))
-  // endregion
+  public inline fun atom(expectedSize: Int, builderFun: AtomBuilder.() -> Unit): MonospaceLayout =
+    atom(AtomBuilder(expectedSize).apply(builderFun).build())
 
-  // region indented
-  public fun indented(layout: MonospaceLayout): MonospaceLayout = IndentedLayout(intern(layout))
+  @JvmInline
+  public value class AtomBuilder(private val result: StringBuilder = StringBuilder()) : CharSequence by result {
+    public constructor(expectedSize: Int) : this(StringBuilder(expectedSize))
+
+    @PublishedApi
+    internal fun build(): CharSequence = result
+
+    @IgnorableReturnValue
+    public fun append(content: CharSequence): AtomBuilder = apply {
+      result.append(content)
+    }
+
+    @IgnorableReturnValue
+    public fun append(char: Char): AtomBuilder = apply {
+      result.append(char)
+    }
+
+    @IgnorableReturnValue
+    public fun append(layout: MonospaceLayout, settings: LayoutSettings = LayoutSettings()): AtomBuilder = apply {
+      context(LayoutContext(settings)) {
+        intern(layout).renderTo(LayoutTarget(result))
+      }
+    }
+  }
   // endregion
 
   // region list
   public fun list(
     items: List<MonospaceLayout>,
-    prefix: CharSequence? = null,
-    postfix: CharSequence? = null,
+    prefix: CharSequence,
+    postfix: CharSequence,
     separator: Separator = defaultListSeparator(),
   ): MonospaceLayout = ListLayout(intern(items), prefix, postfix, separator)
 
   public fun list(
     items: List<MonospaceLayout>,
-    prefix: CharSequence? = null,
-    postfix: CharSequence? = null,
+    prefix: CharSequence,
+    postfix: CharSequence,
     separator: String = "",
   ): MonospaceLayout = list(items, prefix, postfix, defaultListSeparator(base = separator))
 
   public inline fun list(
-    prefix: CharSequence? = null,
-    postfix: CharSequence? = null,
+    prefix: CharSequence,
+    postfix: CharSequence,
     separator: Separator = defaultListSeparator(),
     size: Int,
-    block: ListBuilder.() -> Unit
+    block: ItemsBuilder.() -> Unit
   ): MonospaceLayout {
-    val items = ListBuilder(ArrayList(size)).apply(block).items
+    val items = ItemsBuilder(ArrayList(size)).apply(block).items
     return list(items, prefix, postfix, separator)
   }
 
   public inline fun list(
-    prefix: CharSequence? = null,
-    postfix: CharSequence? = null,
+    prefix: CharSequence,
+    postfix: CharSequence,
     separator: String = "",
     size: Int,
-    block: ListBuilder.() -> Unit
+    block: ItemsBuilder.() -> Unit
   ): MonospaceLayout = list(prefix, postfix, defaultListSeparator(separator), size, block)
 
   public inline fun list(
-    prefix: CharSequence? = null,
-    postfix: CharSequence? = null,
+    prefix: CharSequence,
+    postfix: CharSequence,
     separator: Separator = defaultListSeparator(),
     itemsGenerator: () -> List<MonospaceLayout>
   ): MonospaceLayout = list(itemsGenerator(), prefix, postfix, separator)
 
   public inline fun list(
-    prefix: CharSequence? = null,
-    postfix: CharSequence? = null,
+    prefix: CharSequence,
+    postfix: CharSequence,
     separator: String = "",
     itemsGenerator: () -> List<MonospaceLayout>
   ): MonospaceLayout = list(prefix, postfix, defaultListSeparator(separator), itemsGenerator)
 
-  public fun defaultListSeparator(base: CharSequence = ""): Separator = Separator(base, appendIfSingleLine = " ", appendIfMultiline = "")
+  public fun defaultListSeparator(base: CharSequence = ""): Separator = Separator(singleLine = "$base ", multiLine = base)
+  // endregion
+
+  // region line
+  public fun line(
+    separator: Separator = defaultListSeparator(),
+    items: List<MonospaceLayout>,
+  ): MonospaceLayout = LineLayout(intern(items), separator)
+
+  public fun line(
+    separator: CharSequence,
+    items: List<MonospaceLayout>,
+  ): MonospaceLayout = LineLayout(intern(items), defaultLineSeparator(separator))
+
+  public inline fun line(
+    separator: Separator = defaultListSeparator(),
+    itemGenerator: () -> List<MonospaceLayout>,
+  ): MonospaceLayout = line(separator, itemGenerator())
+
+  public inline fun line(
+    separator: CharSequence,
+    itemGenerator: () -> List<MonospaceLayout>,
+  ): MonospaceLayout = line(separator, itemGenerator())
+
+  public inline fun line(
+    separator: Separator,
+    size: Int,
+    block: ItemsBuilder.() -> Unit
+  ): MonospaceLayout {
+    val items = ItemsBuilder(ArrayList(size)).apply(block).items
+    return line(separator, items)
+  }
+
+  public inline fun line(
+    separator: CharSequence,
+    size: Int,
+    block: ItemsBuilder.() -> Unit
+  ): MonospaceLayout = line(defaultLineSeparator(separator), size, block)
+
+  public fun defaultLineSeparator(base: CharSequence): Separator = Separator(" $base ", multiLine = "$base ")
+  // endregion
 
   @JvmInline
-  public value class ListBuilder(private val _items: MutableList<MonospaceLayout>) {
-    public val items: List<MonospaceLayout> get() =
+  public value class ItemsBuilder(private val _items: MutableList<MonospaceLayout>) {
+    public val items: List<MonospaceLayout>
+      get() =
       // Normally, we should create a defensive copy of _items. However, we think it’s very unlikely that somebody will hold on to or
-      // modify the list accidentally. Ourrently, this builder has virtually zero overhead, so we don’t want to add the overhead for
-      // copying the list if it doesn’t have any practical value.
-      _items
+      // modify the list accidentally. Currently, this builder has virtually zero overhead, so we don’t want to add the overhead for
+        // copying the list if it doesn’t have any practical value.
+        _items
 
     public operator fun MonospaceLayout.unaryMinus() {
       _items += this
@@ -87,12 +153,5 @@ public object Monospace {
     public operator fun List<MonospaceLayout>.unaryMinus() {
       _items += this
     }
-  }
-  // endregion
-
-  @Suppress("UNCHECKED_CAST") // cast is safe because MonoSpaceLayout is sealed and all instances implement InternalMonoSpaceLayout
-  private fun intern(externalLayouts: List<MonospaceLayout>) = externalLayouts as List<InternalMonospaceLayout>
-  private fun intern(externalLayout: MonospaceLayout) = when (externalLayout) {
-    is InternalMonospaceLayout -> externalLayout
   }
 }

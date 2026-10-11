@@ -45,15 +45,8 @@ private class MapComponentImpl(override val key: Type, override val keyRequired:
   WithMonospaceLayout {
   override val monospaceLayout: MonospaceLayout
     get() {
-      var keyLayout = key.monospaceLayout
-      if (keyLayout.isContainer) {
-        keyLayout = keyLayout.withPrefix("(").withPostfix(")")
-      }
-      if (!keyRequired) {
-        keyLayout = keyLayout.withPostfix("?")
-      }
-      return Monospace.line(separator = "=", 2) {
-        -keyLayout
+      return Monospace.line(separator = if (keyRequired) "=" else "?=", 2) {
+        -key.monospaceLayout.containerWrappedIn("(", ")")
         -value.monospaceLayout
       }
     }

@@ -9,9 +9,10 @@ internal object Invariants {
     0, 1 -> true
     else -> {
       val iterator = list.iterator()
-      val last = iterator.next()
+      var last = iterator.next()
       for (item in iterator) {
-        if (item > last) return false
+        if (item < last) return false
+        last = item
       }
       return true
     }

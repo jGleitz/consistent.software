@@ -1,4 +1,4 @@
-package software.consistent.model.formatting.monospacelayout
+package software.consistent.data.formatting.monospacelayout
 
 internal fun interface Renderable {
   context(layout: LayoutContext)

@@ -1,6 +1,6 @@
-package software.consistent.model.formatting.monospacelayout
+package software.consistent.data.formatting.monospacelayout
 
-import software.consistent.model.formatting.monospacelayout.layouts.MonospaceLayout
+import software.consistent.data.formatting.monospacelayout.layouts.MonospaceLayout
 
 public interface WithMonospaceLayout {
   public val monospaceLayout: MonospaceLayout

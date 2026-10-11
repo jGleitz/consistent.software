@@ -1,11 +1,13 @@
 package software.consistent.data.type.solvers
 
+import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.util.compare
 
 internal data class MaybeAbsent(
   val values: SolvableSet,
   val includesAbsent: Boolean
-) : SetOperations<MaybeAbsent>, NormalizationComparable<MaybeAbsent> {
+) : SetOperations<MaybeAbsent>, NormalizationComparable<MaybeAbsent>, WithMonospaceLayout {
   override fun isEmpty() = !includesAbsent && values.isEmpty()
 
   override fun with(otherSet: MaybeAbsent) =
@@ -24,6 +26,16 @@ internal data class MaybeAbsent(
 
   override fun normalizationComparedTo(other: MaybeAbsent) = (this.values normalizationComparedTo other.values)
     .ifEqual { compare(this.includesAbsent).to(other.includesAbsent).case }
+
+  override val monospaceLayout
+    get() = if (includesAbsent) {
+      Monospace.line("∪", 2) {
+        -values.monospaceLayout.containerWrappedIn("(", ")")
+        -Monospace.atom("Ω")
+      }
+    } else values.monospaceLayout
+
+  override fun toString(): String = monospaceLayout.renderToString()
 
   companion object {
     private val empty = MaybeAbsent(PartitionedTypeUnion.empty(), false)

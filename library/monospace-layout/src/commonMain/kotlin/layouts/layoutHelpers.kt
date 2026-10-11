@@ -1,29 +1,16 @@
-package software.consistent.model.formatting.monospacelayout
+package software.consistent.data.formatting.monospacelayout.layouts
+
+import software.consistent.data.formatting.monospacelayout.LayoutContext
+import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported
+import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported.Companion.supported
 
 context(layout: LayoutContext)
-internal inline fun <R> indented(block: () -> R) = indentedIf(true, block)
-
-context(layout: LayoutContext)
-internal inline fun <R> indentedIf(condition: Boolean, block: () -> R): R {
-  val lengthBefore = layout.state.indent.length
-  if (condition) {
-    layout.state.indent.append(layout.settings.indent)
-  }
+internal inline fun hypotheticalWidth(block: () -> Unit): PrintWidthIfSupported {
+  val startRemaining = layout.state.remainingWidthBeforeLineBreak
   try {
-    return block()
+    block()
+    return supported(startRemaining - layout.state.remainingWidthBeforeLineBreak)
   } finally {
-    if (condition) {
-      layout.state.indent.setLength(lengthBefore)
-    }
-  }
-}
-
-context(layout: LayoutContext)
-internal inline fun <R> hypothetical(block: () -> R): R {
-  val startPosition = layout.state.position
-  try {
-    return block()
-  } finally {
-    layout.state.position = startPosition
+    layout.state.remainingWidthBeforeLineBreak = startRemaining
   }
 }

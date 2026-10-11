@@ -1,5 +1,7 @@
 package software.consistent.data.type.solvers
 
+import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.value.Value
 
@@ -7,17 +9,17 @@ internal data class PartitionedTypeUnion(
   private val symbols: ValueUnion<Value.Symbol>,
   private val numbers: DisjunctIntervalUnion<Value.Number>,
   private val maps: MapSolver
-) : SolvableSet {
+) : SolvableSet, WithMonospaceLayout {
   override fun contains(value: Value) = when (value) {
     is Value.Symbol -> value in symbols
     is Value.Number -> value in numbers
     is Value.Map -> value in maps
   }
 
+  override fun isTriviallyEmpty() = symbols.isTriviallyEmpty() && numbers.isTriviallyEmpty() && maps.isTriviallyEmpty()
   override fun isEmpty() = symbols.isEmpty() && numbers.isEmpty() && maps.isEmpty()
-
+  override fun isTriviallyComplete() = symbols.isTriviallyComplete() && numbers.isTriviallyComplete() && maps.isTriviallyComplete()
   override fun isComplete() = symbols.isComplete() && numbers.isComplete() && maps.isComplete()
-
   override fun isFinite() = symbols.isFinite() && numbers.isFinite() && maps.isFinite()
 
   override fun cardinality(max: Int): Int {
@@ -63,6 +65,25 @@ internal data class PartitionedTypeUnion(
     (this.symbols normalizationComparedTo other.symbols)
       .ifEqual { this.numbers normalizationComparedTo other.numbers }
       .ifEqual { this.maps normalizationComparedTo other.maps }
+
+  override val monospaceLayout
+    get() = when {
+      isTriviallyEmpty() -> Monospace.atom("∅")
+      isComplete() -> Monospace.atom("Any")
+      else -> Monospace.line("∪", 3) {
+        if (!symbols.isTriviallyEmpty()) {
+          -symbols.monospaceLayout.containerWrappedIn("(", ")")
+        }
+        if (!numbers.isTriviallyEmpty()) {
+          -numbers.monospaceLayout.containerWrappedIn("(", ")")
+        }
+        if (!maps.isTriviallyEmpty()) {
+          -maps.monospaceLayout.containerWrappedIn("(", ")")
+        }
+      }
+    }
+
+  override fun toString() = monospaceLayout.renderToString()
 
   internal companion object {
     private val complete = PartitionedTypeUnion(ValueUnion.complete(), DisjunctIntervalUnion.complete(), MapSolver.complete())

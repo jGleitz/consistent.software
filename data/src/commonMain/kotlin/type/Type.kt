@@ -3,8 +3,9 @@ package software.consistent.data.type
 import software.consistent.data.value.Value
 
 public interface TypeQueries {
-  public operator fun contains(value: Value): Boolean
-  public operator fun contains(type: Type): Boolean
+  public fun allows(value: Value): Boolean
+  public fun forbids(value: Value): Boolean = !allows(value)
+  public fun isSubtypeOf(type: Type): Boolean
 }
 
 public sealed interface Type: TypeQueries {

@@ -6,8 +6,8 @@ Read the sibling [`README.md`](README.md) and the `README.md` of every directory
 
 Before editing any files, judge whether your task shall be done in a separate worktree or in the current folder. Here is some guidance:
 
-  * If your task starts at a clean commit state and shall be committed, you most likely should use your own worktree.
-  * If your task makes sense only in the context of the current, dirty, project folder state and there is no other indication for using a worktree, you should likely edit the current folder.
+- If your task starts at a clean commit state and shall be committed, you most likely should use your own worktree.
+- If your task makes sense only in the context of the current, dirty, project folder state and there is no other indication for using a worktree, you should likely edit the current folder.
 
 If you are unsure, ask the user for clarification on whether to use a worktree or the current folder.
 
@@ -17,19 +17,19 @@ When using a worktree, every agent task shall use its own branch and its own wor
 
 1. Fetch, then create the worktree under `../consistent.software-worktrees/<branch>` relative to the root checkout (this location survives reboots; create the directory if it is missing):
 
-    ```sh
-    git fetch origin
-    mkdir -p ../consistent.software-worktrees/
-    git worktree add -b <branch> ../consistent.software-worktrees/<branch> <base>
-    ```
-  `<base>` is usually `refs/remotes/origin/main`. Use another base only if the task needs it.
+   ```sh
+   git fetch origin
+   mkdir -p ../consistent.software-worktrees/
+   git worktree add -b <branch> ../consistent.software-worktrees/<branch> <base>
+   ```
+
+   `<base>` is usually `refs/remotes/origin/main`. Use another base only if the task needs it.
 
 2. Enter the worktree and verify `pwd`, `git branch --show-current`, and `git status `.
 3. Set your commit identity (see [Commit Attribution](#commit-attribution)).
 4. If `.codegraph/` is absent, run `codegraph init`. This is authorized; the cache is gitignored and must never be committed.
 5. Do all work from the worktree. Commit early and often and push checkpoints of your own branch.
 6. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: remove `.codegraph/`, then run `git worktree remove <path>` from another checkout.
-
 
 ## Commit Attribution
 
