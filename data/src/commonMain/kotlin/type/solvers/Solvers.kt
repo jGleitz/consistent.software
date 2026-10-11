@@ -1,6 +1,6 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.value.Value
+import software.consistent.data.value.Value
 
 internal object Solvers {
   fun anything(): SolvableSet = PartitionedTypeUnion.complete()

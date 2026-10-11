@@ -1,7 +1,7 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.invariants.checkInvariant
-import software.consistent.model.value.Value
+import software.consistent.data.invariants.checkInvariant
+import software.consistent.data.value.Value
 import kotlin.jvm.JvmInline
 
 internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver> {

@@ -1,6 +1,6 @@
-package software.consistent.model.invariants
+package software.consistent.data.invariants
 
-import software.consistent.model.util.appendIndented
+import software.consistent.data.util.appendIndented
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty0
 

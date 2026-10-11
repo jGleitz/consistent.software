@@ -1,4 +1,4 @@
-package software.consistent.model.value.bignumbers
+package software.consistent.data.value.bignumbers
 
 import software.consistent.exactnumbers.*
 

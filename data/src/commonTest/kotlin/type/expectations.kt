@@ -1,8 +1,8 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
 import ch.tutteli.atrium.creating.Expect
 import ch.tutteli.atrium.logic._logic
-import software.consistent.model.value.Value
+import software.consistent.data.value.Value
 
 fun <Typ : Type> Expect<Typ>.toContain(value: Value) =
   _logic.createAndAppend("to contain", value) { value in it }

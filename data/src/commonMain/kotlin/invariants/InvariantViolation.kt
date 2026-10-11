@@ -1,4 +1,4 @@
-package software.consistent.model.invariants
+package software.consistent.data.invariants
 
 internal class InvariantViolation(message: String) : Error(message) {
   companion object {

@@ -1,4 +1,4 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
 class TypeSpec {
 }

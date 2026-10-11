@@ -1,7 +1,7 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.util.ComparisonCase
-import software.consistent.model.util.ComparisonCase.*
+import software.consistent.data.util.ComparisonCase
+import software.consistent.data.util.ComparisonCase.*
 
 
 internal sealed interface LazyBdd<TValue, Atom : ValueSet.NormalizationComparable<TValue, Atom>, Self : LazyBdd<TValue, Atom, Self>> :

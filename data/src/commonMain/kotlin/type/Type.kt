@@ -1,6 +1,6 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.value.Value
+import software.consistent.data.value.Value
 
 public interface TypeQueries {
   public operator fun contains(value: Value): Boolean
@@ -12,5 +12,5 @@ public sealed interface Type: TypeQueries {
   public infix fun and(other: Type): Type = AllOf(this, other)
   public infix fun butNot(other: Type): Type = ButNot(this, other)
 
-  public typealias Any = software.consistent.model.type.Any
+  public typealias Any = software.consistent.data.type.Any
 }

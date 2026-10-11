@@ -1,8 +1,8 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.util.ComparisonCase
-import software.consistent.model.util.compareEach
-import software.consistent.model.value.Value
+import software.consistent.data.util.ComparisonCase
+import software.consistent.data.util.compareEach
+import software.consistent.data.value.Value
 
 internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue, ValueUnion<TValue>> {
   private class Positive<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : ValueUnion<TValue> {

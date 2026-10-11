@@ -1,8 +1,8 @@
-package software.consistent.model.generators
+package software.consistent.data.generators
 
 import io.kotest.property.Arb
-import software.consistent.model.type.solvers.ValuePartition
-import software.consistent.model.value.Value
+import software.consistent.data.type.solvers.ValuePartition
+import software.consistent.data.value.Value
 
 internal val Arb.Companion.value get() = ValueArb
 

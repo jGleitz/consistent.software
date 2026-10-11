@@ -1,10 +1,10 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
-import software.consistent.model.type.Map.Component.Companion.optional
-import software.consistent.model.type.Map.Component.Companion.required
-import software.consistent.model.value.Value
+import software.consistent.data.type.Map.Component.Companion.optional
+import software.consistent.data.type.Map.Component.Companion.required
+import software.consistent.data.value.Value
 
 class MapSpec : DescribeSpec({
   describe(Map::class.simpleName!!) {

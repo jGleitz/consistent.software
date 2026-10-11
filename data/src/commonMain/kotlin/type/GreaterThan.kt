@@ -1,9 +1,9 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.formatting.monospacelayout.WithMonospaceLayout
-import software.consistent.model.type.solvers.DisjunctIntervalUnion
-import software.consistent.model.value.Value
-import software.consistent.model.value.monospaceLayout
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.type.solvers.DisjunctIntervalUnion
+import software.consistent.data.value.Value
+import software.consistent.data.value.monospaceLayout
 
 public sealed interface GreaterThan : Type {
   public val comparisonValue: Value.Number

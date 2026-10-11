@@ -1,4 +1,4 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
 internal interface SetOperations<TPartition : SetOperations<TPartition>> {
   fun isEmpty(): Boolean

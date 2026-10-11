@@ -1,7 +1,7 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.formatting.monospacelayout.Monospace
-import software.consistent.model.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 
 public sealed interface ButNot : Type {
   public val base: Type

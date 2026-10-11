@@ -1,7 +1,7 @@
-package software.consistent.model.value
+package software.consistent.data.value
 
-import software.consistent.model.formatting.monospacelayout.Monospace
-import software.consistent.model.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import kotlin.jvm.JvmName
 
 public sealed interface Symbol : Value {

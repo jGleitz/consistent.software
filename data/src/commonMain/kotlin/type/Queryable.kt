@@ -1,6 +1,6 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.type.solvers.SolvableSet
+import software.consistent.data.type.solvers.SolvableSet
 
 internal sealed interface Queryable : TypeQueries {
   val solver: SolvableSet

@@ -1,12 +1,12 @@
-package software.consistent.model.value.number
+package software.consistent.data.value.number
 
+import software.consistent.data.value.Value
+import software.consistent.data.value.bignumbers.FRACTION_SLASH
+import software.consistent.data.value.bignumbers.LOWERED_DIGITS
+import software.consistent.data.value.bignumbers.ORDINARY_DIGITS
+import software.consistent.data.value.bignumbers.RAISED_DIGITS
 import software.consistent.exactnumbers.*
 import software.consistent.exactnumbers.BigFractions.ZERO
-import software.consistent.model.value.Value
-import software.consistent.model.value.bignumbers.FRACTION_SLASH
-import software.consistent.model.value.bignumbers.LOWERED_DIGITS
-import software.consistent.model.value.bignumbers.ORDINARY_DIGITS
-import software.consistent.model.value.bignumbers.RAISED_DIGITS
 
 internal fun parseNumberString(numberString: String) = NumberParser(numberString).parse()
 

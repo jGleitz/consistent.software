@@ -1,7 +1,7 @@
-package software.consistent.model.value
+package software.consistent.data.value
 
 public sealed interface Value {
-  public typealias Number = software.consistent.model.value.Number
-  public typealias Symbol = software.consistent.model.value.Symbol
-  public typealias Map = software.consistent.model.value.Map
+  public typealias Number = software.consistent.data.value.Number
+  public typealias Symbol = software.consistent.data.value.Symbol
+  public typealias Map = software.consistent.data.value.Map
 }

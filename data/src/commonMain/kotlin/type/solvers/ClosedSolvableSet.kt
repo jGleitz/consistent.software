@@ -1,4 +1,4 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
 internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TValue, TPartition>> :
   ValueSet.NormalizationComparable<TValue, TPartition>, SetOperations<TPartition> {

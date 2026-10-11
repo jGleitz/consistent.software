@@ -1,10 +1,10 @@
-package software.consistent.model.generators
+package software.consistent.data.generators
 
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.bind
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.map
-import software.consistent.model.value.Value
+import software.consistent.data.value.Value
 import kotlin.math.*
 
 internal object NumberArb {

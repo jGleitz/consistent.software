@@ -1,1 +1,1 @@
-package software.consistent.model
+package software.consistent.data

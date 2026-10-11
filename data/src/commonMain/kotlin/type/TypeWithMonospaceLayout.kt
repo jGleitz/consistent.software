@@ -1,6 +1,6 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 
 internal val Type.monospaceLayout
   get() = when (this) {

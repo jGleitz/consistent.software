@@ -1,8 +1,8 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.formatting.monospacelayout.Monospace
-import software.consistent.model.formatting.monospacelayout.WithMonospaceLayout
-import software.consistent.model.type.solvers.DisjunctIntervalUnion
+import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.type.solvers.DisjunctIntervalUnion
 
 public sealed interface AnyNumber : Type {
   public companion object {

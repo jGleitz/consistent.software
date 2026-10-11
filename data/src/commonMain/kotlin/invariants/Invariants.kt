@@ -1,4 +1,4 @@
-package software.consistent.model.invariants
+package software.consistent.data.invariants
 
 import kotlin.jvm.JvmName
 import kotlin.reflect.KProperty0

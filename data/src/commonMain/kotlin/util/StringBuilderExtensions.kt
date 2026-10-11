@@ -1,4 +1,4 @@
-package software.consistent.model.util
+package software.consistent.data.util
 
 @IgnorableReturnValue
 internal fun StringBuilder.appendIndented(value: Any?, times: Int = 1, char: CharSequence = "\t") =

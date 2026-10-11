@@ -1,12 +1,12 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
-import software.consistent.model.formatting.monospacelayout.Monospace
-import software.consistent.model.formatting.monospacelayout.WithMonospaceLayout
-import software.consistent.model.formatting.monospacelayout.layouts.MonospaceLayout
-import software.consistent.model.type.solvers.MapComponent
-import software.consistent.model.type.solvers.MapSolver
-import software.consistent.model.type.solvers.MaybeAbsent
-import software.consistent.model.type.solvers.PartitionedTypeUnion
+import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.formatting.monospacelayout.layouts.MonospaceLayout
+import software.consistent.data.type.solvers.MapComponent
+import software.consistent.data.type.solvers.MapSolver
+import software.consistent.data.type.solvers.MaybeAbsent
+import software.consistent.data.type.solvers.PartitionedTypeUnion
 
 public object Map {
   public sealed interface Open : Type {

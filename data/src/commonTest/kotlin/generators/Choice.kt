@@ -1,4 +1,4 @@
-package software.consistent.model.generators
+package software.consistent.data.generators
 
 import io.kotest.property.Arb
 import io.kotest.property.RandomSource

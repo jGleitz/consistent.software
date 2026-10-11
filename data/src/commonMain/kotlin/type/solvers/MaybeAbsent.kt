@@ -1,6 +1,6 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.util.compare
+import software.consistent.data.util.compare
 
 internal data class MaybeAbsent(
   val values: SolvableSet,

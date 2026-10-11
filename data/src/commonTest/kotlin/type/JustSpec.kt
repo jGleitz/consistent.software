@@ -1,10 +1,10 @@
-package software.consistent.model.type
+package software.consistent.data.type
 
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.property.Arb
 import io.kotest.property.checkAll
-import software.consistent.model.generators.value
+import software.consistent.data.generators.value
 
 class JustSpec : DescribeSpec({
   describe(Just::class.simpleName!!) {

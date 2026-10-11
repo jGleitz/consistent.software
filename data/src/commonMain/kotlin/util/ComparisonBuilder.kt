@@ -1,4 +1,4 @@
-package software.consistent.model.util
+package software.consistent.data.util
 
 import kotlin.jvm.JvmInline
 import kotlin.jvm.JvmName

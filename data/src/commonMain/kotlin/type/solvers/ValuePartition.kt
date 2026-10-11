@@ -1,6 +1,6 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.value.Value
+import software.consistent.data.value.Value
 
 /**
  * Represents a _partition_ of the set of all values \(\mathbb{V}\). That is: each enum member `e` represents a set Vₑ such that

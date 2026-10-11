@@ -1,6 +1,6 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.type.solvers.NormalizationComparable as GenericNormalizationComparable
+import software.consistent.data.type.solvers.NormalizationComparable as GenericNormalizationComparable
 
 
 internal interface ValueSet<TValue> {

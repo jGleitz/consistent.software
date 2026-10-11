@@ -1,10 +1,10 @@
-package software.consistent.model.type.solvers
+package software.consistent.data.type.solvers
 
-import software.consistent.model.util.ComparisonCase
-import software.consistent.model.util.ComparisonResult
-import software.consistent.model.util.compare
-import software.consistent.model.value.Value
-import software.consistent.model.value.identifier
+import software.consistent.data.util.ComparisonCase
+import software.consistent.data.util.ComparisonResult
+import software.consistent.data.util.compare
+import software.consistent.data.value.Value
+import software.consistent.data.value.identifier
 import kotlin.jvm.JvmInline
 
 internal fun interface NormalizationComparable<Family : NormalizationComparable<Family>> {
