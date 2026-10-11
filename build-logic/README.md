@@ -1,0 +1,3 @@
+# Build Logic
+
+This directory and its subdirectories form an [included build](https://docs.gradle.org/current/userguide/composite_builds.html) containing the project’s build logic. The main project and its subprojects configure themselves primarily by applying the [convention plugins](https://docs.gradle.org/current/userguide/implementing_gradle_plugins_convention.html) defined in this directory. See Gradle’s best practice ‘[Favor `build-logic` Composite Builds for Build Logic](https://docs.gradle.org/current/userguide/best_practices_structuring_builds.html#favor_composite_builds)’ for more information on this pattern.
