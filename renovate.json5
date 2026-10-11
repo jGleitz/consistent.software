@@ -11,7 +11,7 @@
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["github>jGleitz/renovate-config:default.json5"],
   customManagers: [
-    // pnpm is an npm tool, not a Maven dependency.
+    // pnpm = "12.11.2"
     {
       customType: "regex",
       managerFilePatterns: ["/^gradle/buildLibs\\.versions\\.toml$/"],
