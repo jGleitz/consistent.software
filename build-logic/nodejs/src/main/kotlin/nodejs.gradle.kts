@@ -29,6 +29,10 @@ NodeExtension[project].apply {
 
 if (project.path == rootProject.path) {
   project.plugins.apply(NodePlugin::class.java)
+  project.tasks.named<PnpmSetupTask>(PnpmSetupTask.NAME) {
+    // Approve pnpm's install scripts only for this project-local global installation.
+    args.add("--allow-scripts=pnpm")
+  }
   val nodeExtension = NodeExtension[project]
   val nodePath = VariantComputer()
 
