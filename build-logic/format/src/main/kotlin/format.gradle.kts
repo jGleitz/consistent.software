@@ -1,4 +1,5 @@
 import com.diffplug.gradle.spotless.FormatExtension
+import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessTask
 
 plugins {
@@ -35,7 +36,7 @@ spotless {
     ktlint(klintVersion)
   }
 
-  format("markdown") {
+  prettierFormat("markdown") {
     from(projectDir) {
       include("**/*.md")
     }
@@ -43,7 +44,7 @@ spotless {
     toggleOffOn("@formatter:off", "@formatter:on")
   }
 
-  format("json") {
+  prettierFormat("json") {
     from(projectDir) {
       include("**/*.json")
       include("**/*.json5")
@@ -51,14 +52,14 @@ spotless {
     csPrettier()
   }
 
-  format("yaml") {
+  prettierFormat("yaml") {
     from(projectDir) {
       include("**/*.yml")
     }
     csPrettier()
   }
 
-  format("typescript") {
+  prettierFormat("typescript") {
     from(projectDir) {
       include("**/*.ts")
       include("**/*.tsx")
@@ -66,14 +67,14 @@ spotless {
     csPrettier()
   }
 
-  format("css") {
+  prettierFormat("css") {
     from(projectDir) {
       include("**/*.css")
     }
     csPrettier()
   }
 
-  format("properties") {
+  prettierFormat("properties") {
     from(projectDir) {
       include("**/*.properties")
       // this file is auto-updated by Renovate & Gradle, which have their own formatting rules
@@ -152,10 +153,16 @@ fun FormatExtension.csPrettier(): FormatExtension.PrettierConfig = configurePret
 private fun Project.configurePrettier(prettier: FormatExtension.PrettierConfig) =
   prettier.configFile(prettierRc).nodeExecutable(nodeJs.nodeExecutable).npmExecutable(nodeJs.npmExecutable)
 
-afterEvaluate {
-  tasks.withType<SpotlessTask>().configureEach {
-    if (stepsInternalRoundtrip.steps.any { it.name == "prettier-format" }) {
-      dependsOn(nodeJs.npmSetupTask)
-    }
+// Register the dependency outside the format action: Spotless executes that action
+// only when it configures the task, where configuring other tasks is forbidden.
+fun SpotlessExtension.prettierFormat(
+  name: String,
+  config: Action<FormatExtension>,
+) {
+  format(name, config)
+  // format() registers the task immediately; only its formatter configuration is deferred.
+  val npmSetupTask = nodeJs.npmSetupTask
+  tasks.named<SpotlessTask>("spotless${name.replaceFirstChar { it.uppercaseChar() }}") {
+    dependsOn(npmSetupTask)
   }
 }
