@@ -1,19 +1,19 @@
 # AI Agent Instructions
 
-Before you start, read [`contributing/INDEX.md`](contributing/INDEX.md). It tells you which document contains what. Whenever information from one of these documents is relevant to your task, look it up there. This includes the `README.md` (how to use a directory) and `ARCHITECTURE.md` (how a directory works and how to maintain it) of the directories you work in. These documents are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
+Before you start, read [`contributing/INDEX.md`](contributing/INDEX.md). It tells you which document contains what. Whenever your task needs information from one of the documents it lists, read that document. This includes the `README.md` (how to use a directory) and `ARCHITECTURE.md` (how a directory works and how to maintain it) of the directories you work in. These documents are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
 
 ## Worktree vs In-Project Changes
 
 Before editing any files, judge whether your task should be done in a separate worktree or in the current folder. Here is some guidance:
 
-- If your task starts at a clean commit state and shall be committed, you most likely should use your own worktree.
+- If your task starts at a clean commit state and is to be committed, you most likely should use your own worktree.
 - If your task makes sense only in the context of the current, dirty, project folder state and there is no other indication for using a worktree, you should likely edit the current folder.
 
 If you are unsure, ask the user for clarification on whether to use a worktree or the current folder.
 
 ## Worktrees
 
-When using a worktree, every agent task shall use its own branch and its own worktree. Never share a worktree with another task or a human; taking over the worktree of a stopped agent is the one exception.
+When using a worktree, every agent task must use its own branch and its own worktree. Never share a worktree with another task or a human; taking over the worktree of a stopped agent is the one exception.
 
 1. Fetch, then create the worktree under `../consistent.software-worktrees/<branch>` relative to the root checkout (this location survives reboots; create the directory if it is missing):
 
