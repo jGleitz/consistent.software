@@ -32,6 +32,7 @@ val checkSiteLinks =
       args.addAll("--skip", "^https?://")
     }
   }
+
 val assemble =
   tasks.named("assemble") {
     dependsOn(buildVitepressSite)
