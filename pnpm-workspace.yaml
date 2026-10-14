@@ -6,6 +6,7 @@ onlyBuiltDependencies:
 
 # The versions of all dependencies. Packages refer to them with `catalog:`.
 catalog:
+  linkinator: 8.1.0
   markdown-it-deflist: 4.0.0
   markdown-it-mathjax3: 4.3.2
   remark-cli: 12.0.1
