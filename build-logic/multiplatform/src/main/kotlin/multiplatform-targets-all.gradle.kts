@@ -1,8 +1,8 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin
-import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
 
 plugins {
   kotlin("multiplatform")
@@ -29,6 +29,6 @@ kotlin {
   }
 }
 
-rootProject.plugins.withType<YarnPlugin> {
-  rootProject.the<YarnRootExtension>().lockFileDirectoryProperty.set(rootProject.layout.projectDirectory.dir("gradle/kotlin-js-store"))
+rootProject.plugins.withType<NodeJsRootPlugin> {
+  rootProject.the<NpmExtension>().lockFileDirectory.set(rootProject.layout.projectDirectory.dir("gradle/kotlin-js-store"))
 }
