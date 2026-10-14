@@ -27,10 +27,13 @@ val checkSiteLinks =
     description = "Checks links and fragments in every page of the built documentation site."
     dependsOn(buildVitepressSite)
     args = listOf("run", "check-site-links")
-    // Locally, skip external URLs. In CI, always check them.
-    if (!providers.environmentVariable("CI").isPresent) {
-      args.addAll("--skip", "^https?://")
-    }
+    // Locally, skip external URLs. In CI, always check them. linkinator serves the site on 127.0.0.1.
+    args.addAll(
+      providers
+        .environmentVariable("CI")
+        .map { emptyList<String>() }
+        .orElse(listOf("--skip", "^https?://(?!127\\.0\\.0\\.1[:/])")),
+    )
   }
 
 val assemble =
