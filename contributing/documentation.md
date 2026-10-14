@@ -74,3 +74,8 @@ Document something only if its usefulness outweighs that cost.
 - Otherwise, first consider improving the code, or the documentation of where which code lives, so that readers can find the information there.
 - If you do document something, think about how to keep the burden of maintaining it low.
   For example, link to information instead of repeating it, and refer to code by the names of its symbols rather than restating what it does.
+
+## Link Checking
+
+`./gradlew check` runs `checkLinks`, which uses [remark](https://github.com/remarkjs/remark) to check every link in all Markdown files: links to files, headings, and external URLs.
+Without an internet connection, it skips external URLs.

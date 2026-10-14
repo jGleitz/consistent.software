@@ -63,5 +63,5 @@ Only when a human and an agent both wrote content in the same commit, keep the h
 
 - Never commit to or push `main`. Changes reach it only through PRs.
 - Merge a PR into `main` only after explicit human approval.
-- Never push a branch you did not create unless a human asks you to. Exception: when you are assigned to a service tracker, you may push the branches listed in its `## Branches` section.
+- Never push a branch you did not create unless a human asks you to.
 - Force-push, commit amendment, destructive reset or checkout, rewriting another person's published history, tags, and releases require explicit task authorisation.

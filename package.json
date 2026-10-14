@@ -1,0 +1,26 @@
+{
+  "name": "consistent.software",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-links": "remark --ignore-path .gitignore --frail --quiet --no-stdout ."
+  },
+  "devDependencies": {
+    "remark-cli": "12.0.1",
+    "remark-gfm": "4.0.1",
+    "remark-lint-no-dead-urls": "2.0.1",
+    "remark-validate-links": "13.1.0"
+  },
+  "remarkConfig": {
+    "plugins": [
+      "remark-gfm",
+      "remark-validate-links",
+      [
+        "remark-lint-no-dead-urls",
+        {
+          "skipOffline": true
+        }
+      ]
+    ]
+  }
+}
