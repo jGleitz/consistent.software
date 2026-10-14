@@ -34,7 +34,11 @@ open class NodeJsExtension(private val project: Project) {
       description = "Sets up pnpm (by delegating to the root project)"
       dependsOn(pnpmSetupTask)
     }
-    tasks.register("pnpmInstall", PnpmInstallTask::class)
+    tasks.register("pnpmInstall") {
+      group = NodePlugin.PNPM_GROUP
+      description = "Installs the pnpm workspace (by delegating to the root project)"
+      dependsOn(":${PnpmInstallTask.NAME}")
+    }
   }
 
   internal companion object {

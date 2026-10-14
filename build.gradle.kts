@@ -16,6 +16,12 @@ tasks.spotlessProperties {
   mustRunAfter(tasks.wrapper)
 }
 
+// pnpm installs the whole workspace
+tasks.pnpmInstall {
+  inputs.file("pnpm-workspace.yaml")
+  inputs.file("documentation/package.json")
+}
+
 val checkLinks =
   tasks.register<PnpmTask>("checkLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP

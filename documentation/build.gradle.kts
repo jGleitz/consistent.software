@@ -15,7 +15,7 @@ val buildVitepressSite =
 
     inputs.dir(project.layout.projectDirectory.dir(".vitepress")).withPathSensitivity(RELATIVE)
     inputs.dir(project.layout.projectDirectory.dir("src")).withPathSensitivity(RELATIVE)
-    inputs.file(project.layout.projectDirectory.file("pnpm-lock.yaml")).withPathSensitivity(RELATIVE)
+    inputs.file(rootProject.layout.projectDirectory.file("pnpm-lock.yaml")).withPathSensitivity(RELATIVE)
     inputs.file(project.layout.projectDirectory.file("package.json")).withPathSensitivity(RELATIVE)
     outputs.dir(project.layout.buildDirectory.dir("site"))
     outputs.cacheIf { true }
