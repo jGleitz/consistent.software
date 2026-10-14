@@ -56,6 +56,7 @@ Only when a human and an agent both wrote content in the same commit, keep the h
 ## GitHub
 
 - Act on issues and PRs only as far as the task requires. Do not create unrelated issues, PRs, or releases.
+- PRs that build on each other form a stack on GitHub, too. Link them with `gh stack link <bottom PR> … <top PR>` from the GitHub CLI extension [`github/gh-stack`](https://github.com/github/gh-stack); the same command adds a new PR to the top of an existing stack.
 - Apart from commit authorship, you act on GitHub under the identity of the human who launched you.
 - Because GitHub shows that human as the author, end everything you write there with this footer: PR titles excluded, but PR descriptions, issues, comments, review comments, and discussion posts included. Use the same agent name as in your commit identity, and put a blank line before the footer so that it forms its own paragraph:
 
