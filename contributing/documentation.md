@@ -70,7 +70,10 @@ All documentation is written in British English.
 Every piece of documentation has a cost: it needs to be kept up to date, and it drowns out other information.
 Document something only if its usefulness outweighs that cost.
 
+For internal documentation:
+
 - If maintainers can find the information well by reading the relevant code, don’t document it.
 - Otherwise, first consider improving the code, or the documentation of where which code lives, so that maintainers can find the information there.
-- If you do document something, think about how to keep the burden of maintaining it low.
-  For example, link to information instead of repeating it, and refer to code by the names of its symbols rather than restating what it does.
+
+If you do document something, think about how to keep the burden of maintaining it low.
+For example, link to information instead of repeating it, and refer to code by the names of its symbols rather than restating what it does.
