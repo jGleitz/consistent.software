@@ -29,3 +29,8 @@ val assemble =
 tasks.named("build") {
   dependsOn(assemble)
 }
+
+// VitePress checks links between pages only when building the site
+tasks.named("check") {
+  dependsOn(buildVitepressSite)
+}

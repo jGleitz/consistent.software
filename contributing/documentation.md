@@ -79,4 +79,4 @@ Document something only if its usefulness outweighs that cost.
 
 `./gradlew check` runs `checkLinks`, which uses [remark](https://github.com/remarkjs/remark) to check every link in all Markdown files: links to files, headings, and external URLs.
 Without an internet connection, it skips external URLs, except in CI.
-In the sources of the documentation site, it checks only external URLs: VitePress checks links between pages when it builds the site.
+In the sources of the documentation site, it checks only external URLs: VitePress checks links between pages when it builds the site, which `./gradlew check` also does.
