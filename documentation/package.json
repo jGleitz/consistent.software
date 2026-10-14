@@ -7,12 +7,14 @@
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",
+    "check-site-links": "linkinator \"**/*.html\" --server-root build/site --recurse --clean-urls --check-fragments --timeout 30000",
     "preview": "vitepress preview"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "linkinator": "catalog:",
     "markdown-it-deflist": "catalog:",
     "markdown-it-mathjax3": "catalog:",
     "typescript": "catalog:",

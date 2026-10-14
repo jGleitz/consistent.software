@@ -21,6 +21,21 @@ val buildVitepressSite =
     outputs.cacheIf { true }
   }
 
+val checkSiteLinks =
+  tasks.register<PnpmTask>("checkSiteLinks") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Checks links and fragments in every page of the built documentation site."
+    dependsOn(buildVitepressSite)
+    args = listOf("run", "check-site-links")
+    // Locally, skip external URLs. In CI, always check them. linkinator serves the site on 127.0.0.1.
+    args.addAll(
+      providers
+        .environmentVariable("CI")
+        .map { emptyList<String>() }
+        .orElse(listOf("--skip", "^https?://(?!127\\.0\\.0\\.1[:/])")),
+    )
+  }
+
 val assemble =
   tasks.named("assemble") {
     dependsOn(buildVitepressSite)
@@ -30,7 +45,6 @@ tasks.named("build") {
   dependsOn(assemble)
 }
 
-// VitePress checks links between pages only when building the site.
 tasks.named("check") {
-  dependsOn(buildVitepressSite)
+  dependsOn(checkSiteLinks)
 }
