@@ -164,9 +164,6 @@ settings:
 
 catalogs:
   default:
-    is-online:
-      specifier: 12.0.2
-      version: 12.0.2
     linkinator:
       specifier: 8.1.0
       version: 8.1.0
@@ -217,9 +214,6 @@ importers:
 
   documentation:
     devDependencies:
-      is-online:
-        specifier: 'catalog:'
-        version: 12.0.2
       linkinator:
         specifier: 'catalog:'
         version: 8.1.0
@@ -1044,10 +1038,6 @@ packages:
       picomatch:
         optional: true
 
-  fetch-extras@1.1.0:
-    resolution: {integrity: sha512-MBtBhNJVzRvGEUBCs735qZqr2OqHZxqOEUqCYZmQDFvyy06rv2rkvvUoLB2Xq3qDQb7WR3iYNmIxuVsFX+lufA==}
-    engines: {node: '>=18.18'}
-
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
     engines: {node: '>=8'}
@@ -1217,10 +1207,6 @@ packages:
   is-online@11.0.0:
     resolution: {integrity: sha512-LY3UOlRGCofw5RMhsEFHQ9xQ6jJXL9wFWWIfmSdNo8vO+DrIvan3G9hAPZiMRXddVZS2v9+CV4z9PslLhBGIyA==}
     engines: {node: '>=18'}
-
-  is-online@12.0.2:
-    resolution: {integrity: sha512-aMN8oxroDeWTyio61kRQOlldQO1+BQp3JfdHMZD8R20oCtL/KZV4eUGUTy9gnuKOm7g6N49wXwLD9OIPi7qWmQ==}
-    engines: {node: '>=20'}
 
   is-plain-obj@4.1.0:
     resolution: {integrity: sha512-+Pgi+vMuUNkJyExiMBt5IlFoMyKnr5zhJ4Uspz58WOhBF5QoIZkFyNHIbBAtHwzVAgk5RtndVNsDRN61/mmDqg==}
@@ -2808,8 +2794,6 @@ snapshots:
     optionalDependencies:
       picomatch: 4.0.7
 
-  fetch-extras@1.1.0: {}
-
   fill-range@7.1.1:
     dependencies:
       to-regex-range: 5.0.1
@@ -3036,13 +3020,6 @@ snapshots:
   is-online@11.0.0:
     dependencies:
       got: 13.0.0
-      p-any: 4.0.0
-      p-timeout: 6.1.4
-      public-ip: 7.0.1
-
-  is-online@12.0.2:
-    dependencies:
-      fetch-extras: 1.1.0
       p-any: 4.0.0
       p-timeout: 6.1.4
       public-ip: 7.0.1
