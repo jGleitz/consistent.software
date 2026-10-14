@@ -1,6 +1,6 @@
 # AI Agent Instructions
 
-Before you start, read [`CONTRIBUTING.md`](CONTRIBUTING.md), [`contributing/documentation.md`](contributing/documentation.md), and the `README.md` and `ARCHITECTURE.md` of the root directory and of every directory you work in. They are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
+Before you start, read [`contributing/INDEX.md`](contributing/INDEX.md). It tells you which document contains what. Whenever information from one of these documents is relevant to your task, look it up there. This includes the `README.md` (how to use a directory) and `ARCHITECTURE.md` (how a directory works and how to maintain it) of the directories you work in. These documents are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
 
 ## Worktree vs In-Project Changes
 

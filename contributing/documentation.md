@@ -8,19 +8,24 @@ It applies to everyone who changes this repository, humans and agents alike.
 Internal documentation lives as close as possible to the code it describes.
 Every document has one target audience, and its location tells readers who that is:
 
-| Location                     | Audience                     | Content                                           |
-| ---------------------------- | ---------------------------- | ------------------------------------------------- |
-| `README.md`                  | Clients of the directory     | What the directory provides and how to use it     |
-| `ARCHITECTURE.md`            | Maintainers of the directory | How the directory works and how to maintain it    |
-| Code comments and KDoc       | Readers of that code         | What is not obvious from the code itself          |
-| [`documentation`][site]      | Users of consistent.software | User-facing documentation, published as a site    |
-| [`CONTRIBUTING.md`][contrib] | Contributors                 | How to contribute; entry point to `contributing/` |
-| [`contributing/`][dir]       | Maintainers                  | Topics that span the whole repository             |
-| `AGENTS.md`                  | AI agents                    | Rules that apply only to agents                   |
+| Location                     | Audience                     | Content                                        |
+| ---------------------------- | ---------------------------- | ---------------------------------------------- |
+| `README.md`                  | Clients of the directory     | What the directory provides and how to use it  |
+| `ARCHITECTURE.md`            | Maintainers of the directory | How the directory works and how to maintain it |
+| Code comments and KDoc       | Readers of that code         | What is not obvious from the code itself       |
+| [`documentation`][site]      | Users of consistent.software | User-facing documentation, published as a site |
+| [`CONTRIBUTING.md`][contrib] | Contributors                 | How to contribute                              |
+| [`contributing/`][dir]       | Maintainers                  | Topics that span the whole repository          |
+| `AGENTS.md`                  | AI agents                    | Rules that apply only to agents                |
 
 [site]: ../documentation/
 [contrib]: ../CONTRIBUTING.md
-[dir]: ./
+[dir]: INDEX.md
+
+### `contributing/`
+
+[`INDEX.md`](INDEX.md) lists every document in `contributing/` and summarises which information it contains.
+When you add, remove, or change the scope of a document there, update the index.
 
 ### `README.md`
 
@@ -46,7 +51,7 @@ It contains user-facing documentation only; internal documentation never goes th
 `AGENTS.md` files contain only rules that apply to AI agents but not to humans.
 Everything human contributors need, agents need too, so it belongs in the documentation for humans.
 Agent harnesses load `AGENTS.md` files automatically, but not other documents.
-The root [`AGENTS.md`](../AGENTS.md) therefore tells agents which documents to read.
+The root [`AGENTS.md`](../AGENTS.md) therefore tells agents where to find which information, so that they can look it up when it is relevant.
 
 ## How to Write Documentation
 
