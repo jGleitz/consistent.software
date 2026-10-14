@@ -16,10 +16,17 @@ tasks.spotlessProperties {
   mustRunAfter(tasks.wrapper)
 }
 
-// pnpm installs the whole workspace
+// pnpm installs the whole workspace. Matching every package.json is broader than the workspace, but needs no upkeep.
+val workspacePackages =
+  fileTree(layout.projectDirectory) {
+    include("**/package.json")
+    exclude("**/node_modules/**", "**/build/**", "**/.gradle/**", "**/.kotlin/**")
+  }
+
 tasks.pnpmInstall {
   inputs.file("pnpm-workspace.yaml")
-  inputs.file("documentation/package.json")
+  inputs.files(workspacePackages)
+  outputs.dirs(workspacePackages.elements.map { packages -> packages.map { it.asFile.resolveSibling("node_modules") } })
 }
 
 val checkLinks =

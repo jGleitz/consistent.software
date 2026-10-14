@@ -1,6 +1,9 @@
 packages:
   - documentation
 
+# Without this, pnpm only checks the root's node_modules and misses broken workspace packages.
+optimisticRepeatInstall: false
+
 onlyBuiltDependencies:
   - esbuild
 
