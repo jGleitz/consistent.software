@@ -1,10 +1,10 @@
 # AI Agent Instructions
 
-Read the sibling [`README.md`](README.md) and the `README.md` of every directory you work in before you start. They are as binding as this file. The AI harness should inject relevant `AGENTS.md`s automatically, but not READMEs. `AGENT.md`s hold only agent-specific rules; everything humans need, too, lives in the READMEs.
+Before you start, read [`CONTRIBUTING.md`](CONTRIBUTING.md), [`contributing/documentation.md`](contributing/documentation.md), and the `README.md` and `ARCHITECTURE.md` of the root directory and of every directory you work in. They are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
 
 ## Worktree vs In-Project Changes
 
-Before editing any files, judge whether your task shall be done in a separate worktree or in the current folder. Here is some guidance:
+Before editing any files, judge whether your task should be done in a separate worktree or in the current folder. Here is some guidance:
 
 - If your task starts at a clean commit state and shall be committed, you most likely should use your own worktree.
 - If your task makes sense only in the context of the current, dirty, project folder state and there is no other indication for using a worktree, you should likely edit the current folder.
@@ -25,9 +25,9 @@ When using a worktree, every agent task shall use its own branch and its own wor
 
    `<base>` is usually `refs/remotes/origin/main`. Use another base only if the task needs it.
 
-2. Enter the worktree and verify `pwd`, `git branch --show-current`, and `git status `.
+2. Enter the worktree and verify `pwd`, `git branch --show-current`, and `git status`.
 3. Set your commit identity (see [Commit Attribution](#commit-attribution)).
-4. If `.codegraph/` is absent, run `codegraph init`. This is authorized; the cache is gitignored and must never be committed.
+4. If `.codegraph/` is absent, run `codegraph init`. This is authorised; the cache is gitignored and must never be committed.
 5. Do all work from the worktree. Commit early and often and push checkpoints of your own branch.
 6. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: remove `.codegraph/`, then run `git worktree remove <path>` from another checkout.
 
@@ -64,4 +64,4 @@ Only when a human and an agent both wrote content in the same commit, keep the h
 - Never commit to or push `main`. Changes reach it only through PRs.
 - Merge a PR into `main` only after explicit human approval.
 - Never push a branch you did not create unless a human asks you to. Exception: when you are assigned to a service tracker, you may push the branches listed in its `## Branches` section.
-- Force-push, commit amendment, destructive reset or checkout, rewriting another person's published history, tags, and releases require explicit task authorization
+- Force-push, commit amendment, destructive reset or checkout, rewriting another person's published history, tags, and releases require explicit task authorisation.
