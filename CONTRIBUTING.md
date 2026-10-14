@@ -3,7 +3,7 @@
 First off, thanks for taking the time to contribute! All types of contributions are encouraged and valued.
 
 For an overview of the repository, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
-For an overview of all maintainer documentation, see [`contributing/INDEX.md`](contributing/INDEX.md).
+For an overview of all maintainer documentation, see [`contributing/index.md`](contributing/index.md).
 
 ## Commit & PR message format
 

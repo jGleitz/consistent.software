@@ -5,7 +5,7 @@ You don’t need to read every document up front: use this index to find the inf
 
 ## In This Directory
 
-- [Documentation](documentation.md) — Where each piece of documentation goes and who it is written for, the role of `AGENTS.md`, and how to write documentation: for the target audience, in British English, and only where its usefulness outweighs its cost. Also explains how links in documentation are checked.
+- [Documentation](documentation.md) — Where each piece of documentation goes and who it is written for, the role of `AGENTS.md`, and how to write documentation: for the target audience, in British English, and only where its usefulness outweighs its cost.
 
 ## Elsewhere
 

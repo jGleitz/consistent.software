@@ -1,6 +1,12 @@
 # AI Agent Instructions
 
-Before you start, read [`contributing/INDEX.md`](contributing/INDEX.md). It tells you which document contains what. Whenever your task needs information from one of the documents it lists, read that document. This includes the `README.md` (how to use a directory) and `ARCHITECTURE.md` (how a directory works and how to maintain it) of the directories you work in. These documents are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
+Before you start, read [`contributing/index.md`](contributing/index.md). It tells you which document contains what. Whenever your task needs information from one of the documents it lists, read that document. This includes the `README.md` (how to use a directory) and `ARCHITECTURE.md` (how a directory works and how to maintain it) of the directories you work in. These documents are as binding as this file. The AI harness should inject relevant `AGENTS.md` files automatically, but not these documents. `AGENTS.md` files hold only agent-specific rules; everything humans need, too, lives in the documentation for humans.
+
+## Suggestions and Pushback
+
+- Always look out for improvements to the project and suggest them proactively, also during reviews and unrelated tasks.
+- Never implement a suggestion before it has been discussed and explicitly agreed. Avoid silent scope creep.
+- Push back on input and ideas, including review comments, when you see counter-arguments that seem to have gone unnoticed or not to have been weighed appropriately.
 
 ## Worktree vs In-Project Changes
 
