@@ -9,7 +9,7 @@ title: Metamodel
 ::: info Goal
 Define an architecture to represent a breadth of real-world entities as _structured data_ (models).
 Specify _two operations_ to act on models: reading and writing.
-Design a rich system of types, costraints, and invariants, such that any operation always yields a _semantically correct_ model.
+Design a rich system of types, constraints, and invariants, such that any operation always yields a _semantically correct_ model.
 :::
 
 We will define the following concepts:
@@ -23,7 +23,7 @@ We will define the following concepts:
 
 Going forward, we will need to assign labels to values.
 To be able to refer to labels in mathematical notation, we define the set $\labeldomain$ of all labels.
-By convention, we will understand strings in formulas typset in monospace font to be elements of $\labeldomain$, like $\label{name}$ or $\label{id}$.
+By convention, we will understand strings in formulas typeset in monospace font to be elements of $\labeldomain$, like $\label{name}$ or $\label{id}$.
 
 ## Values
 
