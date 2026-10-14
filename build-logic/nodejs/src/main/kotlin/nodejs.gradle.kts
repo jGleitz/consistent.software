@@ -6,7 +6,6 @@ import com.github.gradle.node.task.NodeSetupTask
 import com.github.gradle.node.util.Platform
 import com.github.gradle.node.variant.VariantComputer
 import com.github.gradle.node.variant.computeNodeExec
-import org.gradle.api.artifacts.VersionCatalogsExtension
 
 val nodeJsExtension = project.extensions.create<NodeJsExtension>("nodeJs", project)
 
@@ -18,14 +17,11 @@ if (project.path == rootProject.path) {
 
 NodeExtension[project].apply {
   version = nodeJsExtension.nodeJsVersion
+  // the pnpm version that the root package.json declares as its packageManager
   pnpmVersion =
-    provider {
-      project.extensions
-        .getByType<VersionCatalogsExtension>()
-        .named("buildLibs")
-        .findVersion("pnpm")
-        .get()
-        .requiredVersion
+    providers.fileContents(rootProject.layout.projectDirectory.file("package.json")).asText.map {
+      Regex(""""packageManager"\s*:\s*"pnpm@([^"+]+)""").find(it)?.groupValues?.get(1)
+        ?: throw GradleException("The root package.json must declare pnpm as its packageManager")
     }
 
   // we don’t actually download anything in child projects, but the node plugin uses this property to

@@ -4,9 +4,6 @@ packages:
 # Without this, pnpm only checks the root's node_modules and misses broken workspace packages.
 optimisticRepeatInstall: false
 
-onlyBuiltDependencies:
-  - esbuild
-
 # The versions of all dependencies. Packages refer to them with `catalog:`.
 catalog:
   linkinator: 8.1.0
