@@ -5,7 +5,7 @@ Before you start, read [`contributing/index.md`](contributing/index.md). It tell
 ## Suggestions and Pushback
 
 - Always look out for improvements to the project and suggest them proactively, also during reviews and unrelated tasks.
-- Never implement a suggestion before it has been discussed and explicitly agreed. Avoid silent scope creep.
+- Never implement a suggestion before it has been discussed and explicitly agreed, so that the scope never grows silently.
 - Push back on input and ideas, including review comments, when you see counter-arguments that seem to have gone unnoticed or not to have been weighed appropriately.
 
 ## Worktree vs In-Project Changes
