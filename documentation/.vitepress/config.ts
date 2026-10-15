@@ -34,6 +34,9 @@ export default defineConfig({
     },
   },
   cleanUrls: true,
+  vite: {
+    logLevel: "warn",
+  },
   markdown: {
     math: true,
     config(md) {
