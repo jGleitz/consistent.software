@@ -22,7 +22,7 @@ It is not a complete grammar or a statement of parser implementation status.
   - [O1 — Maps, records, lists and bags](#o1--maps-records-lists-and-bags)
   - [O2 — Type-directed literal parsing](#o2--type-directed-literal-parsing)
   - [O3 — Remaining syntax inventory](#o3--remaining-syntax-inventory)
-- [Sources and maintenance](#sources-and-maintenance)
+- [Maintenance](#maintenance)
 
 ## Current syntax at a glance
 
@@ -136,12 +136,8 @@ a lexer cannot make this distinction from the literal alone.
 | TypeScript | Literal types such as `42`, `"ready"` and `true` use value spelling in type positions. Widening can still infer a broader type for a value. See [literal types][ts-everyday]. |
 | Rust | No general value-literal type. Const arguments such as `Buffer<42>` parameterise a type by a value; they do not make `42` itself a type. See [generic parameters][rust-generics]. |
 | Go | Constants are values, possibly untyped; `42` is not a type expression. See [constants and types][go-spec]. |
-
-[CDuce][cduce-types] is a particularly close precedent: basic and constructed
-data values share notation with singleton types, including pairs such as `(1,2)`.
-[Ballerina][ballerina-spec] also has singleton type descriptors based on
-constant expressions, but this does not establish the same rule for every
-composite literal in our design.
+| CDuce | Basic and constructed data values share notation with singleton types, including pairs such as `(1,2)`. A particularly close precedent; see [types and patterns][cduce-types]. |
+| Ballerina | Singleton type descriptors use constant expressions; this does not establish the same rule for every composite literal in our design. See the [specification][ballerina-spec]. |
 
 ### D3 — Intersection and union
 
@@ -177,11 +173,8 @@ to enter and less familiar to the intended audience.
 | TypeScript | `A & B` | <code>A &#124; B</code>. This is the closest familiar spelling precedent; see [unions and intersections][ts-algebra]. |
 | Rust | `T: A + B` combines trait bounds; it is not an arbitrary intersection of value types. See [trait bounds][rust-bounds]. | An `enum` declares explicit variants, rather than an untagged <code>A &#124; B</code>. See [enumerations][rust-enums]. |
 | Go | Interface elements intersect type sets. | <code>A &#124; B</code> joins terms in constraints, not general value types. See [interface types][go-spec]. |
-
-[CDuce][cduce-types] uses the same `&` and `|` for set-theoretic types, with
-intersection binding more tightly. [Ballerina][ballerina-spec] also uses these
-symbols; its intersection descriptors have restrictions, so their presence is
-not evidence that every arbitrary intersection is expressible there.
+| CDuce | `A & B`; binds more tightly than union. | <code>A &#124; B</code>; both operators are set-theoretic. See [types and patterns][cduce-types]. |
+| Ballerina | `A & B`, with restrictions on intersection descriptors; not every arbitrary intersection is expressible. | <code>A &#124; B</code>. See the [specification][ballerina-spec]. |
 
 ### D4 — Relative difference, without unary negation
 
@@ -228,13 +221,9 @@ recognised ahead of the shorter `&`; this does not settle the rest of the lexer.
 | TypeScript | `Exclude<T, U>` removes union members assignable to `U`; it is not arbitrary set subtraction. In particular, `Exclude<number, 0>` remains `number`. See [utility types][ts-utilities]. |
 | Rust | No general type subtraction; enum matching handles remaining alternatives. Value-level set subtraction is a different operation. See [types][rust-types] and [enums][rust-enums]. |
 | Go | No general type difference. Binary `&^` is bit clear (“AND NOT”), a syntactic precedent only. See [operators][go-spec]. |
-
-[CDuce][cduce-types] uses `A \ B`; its documented Boolean type syntax has no
-separate unary complement operator, and `Any \ B` expresses global complement.
-[Elixir's developing set-theoretic notation][elixir-types] instead uses
-`A and not B` and `not B`. These are alternative presentation choices over related
-algebra, not reasons to expose unary negation here. Scala's value-level
-[set difference `&~`][scala-sets] is another “and not” spelling precedent.
+| CDuce | `A \ B`; no separate unary complement operator in the documented Boolean type syntax. `Any \ B` expresses global complement. See [types and patterns][cduce-types]. |
+| Elixir | Developing set-theoretic notation uses `A and not B` and `not B`. This differs from the older Erlang-style typespec language. See the [type cheatsheet][elixir-types]. |
+| Scala | Value-level set difference `&~` is another “and not” spelling precedent, rather than a type-difference operator. See [set operations][scala-sets]. |
 
 ### D5 — Value operators need their own justification
 
@@ -334,28 +323,37 @@ ellipsis and avoids assigning a general postfix operator. Alternatives included
 optional arrow spelling, or full meaning of a restricted remainder was settled.
 A local `!...` would be compatible with the decision against general `!T`.
 
-| Use case | Kotlin | TypeScript | Rust | Go |
-| --- | --- | --- | --- | --- |
-| Map and key access | `mapOf(k to v)`, `Map<K, V>`, `m[k]` | `Map<K, V>` or index-signature object; distinct key models | `HashMap<K, V>`; lookup returns `Option` | `map[K]V`; `v, ok := m[k]` distinguishes absence |
-| Named records | Data class and constructor | `{ a: A }` / `{ a: value }` | `struct S { a: A }` / `S { a: value }` | `struct { A T }` / composite literal |
-| Optional fields and extra keys | Nullable members differ from map-key absence; no structural row marker | `a?: A`; index signatures allow other keys; excess-property checks do not make a general exact type | Fixed struct fields; `Option<A>` is a present field, not an omitted key | Fixed struct fields; map membership is separate |
-| Ordered collections and length | `listOf(...)`, `List<T>`; size is a value | `[a, b]`; `T[]` versus fixed tuple `[A, B]` | `vec![...]`, `Vec<T>`; array `[T; N]` carries length | `[]T` slice; `[N]T` array |
-| Bags / multiplicities | Count map, e.g. `Map<T, Int>` | Count map, e.g. `Map<T, number>` | Count map, e.g. `HashMap<T, usize>` | Count map, e.g. `map[T]int` |
+| Language | Use case | Convention |
+| --- | --- | --- |
+| Kotlin | Map and key access | `mapOf(k to v)`, `Map<K, V>`, `m[k]` |
+| Kotlin | Named records | Data class and constructor |
+| Kotlin | Optional fields and extra keys | Nullable members differ from map-key absence; no structural row marker |
+| Kotlin | Ordered collections and length | `listOf(...)`, `List<T>`; size is a value |
+| Kotlin | Bags / multiplicities | Count map, e.g. `Map<T, Int>` |
+| TypeScript | Map and key access | `Map<K, V>` or index-signature object; distinct key models |
+| TypeScript | Named records | `{ a: A }` / `{ a: value }` |
+| TypeScript | Optional fields and extra keys | `a?: A`; index signatures allow other keys; excess-property checks do not make a general exact type |
+| TypeScript | Ordered collections and length | `[a, b]`; `T[]` versus fixed tuple `[A, B]` |
+| TypeScript | Bags / multiplicities | Count map, e.g. `Map<T, number>` |
+| Rust | Map and key access | `HashMap<K, V>`; lookup returns `Option` |
+| Rust | Named records | `struct S { a: A }` / `S { a: value }` |
+| Rust | Optional fields and extra keys | Fixed struct fields; `Option<A>` is a present field, not an omitted key |
+| Rust | Ordered collections and length | `vec![...]`, `Vec<T>`; array `[T; N]` carries length |
+| Rust | Bags / multiplicities | Count map, e.g. `HashMap<T, usize>` |
+| Go | Map and key access | `map[K]V`; `v, ok := m[k]` distinguishes absence |
+| Go | Named records | `struct { A T }` / composite literal |
+| Go | Optional fields and extra keys | Fixed struct fields; map membership is separate |
+| Go | Ordered collections and length | `[]T` slice; `[N]T` array |
+| Go | Bags / multiplicities | Count map, e.g. `map[T]int` |
+| CDuce | Named records; optional fields and extra keys | Closed records enumerate fields; `..` allows additional fields and `=?` marks optional fields. See [types and patterns][cduce-types]. |
+| CDuce | Ordered collections and length | Sequence types use regular expressions, distinguishing one element of type T from arbitrary repetitions of T. See [types and patterns][cduce-types]. |
+| Ballerina | Named records; optional fields and extra keys | Inclusive `record { … }` and exclusive <code>record {&#124; … &#124;}</code> descriptors, optional fields and typed rest descriptors separate shape closure from field presence. See the [specification][ballerina-spec]. |
 
 Sources: Kotlin [collection construction][kotlin-collections] and
 [collection types][kotlin-collection-types]; TypeScript [object and tuple types][ts-objects]
 and [Map][ts-map]; Rust [structs][rust-structs], [arrays][rust-arrays] and
 [HashMap][rust-map]; Go [composite types and literals][go-spec]. Count maps are
 encodings of bags, not claims of built-in multiset syntax.
-
-Two semantic-subtyping precedents contribute additional ideas:
-
-- [CDuce][cduce-types] distinguishes closed records from records ending in `..`,
-  and uses `=?` for optional fields. Its sequence types use regular expressions,
-  separating “one element of type T” from “arbitrary repetitions of T”.
-- [Ballerina][ballerina-spec] offers inclusive `record { … }` and exclusive
-  `record {| … |}` descriptors, optional fields and typed rest descriptors.
-  This separates shape closure from field presence in the surface notation.
 
 These comparisons motivate checks for the eventual design: specify empty
 composites, nesting, key access, required versus optional entries, residual
@@ -409,15 +407,9 @@ type information before formatting or diagnosing the inside of such literals.
 | TypeScript | Contextual typing checks expressions; assertions are erased and do not parse strings into domain values. See [type assertions][ts-everyday]. |
 | Rust | `"…".parse::<T>()` selects `FromStr`; the host string boundary is already known. See [FromStr][rust-fromstr]. |
 | Go | Explicit functions such as `time.ParseDuration("30s")` parse domain text within ordinary strings. See [time][go-time]. |
-
-[Wyvern's type-specific languages][wyvern] provide a direct research precedent
-for selecting a literal language through its expected type, including clearly
-delimited embedded content. [YAML][yaml-spec] demonstrates restricted plain scalars
-with quoted/block alternatives and later tag resolution. [XSD][xsd-datatypes]
-separates lexical representations from value spaces and composes list and union
-datatypes. Its ordered union-member interpretation is a caution: importing a
-first-match rule would conflict with order-independent set union here. These
-systems offer design options, not a ready-made grammar for this project.
+| Wyvern | Type-specific languages select a literal language through its expected type, including clearly delimited embedded content. A direct research precedent; see the [project description][wyvern]. |
+| YAML | Restricted plain scalars, quoted/block alternatives and later tag resolution separate outer boundaries from interpretation. See the [specification][yaml-spec]. |
+| XSD | Separates lexical representations from value spaces and composes list and union datatypes. Its ordered union-member interpretation is a caution: a first-match rule would conflict with order-independent set union here. See [datatypes][xsd-datatypes]. |
 
 ### O3 — Remaining syntax inventory
 
@@ -449,30 +441,7 @@ maps and their required/optional/rest constraints, then collection sugar and
 refinements, then declarations and reuse. Complete the operator table once its
 participants are known. The current log does not choose this future syntax.
 
-## Sources and maintenance
-
-The design was consolidated from the [Google Drive syntax draft][syntax-draft]
-and these discussions, in chronological design order:
-
-The draft and chats are private sources and require authentication.
-
-1. [Syntaxentwurf Werte- und Typsystem](https://chatgpt.com/c/6a76f762-28ac-83ed-934b-334684933360): guiding principles, inventory and type-directed parsing exploration.
-2. [Maps offen oder geschlossen](https://chatgpt.com/c/6a9dbf1e-25a0-83eb-aa3e-b74bc298ebcb): remainder-marker candidates, `&`/`|`, and the value-side distinction.
-3. [Zahlenliteral Syntax geschniegelt](https://chatgpt.com/c/6a9ed2a8-bd98-83eb-a3e1-44bc772dfde8): decimal notation, separator restrictions and shared singleton spelling.
-4. [Negation Oder Mengendifferenz](https://chatgpt.com/c/6a9ff427-7e1c-83eb-9552-1f58a9859299): explicit universe and difference notation alternatives.
-5. [Syntaxstand für Typen und Werte](https://chatgpt.com/c/6aba6d84-b310-83eb-83bb-9a03a8a674d1): adoption of `&!` without unary negation.
-
-The sources contain inconsistent retrospective summaries. The later explicit
-adoption of `&!` supersedes earlier statements that its spelling is open. The
-numeric discussion's “only spaces” excludes other whitespace, not underscores:
-the draft retains both `_` and SPACE, explicitly confirmed during this
-consolidation. No additional syntax decisions are inferred from an assistant's
-recommendation or an illustrative example. Ideas about rendering computed types
-mentioned only in a retrospective summary are not promoted to syntax decisions.
-
-Language comparisons were checked against the linked primary documentation on
-15 October 2026. The Elixir comparison explicitly refers to developing notation;
-it must not be confused with its older Erlang-style typespec language.
+## Maintenance
 
 For subsequent decisions, retain the stable D/O identifiers, add the semantics,
 examples, rationale and serious alternatives in the relevant subsection, and
@@ -480,7 +449,6 @@ update both the overview and symbol table. Mark superseded choices explicitly.
 Keep detailed derivations in their sources rather than expanding this log into a
 transcript. This keeps the quick reference usable as the rationale grows.
 
-[syntax-draft]: https://docs.google.com/document/d/1GC6v10ta48HBA6JQoZlIIk3K0O5YpPgw9oZNZlWog1M/edit
 [kotlin-literals]: https://kotlinlang.org/spec/expressions.html
 [kotlin-types]: https://kotlinlang.org/spec/type-system.html
 [kotlin-checks]: https://kotlinlang.org/docs/typecasts.html
