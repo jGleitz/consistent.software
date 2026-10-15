@@ -2,12 +2,21 @@ import com.github.gradle.node.NodeExtension
 import com.github.gradle.node.NodePlugin
 import com.github.gradle.node.npm.task.NpmSetupTask
 import com.github.gradle.node.pnpm.task.PnpmSetupTask
+import com.github.gradle.node.pnpm.task.PnpmTask
 import com.github.gradle.node.task.NodeSetupTask
 import com.github.gradle.node.util.Platform
 import com.github.gradle.node.variant.VariantComputer
 import com.github.gradle.node.variant.computeNodeExec
 
 val nodeJsExtension = project.extensions.create<NodeJsExtension>("nodeJs", project)
+
+tasks.withType<NpmSetupTask>().configureEach {
+  args.add("--loglevel=warn")
+}
+
+tasks.withType<PnpmTask>().configureEach {
+  pnpmCommand.add("--loglevel=warn")
+}
 
 if (project.path == rootProject.path) {
   project.plugins.apply(NodePlugin::class.java)

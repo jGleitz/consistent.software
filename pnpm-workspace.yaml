@@ -4,6 +4,11 @@ packages:
 # Without this, pnpm only checks the root's node_modules and misses broken workspace packages.
 optimisticRepeatInstall: false
 
+# Without this, pnpm links every workspace package into node_modules/.pnpm/node_modules. Gradle follows such links when it
+# records the outputs of pnpmInstall, so it would also record the packages' build directories, which other tasks change
+# concurrently.
+hoistWorkspacePackages: false
+
 # The versions of all dependencies. Packages refer to them with `catalog:`.
 catalog:
   linkinator: 8.1.0
