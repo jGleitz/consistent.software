@@ -31,17 +31,15 @@ candidate; **open** means no concrete spelling has been agreed.
 
 | Use case | Syntax / rule | Status and detail |
 | --- | --- | --- |
-| Decimal number | `42`, `12.34`, `.5`, `5.` | Fixed; [D1](#d1--decimal-numeric-literals) |
-| Decimal exponent | `12.34E-2`, `12.34 E -2` | Fixed; uppercase `E`, signed integer exponent |
-| Digit grouping | `1_000`, `1 000` | Fixed; ignore `_` and U+0020 SPACE inside literals |
+| Numeric literals | `42`, `12.34`, `.5`, `5.`, `12.34 E -2`, `1_000`, `1 000` | Fixed; decimal notation, optional uppercase `E` with signed integer exponent; ignore `_` and U+0020 SPACE; [D1](#d1--decimal-numeric-literals) |
 | Singleton type | The literal of its sole value, e.g. `42` | Fixed; type/value position supplies the interpretation; [D2](#d2--literals-also-denote-singleton-types) |
 | Intersection / AllOf | `A & B` | Fixed; values belonging to both types; [D3](#d3--intersection-and-union) |
-| Union / AnyOf | `A \| B` | Fixed; values belonging to either type, including both |
-| Grouping | `(A \| B) & C` | Fixed for these type expressions; `&` binds more tightly than `\|` |
+| Union / AnyOf | <code>A &#124; B</code> | Fixed; values belonging to either type, including both |
+| Grouping | <code>(A &#124; B) &amp; C</code> | Fixed for these type expressions; `&` binds more tightly than <code>&#124;</code> |
 | Difference | `A &! B` | Fixed single infix operator; precedence and associativity open; [D4](#d4--relative-difference-without-unary-negation) |
 | Unary type complement | No `!T` or `~T` | Deliberately absent; if a top type is exposed, use `Top &! T` |
 | Value-level conjunction | Possible compatible merge using `&` | Provisional; [D5](#d5--value-operators-need-their-own-justification) |
-| Value-level choice | No general `\|` planned | Current decision; no single value follows from arbitrary alternatives |
+| Value-level choice | No general <code>&#124;</code> planned | Current decision; no single value follows from arbitrary alternatives |
 | Composite syntax and other constructs | Not yet fixed | See [open design areas](#open-design-areas) |
 
 Names such as `Number`, `Integer`, `Person`, `Bool` and `Top` below describe roles;
@@ -175,10 +173,10 @@ to enter and less familiar to the intended audience.
 
 | Language | Intersection | Union |
 | --- | --- | --- |
-| Kotlin | Intersections are generally non-denotable; the restricted `T & Any` form denotes definitely non-nullable types. | No general source-level `A \| B`; sealed hierarchies model alternatives. See [Kotlin types][kotlin-types]. |
-| TypeScript | `A & B` | `A \| B`. This is the closest familiar spelling precedent; see [unions and intersections][ts-algebra]. |
-| Rust | `T: A + B` combines trait bounds; it is not an arbitrary intersection of value types. See [trait bounds][rust-bounds]. | An `enum` declares explicit variants, rather than an untagged `A \| B`. See [enumerations][rust-enums]. |
-| Go | Interface elements intersect type sets. | `A \| B` joins terms in constraints, not general value types. See [interface types][go-spec]. |
+| Kotlin | Intersections are generally non-denotable; the restricted `T & Any` form denotes definitely non-nullable types. | No general source-level <code>A &#124; B</code>; sealed hierarchies model alternatives. See [Kotlin types][kotlin-types]. |
+| TypeScript | `A & B` | <code>A &#124; B</code>. This is the closest familiar spelling precedent; see [unions and intersections][ts-algebra]. |
+| Rust | `T: A + B` combines trait bounds; it is not an arbitrary intersection of value types. See [trait bounds][rust-bounds]. | An `enum` declares explicit variants, rather than an untagged <code>A &#124; B</code>. See [enumerations][rust-enums]. |
+| Go | Interface elements intersect type sets. | <code>A &#124; B</code> joins terms in constraints, not general value types. See [interface types][go-spec]. |
 
 [CDuce][cduce-types] uses the same `&` and `|` for set-theoretic types, with
 intersection binding more tightly. [Ballerina][ballerina-spec] also uses these
@@ -272,7 +270,7 @@ There is no established general merge of arbitrary scalars such as `1 & 2`.
 | Kotlin | Map `+` combines entries with the right operand winning duplicate keys; this is not compatible conjunction. See [map operations][kotlin-maps]. |
 | TypeScript | Object spread such as `{ ...a, ...b }` constructs an object and overwrites earlier properties; type intersection does not itself perform a merge. See [object spread][ts-spread]. |
 | Rust | `BitAnd` and `BitOr` traits support value operators; their existence does not define type intersection or union. See [operator traits][rust-ops]. |
-| Go | `&` and `\|` are integer bitwise operators, not map merges. See [operators][go-spec]. |
+| Go | `&` and <code>&#124;</code> are integer bitwise operators, not map merges. See [operators][go-spec]. |
 
 The shared type/value design principle therefore permits a deliberate asymmetry:
 keep the useful type operators, and require each proposed value operation to
@@ -286,9 +284,9 @@ a decision changes a token's meaning or availability.
 
 | Symbol / token | Meaning | Context / role | Status / constraints |
 | --- | --- | --- | --- |
-| `&` | Intersection / AllOf | Type expression, binary infix | Fixed; tighter than `\|`; associative chains |
+| `&` | Intersection / AllOf | Type expression, binary infix | Fixed; tighter than <code>&#124;</code>; associative chains |
 | `&` | Compatible conjunction / merge | Value expression, binary infix | Provisional; domain and conflict behaviour open |
-| `\|` | Union / AnyOf | Type expression, binary infix | Fixed; associative chains; no general value operator planned |
+| <code>&#124;</code> | Union / AnyOf | Type expression, binary infix | Fixed; associative chains; no general value operator planned |
 | `&!` | Relative difference | Type expression, single binary infix operator | Fixed spelling; precedence and associativity open |
 | `(`, `)` | Group type operations | Type expressions | Fixed for grouping; other uses open |
 | Decimal digits | Decimal significand or exponent | Numeric literal | Fixed; significand requires at least one digit |
@@ -389,7 +387,7 @@ The discussions identify the following obligations, rather than resolving them:
 | Case | Question or proposed direction |
 | --- | --- |
 | No expected type | Require an annotation or explicit interpretation, or define a separate inference rule; no choice yet |
-| Union `A \| B` | Combining parser candidates must not make the semantic union depend on operand order; distinct successful values could require disambiguation |
+| Union <code>A &#124; B</code> | Combining parser candidates must not make the semantic union depend on operand order; distinct successful values could require disambiguation |
 | Intersection / refinement | Filter candidate values by membership or predicates, rather than requiring every constraint to recognise the same lexical spelling |
 | Difference `A &! B` | A possible model parses through `A`, then excludes results in `B` |
 | Map / list / record constructor | Compose interpretations for keys, elements and fields using expected component types |
@@ -435,7 +433,7 @@ The comparisons show the nearest mechanism, including explicit absences.
 | Refinements: intervals, string/length/cardinality constraints, cross-field relations, quantification and static expressions | Predicates and validated wrappers; ranges are values | Literal unions, conditional/template types and guards; no general predicate type | Validated newtypes; const parameters for some static constraints | Validation functions and defined types; no general predicate type |
 | Type use: ascription, membership, subtype/equality notation, conversion and narrowing | `val x: T`, `is`, `as`; smart casts | `x: T`, guards, `as`, `satisfies`; no general runtime test for arbitrary types | `let x: T`, `match`, `as` / conversion traits; no general runtime type-membership operator | `var x T`, assertions, type switches, conversions |
 | Reuse: definitions, aliases, generic/value parameters, recursion, visibility | `typealias`, `<T>`, bounds; no general const generics | `type`, `<T>`, recursive aliases; literal type arguments are types | `type`, `<T, const N: usize>`; recursive data through indirection | `type`, `[T Constraint]`; recursive-type restrictions |
-| Sugar and grammar: optionality, desugaring, precedence and token conflicts | `T?`, `?:`; fixed host grammar | `T \| null`, `a?: T`; fixed host grammar | `Option<T>`, macros; fixed host grammar | Pointers/interfaces for nil-capable values; fixed host grammar |
+| Sugar and grammar: optionality, desugaring, precedence and token conflicts | `T?`, `?:`; fixed host grammar | <code>T &#124; null</code>, `a?: T`; fixed host grammar | `Option<T>`, macros; fixed host grammar | Pointers/interfaces for nil-capable values; fixed host grammar |
 
 Sources for this inventory: Kotlin [basic syntax][kotlin-basics],
 [type system][kotlin-types], [generics][kotlin-generics] and [checks][kotlin-checks];
