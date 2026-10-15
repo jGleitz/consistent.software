@@ -16,7 +16,6 @@ It is not a complete grammar or a statement of parser implementation status.
   - [D2 — Literals also denote singleton types](#d2--literals-also-denote-singleton-types)
   - [D3 — Intersection and union](#d3--intersection-and-union)
   - [D4 — Relative difference, without unary negation](#d4--relative-difference-without-unary-negation)
-  - [D5 — Value operators need their own justification](#d5--value-operators-need-their-own-justification)
 - [Symbol table: syntax to semantics](#symbol-table-syntax-to-semantics)
 - [Open design areas](#open-design-areas)
   - [O1 — Maps, records, lists and bags](#o1--maps-records-lists-and-bags)
@@ -38,8 +37,6 @@ candidate; **open** means no concrete spelling has been agreed.
 | Grouping                              | <code>(A &#124; B) &amp; C</code>                         | Fixed for these type expressions; `&` binds more tightly than <code>&#124;</code>                                                              |
 | Difference                            | `A &! B`                                                  | Fixed single infix operator; precedence and associativity open; [D4](#d4--relative-difference-without-unary-negation)                          |
 | Unary type complement                 | No `!T` or `~T`                                           | Deliberately absent; if a top type is exposed, use `Top &! T`                                                                                  |
-| Value-level conjunction               | Possible compatible merge using `&`                       | Provisional; [D5](#d5--value-operators-need-their-own-justification)                                                                           |
-| Value-level choice                    | No general <code>&#124;</code> planned                    | Current decision; no single value follows from arbitrary alternatives                                                                          |
 | Composite syntax and other constructs | Not yet fixed                                             | See [open design areas](#open-design-areas)                                                                                                    |
 
 Names such as `Number`, `Integer`, `Person`, `Bool` and `Top` below describe roles;
@@ -51,8 +48,10 @@ illustrative candidates, not productions of an agreed grammar.
 1. Prefer notation familiar from C++, Java, Kotlin and TypeScript where it fits
    the semantics. Compare Rust and Go as additional practical reference points.
 2. Let a type resemble the values or uses it describes. This motivates shared
-   literal and structural syntax; it does not require a value operator for every
-   type operator.
+   literal and structural syntax. Set operators on types are outside this
+   correspondence: they combine sets of values, not individual values. The union
+   of two different singleton types contains two values, and their intersection
+   is empty; neither produces a corresponding single value.
 3. Prefer a small number of orthogonal constructs. Reserve concise operators for
    fundamental, frequent operations rather than inventing synonyms.
 4. Check every new spelling against the symbol table. Record context, precedence,
@@ -92,7 +91,11 @@ such as `1E2.5` are not numeric literals.
 **Why.** Decimal notation and scientific exponents are familiar and concise.
 Grouping improves readability without changing the value. Restricting whitespace
 to SPACE keeps this permission from silently admitting line breaks or tabs.
-Leading and trailing points are intentionally accepted conveniences.
+Leading and trailing points are intentionally accepted conveniences. They also
+leave lexical conflicts for the eventual grammar: `.5` must be distinguished
+from dot-prefixed constructs, while `5.foo` and `1..2` could conflict with member
+access and range notation. Accepting `.5` and `5.` therefore constrains the design
+of those constructs; their spelling and tokenisation are not settled here.
 
 **Limits.** The decision does not choose machine floating-point semantics,
 rounding, numeric type names or suffixes. Decimal is the only base currently
@@ -100,8 +103,11 @@ defined; hexadecimal and binary are not established syntax. Whether a leading
 sign belongs to the literal or is a prefix operator remains open. Exact separator
 placement and token boundaries also need a grammar: removing ignored characters
 explains the value of an already delimited literal, not where that literal ends.
-In particular, whitespace alone cannot separate two numeric elements if `1 2`
-is allowed to mean `12`.
+In particular, whitespace alone cannot separate two numeric elements because
+`1 2` denotes `12`. The grammar must also distinguish the exponent in
+`12.34 E -2` from a separate identifier `E` followed by subtraction, if those
+constructs are introduced. These are boundary obligations for the grammar,
+not provisional numeric spellings.
 
 **Other languages.** These are lexical comparisons, not claims of equal numeric models.
 
@@ -225,73 +231,32 @@ recognised ahead of the shorter `&`; this does not settle the rest of the lexer.
 | Elixir     | Developing set-theoretic notation uses `A and not B` and `not B`. This differs from the older Erlang-style typespec language. See the [type cheatsheet][elixir-types].                 |
 | Scala      | Value-level set difference `&~` is another “and not” spelling precedent, rather than a type-difference operator. See [set operations][scala-sets].                                     |
 
-### D5 — Value operators need their own justification
-
-**Current decision.** No general value-level `|` is planned. Given two different
-values, “either one” does not construct a unique result. Coalescing, fallback or
-tagged constructors would each require a separate semantic justification.
-
-**Provisional direction.** Keep `&` available for compatible conjunction or merge,
-especially on maps. The motivating candidate is:
-
-```text
-{ firstName: "Ada" } & { lastName: "Lovelace" }
-    → { firstName: "Ada", lastName: "Lovelace" }
-
-{ x: 1 } & { x: 1 }
-    → { x: 1 }
-
-{ x: 1 } & { x: 2 }
-    → conflict
-```
-
-These are illustrative map spellings. A right- or left-biased overwrite would
-lose the commutative “both simultaneously” intuition. The domain, conflict
-reporting, recursive behaviour and algebraic guarantees remain open.
-In particular, `a: A` and `b: B` do not by themselves establish that merging
-produces a member of `A & B`: closed shape constraints can reject additional keys.
-There is no established general merge of arbitrary scalars such as `1 & 2`.
-
-**Other languages.**
-
-| Language   | Value-side comparison                                                                                                                                                             |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kotlin     | Map `+` combines entries with the right operand winning duplicate keys; this is not compatible conjunction. See [map operations][kotlin-maps].                                    |
-| TypeScript | Object spread such as `{ ...a, ...b }` constructs an object and overwrites earlier properties; type intersection does not itself perform a merge. See [object spread][ts-spread]. |
-| Rust       | `BitAnd` and `BitOr` traits support value operators; their existence does not define type intersection or union. See [operator traits][rust-ops].                                 |
-| Go         | `&` and <code>&#124;</code> are integer bitwise operators, not map merges. See [operators][go-spec].                                                                              |
-
-The shared type/value design principle therefore permits a deliberate asymmetry:
-keep the useful type operators, and require each proposed value operation to
-stand on its own semantics.
-
 ## Symbol table: syntax to semantics
 
 This is the reverse lookup for symbol allocation, including context and unresolved
 collisions. A provisional row does not reserve final grammar. Update it whenever
 a decision changes a token's meaning or availability.
 
-| Symbol / token           | Meaning                          | Context / role                                | Status / constraints                                         |
-| ------------------------ | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
-| `&`                      | Intersection / AllOf             | Type expression, binary infix                 | Fixed; tighter than <code>&#124;</code>; associative chains  |
-| `&`                      | Compatible conjunction / merge   | Value expression, binary infix                | Provisional; domain and conflict behaviour open              |
-| <code>&#124;</code>      | Union / AnyOf                    | Type expression, binary infix                 | Fixed; associative chains; no general value operator planned |
-| `&!`                     | Relative difference              | Type expression, single binary infix operator | Fixed spelling; precedence and associativity open            |
-| `(`, `)`                 | Group type operations            | Type expressions                              | Fixed for grouping; other uses open                          |
-| Decimal digits           | Decimal significand or exponent  | Numeric literal                               | Fixed; significand requires at least one digit               |
-| `.`                      | Decimal point                    | Numeric significand                           | Fixed; at most once; may be leading or trailing              |
-| `E`                      | Power-of-ten exponent marker     | Numeric literal                               | Fixed; uppercase; followed by integer exponent               |
-| `_`                      | Ignored numeric separator        | Inside numeric literal                        | Fixed; no general wildcard meaning assigned                  |
-| U+0020 SPACE             | Ignored numeric separator        | Inside numeric literal                        | Fixed; other whitespace excluded internally                  |
-| `+`, `-`                 | Optional exponent sign           | After numeric `E`                             | Fixed there; leading-sign and arithmetic syntax open         |
-| The value literal itself | Singleton containing that value  | Type position                                 | Fixed contextual interpretation; no additional marker        |
-| `!T`, `~T`               | General unary type complement    | Type expression                               | Deliberately unavailable; not implied by `&!` or `!...`      |
-| `{ … }`, `:`, `,`        | Map/record structure and entries | Composite examples                            | Provisional; complete entry and delimiter grammar open       |
-| `...`                    | Allow additional entries         | Map/record type remainder                     | Candidate; defaults open                                     |
-| `!...`                   | Forbid additional entries        | Map/record type remainder                     | Candidate local marker, not general unary negation           |
-| `...: T`                 | Constrain additional entries     | Map/record type remainder                     | Candidate; key/value-region semantics open                   |
-| `?`                      | Optional entry or nullability    | Potential sugar                               | Unassigned; absence and null must be distinguished           |
-| `[ … ]`, `< … >`         | Collections or parameters        | Illustrative examples                         | Unassigned; not an agreed grammar                            |
+| Symbol / token           | Meaning                          | Context / role                                | Status / constraints                                                                        |
+| ------------------------ | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `&`                      | Intersection / AllOf             | Type expression, binary infix                 | Fixed; tighter than <code>&#124;</code>; associative chains                                 |
+| <code>&#124;</code>      | Union / AnyOf                    | Type expression, binary infix                 | Fixed; associative chains                                                                   |
+| `&!`                     | Relative difference              | Type expression, single binary infix operator | Fixed spelling; precedence and associativity open                                           |
+| `(`, `)`                 | Group type operations            | Type expressions                              | Fixed for grouping; other uses open                                                         |
+| Decimal digits           | Decimal significand or exponent  | Numeric literal                               | Fixed; significand requires at least one digit                                              |
+| `.`                      | Decimal point                    | Numeric significand                           | Fixed; at most once; leading/trailing allowed; member-access and range boundaries open (D1) |
+| `E`                      | Power-of-ten exponent marker     | Numeric literal                               | Fixed; uppercase; followed by integer exponent                                              |
+| `_`                      | Ignored numeric separator        | Inside numeric literal                        | Fixed; no general wildcard meaning assigned                                                 |
+| U+0020 SPACE             | Ignored numeric separator        | Inside numeric literal                        | Fixed; other whitespace excluded; collection and exponent/identifier boundaries open (D1)   |
+| `+`, `-`                 | Optional exponent sign           | After numeric `E`                             | Fixed there; leading-sign and arithmetic syntax open                                        |
+| The value literal itself | Singleton containing that value  | Type position                                 | Fixed contextual interpretation; no additional marker                                       |
+| `!T`, `~T`               | General unary type complement    | Type expression                               | Deliberately unavailable; not implied by `&!` or `!...`                                     |
+| `{ … }`, `:`, `,`        | Map/record structure and entries | Composite examples                            | Provisional; complete entry and delimiter grammar open                                      |
+| `...`                    | Allow additional entries         | Map/record type remainder                     | Candidate; defaults open                                                                    |
+| `!...`                   | Forbid additional entries        | Map/record type remainder                     | Candidate local marker, not general unary negation                                          |
+| `...: T`                 | Constrain additional entries     | Map/record type remainder                     | Candidate; key/value-region semantics open                                                  |
+| `?`                      | Optional entry or nullability    | Potential sugar                               | Unassigned; absence and null must be distinguished                                          |
+| `[ … ]`, `< … >`         | Collections or parameters        | Illustrative examples                         | Unassigned; not an agreed grammar                                                           |
 
 ## Open design areas
 
@@ -300,15 +265,15 @@ a decision changes a token's meaning or availability.
 **Status: provisional candidates, no complete composite syntax decision.**
 Finite maps are being explored as a common basis for composites. This could let
 records, integer-indexed lists and multiplicity-based bags share semantics while
-receiving readable surface forms. Neither that derivation nor its notation is
-established by the source syntax draft.
+receiving readable surface forms. Both the derivation and its concrete notation
+remain open.
 
 For maps, distinguish three independent questions: which keys are permitted,
 which keys must exist, and what values they may map to. An optional key is not
 the same as a required key whose value may be null. Likewise, allowing additional
 keys is different from making a named key optional.
 
-The map discussion explored a small family of remainder markers:
+Candidate remainder markers form a small family:
 
 ```text
 { a: A, ... }
@@ -380,7 +345,7 @@ must not discard `#ff8040` before a colour parser sees it. A quoted or explicitl
 bounded escape form could support contents that conflict with the normal
 boundaries; neither its delimiter nor a block form has been chosen.
 
-The discussions identify the following obligations, rather than resolving them:
+Type-directed parsing would need to resolve the following questions:
 
 | Case                            | Question or proposed direction                                                                                                                |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -413,8 +378,8 @@ type information before formatting or diagnosing the inside of such literals.
 
 ### O3 — Remaining syntax inventory
 
-The following grouped backlog preserves the draft's coverage without allocating
-syntax prematurely. Rows are open unless they refer to a decision above.
+The following grouped backlog lists the remaining syntax requirements without
+allocating spellings prematurely. Rows are open unless they refer to a decision above.
 The comparisons show the nearest mechanism, including explicit absences.
 
 | Area and question for this language                                                                                         | Kotlin                                                | TypeScript                                                                       | Rust                                                                                       | Go                                                                |
@@ -445,16 +410,15 @@ participants are known. The current log does not choose this future syntax.
 
 For subsequent decisions, retain the stable D/O identifiers, add the semantics,
 examples, rationale and serious alternatives in the relevant subsection, and
-update both the overview and symbol table. Mark superseded choices explicitly.
-Keep detailed derivations in their sources rather than expanding this log into a
-transcript. This keeps the quick reference usable as the rationale grows.
+update the overview, symbol table and table of contents. Mark superseded choices
+explicitly. Keep the rationale self-contained; link any supporting derivation
+that maintainers need to follow rather than relying on unreferenced discussions.
 
 [kotlin-literals]: https://kotlinlang.org/spec/expressions.html
 [kotlin-types]: https://kotlinlang.org/spec/type-system.html
 [kotlin-checks]: https://kotlinlang.org/docs/typecasts.html
 [kotlin-collections]: https://kotlinlang.org/docs/constructing-collections.html
 [kotlin-collection-types]: https://kotlinlang.org/docs/collections-overview.html
-[kotlin-maps]: https://kotlinlang.org/docs/map-operations.html
 [kotlin-basics]: https://kotlinlang.org/docs/basic-syntax.html
 [kotlin-generics]: https://kotlinlang.org/docs/generics.html
 [ecma-lexical]: https://tc39.es/ecma262/multipage/ecmascript-language-lexical-grammar.html
@@ -463,8 +427,7 @@ transcript. This keeps the quick reference usable as the rationale grows.
 [ts-algebra]: https://www.typescriptlang.org/docs/handbook/unions-and-intersections.html
 [ts-utilities]: https://www.typescriptlang.org/docs/handbook/utility-types.html
 [ts-objects]: https://www.typescriptlang.org/docs/handbook/2/objects.html
-[ts-map]: https://www.typescriptlang.org/docs/handbook/iterators-and-generators.html
-[ts-spread]: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-1.html
+[ts-map]: https://github.com/microsoft/TypeScript/blob/v5.9.3/src/lib/es2015.collection.d.ts
 [ts-generics]: https://www.typescriptlang.org/docs/handbook/2/generics.html
 [ts-narrowing]: https://www.typescriptlang.org/docs/handbook/2/narrowing.html
 [rust-tokens]: https://doc.rust-lang.org/reference/tokens.html
@@ -476,7 +439,6 @@ transcript. This keeps the quick reference usable as the rationale grows.
 [rust-arrays]: https://doc.rust-lang.org/reference/types/array.html
 [rust-map]: https://doc.rust-lang.org/std/collections/struct.HashMap.html
 [rust-fromstr]: https://doc.rust-lang.org/std/str/trait.FromStr.html
-[rust-ops]: https://doc.rust-lang.org/std/ops/index.html
 [go-spec]: https://go.dev/ref/spec
 [go-generics]: https://go.dev/doc/tutorial/generics
 [go-time]: https://pkg.go.dev/time#ParseDuration
