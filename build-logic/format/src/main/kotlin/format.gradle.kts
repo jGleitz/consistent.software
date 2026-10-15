@@ -123,6 +123,8 @@ fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree =
         "**/build/**",
         "**/.idea/**",
         "**/kotlin-js-store/**",
+        // VitePress writes this directory during its build and deletes it afterwards. Its location is not configurable.
+        "**/.vitepress/.temp/**",
       )
     }
     exclude("yarn.lock", "pnpm-lock.yaml")
