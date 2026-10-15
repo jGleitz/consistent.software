@@ -31,7 +31,9 @@ try {
   if (!result.passed) {
     for (const link of result.links) {
       console.error(`[${link.state} ${link.status ?? ""}] ${link.url} (on ${link.parent ?? "-"})`)
-      if (link.state === LinkState.BROKEN) console.error(link.failureDetails)
+      for (const detail of link.failureDetails ?? []) {
+        if (detail instanceof Error) console.error(`  ${detail.message}`)
+      }
     }
     const broken = result.links.filter((link) => link.state === LinkState.BROKEN)
     console.error(`Detected ${broken.length} broken links.`)
