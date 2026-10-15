@@ -7,6 +7,10 @@ You don’t need to read every document up front: use this index to find the inf
 
 - [Documentation](documentation.md) — Where each piece of documentation goes and who it is written for, the role of `AGENTS.md`, and how to write documentation: for the target audience, in British English, and only where its usefulness outweighs its cost.
 
+## Decision Logs
+
+- [Value and type syntax](decision-logs/value-and-type-syntax.md) — Agreed surface syntax, its rationale, the symbol allocation table, open design areas, and comparisons with other languages.
+
 ## Elsewhere
 
 - [`CONTRIBUTING.md`](../CONTRIBUTING.md) — The format of commit and PR messages.
