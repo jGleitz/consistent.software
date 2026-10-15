@@ -446,6 +446,6 @@ that maintainers need to follow rather than relying on unreferenced discussions.
 [ballerina-spec]: https://ballerina.io/spec/lang/2024R1/
 [elixir-types]: https://elixir.hexdocs.pm/main/types-cheat.html
 [scala-sets]: https://www.scala-lang.org/api/current/scala/collection/SetOps.html
-[wyvern]: https://www.cs.cmu.edu/~aldrich/wyvern/
+[wyvern]: https://wyvernlang.github.io/
 [yaml-spec]: https://yaml.org/spec/1.2.2/
 [xsd-datatypes]: https://www.w3.org/TR/xmlschema11-2/
