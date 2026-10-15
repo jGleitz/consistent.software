@@ -20,7 +20,7 @@ tasks.spotlessProperties {
 val workspacePackages =
   fileTree(layout.projectDirectory) {
     include("**/package.json")
-    exclude("**/node_modules/**", "**/build/**", "**/.gradle/**", "**/.kotlin/**")
+    exclude("**/node_modules/**", "**/build/**", "**/.gradle/**", "**/.kotlin/**", "**/.vitepress/.temp/**")
   }
 
 tasks.pnpmInstall {
