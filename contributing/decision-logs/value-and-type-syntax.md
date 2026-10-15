@@ -29,18 +29,18 @@ It is not a complete grammar or a statement of parser implementation status.
 **Fixed** means an explicit design decision; **provisional** means a direction or
 candidate; **open** means no concrete spelling has been agreed.
 
-| Use case | Syntax / rule | Status and detail |
-| --- | --- | --- |
-| Numeric literals | `42`, `12.34`, `.5`, `5.`, `12.34 E -2`, `1_000`, `1 000` | Fixed; decimal notation, optional uppercase `E` with signed integer exponent; ignore `_` and U+0020 SPACE; [D1](#d1--decimal-numeric-literals) |
-| Singleton type | The literal of its sole value, e.g. `42` | Fixed; type/value position supplies the interpretation; [D2](#d2--literals-also-denote-singleton-types) |
-| Intersection / AllOf | `A & B` | Fixed; values belonging to both types; [D3](#d3--intersection-and-union) |
-| Union / AnyOf | <code>A &#124; B</code> | Fixed; values belonging to either type, including both |
-| Grouping | <code>(A &#124; B) &amp; C</code> | Fixed for these type expressions; `&` binds more tightly than <code>&#124;</code> |
-| Difference | `A &! B` | Fixed single infix operator; precedence and associativity open; [D4](#d4--relative-difference-without-unary-negation) |
-| Unary type complement | No `!T` or `~T` | Deliberately absent; if a top type is exposed, use `Top &! T` |
-| Value-level conjunction | Possible compatible merge using `&` | Provisional; [D5](#d5--value-operators-need-their-own-justification) |
-| Value-level choice | No general <code>&#124;</code> planned | Current decision; no single value follows from arbitrary alternatives |
-| Composite syntax and other constructs | Not yet fixed | See [open design areas](#open-design-areas) |
+| Use case                              | Syntax / rule                                             | Status and detail                                                                                                                              |
+| ------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Numeric literals                      | `42`, `12.34`, `.5`, `5.`, `12.34 E -2`, `1_000`, `1 000` | Fixed; decimal notation, optional uppercase `E` with signed integer exponent; ignore `_` and U+0020 SPACE; [D1](#d1--decimal-numeric-literals) |
+| Singleton type                        | The literal of its sole value, e.g. `42`                  | Fixed; type/value position supplies the interpretation; [D2](#d2--literals-also-denote-singleton-types)                                        |
+| Intersection / AllOf                  | `A & B`                                                   | Fixed; values belonging to both types; [D3](#d3--intersection-and-union)                                                                       |
+| Union / AnyOf                         | <code>A &#124; B</code>                                   | Fixed; values belonging to either type, including both                                                                                         |
+| Grouping                              | <code>(A &#124; B) &amp; C</code>                         | Fixed for these type expressions; `&` binds more tightly than <code>&#124;</code>                                                              |
+| Difference                            | `A &! B`                                                  | Fixed single infix operator; precedence and associativity open; [D4](#d4--relative-difference-without-unary-negation)                          |
+| Unary type complement                 | No `!T` or `~T`                                           | Deliberately absent; if a top type is exposed, use `Top &! T`                                                                                  |
+| Value-level conjunction               | Possible compatible merge using `&`                       | Provisional; [D5](#d5--value-operators-need-their-own-justification)                                                                           |
+| Value-level choice                    | No general <code>&#124;</code> planned                    | Current decision; no single value follows from arbitrary alternatives                                                                          |
+| Composite syntax and other constructs | Not yet fixed                                             | See [open design areas](#open-design-areas)                                                                                                    |
 
 Names such as `Number`, `Integer`, `Person`, `Bool` and `Top` below describe roles;
 they do not establish built-in names. Composite examples in open sections are
@@ -105,12 +105,12 @@ is allowed to mean `12`.
 
 **Other languages.** These are lexical comparisons, not claims of equal numeric models.
 
-| Language | Relevant convention |
-| --- | --- |
-| Kotlin | Decimal real literals use `e`/`E` and allow `_`; `.5` is allowed, but a bare trailing point is not a real literal. Internal spaces are not numeric separators. See [real literals][kotlin-literals]. |
+| Language   | Relevant convention                                                                                                                                                                                         |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | Decimal real literals use `e`/`E` and allow `_`; `.5` is allowed, but a bare trailing point is not a real literal. Internal spaces are not numeric separators. See [real literals][kotlin-literals].        |
 | TypeScript | ECMAScript numeric syntax allows `.5`, `5.`, `e`/`E` and restricted `_` separators, without internal spaces. See the [ECMAScript grammar][ecma-lexical] and [TypeScript numeric separators][ts-separators]. |
-| Rust | Allows decimal exponents and `_`; `5.` can be a float literal, while `.5` is not one. Whitespace separates tokens. See [Rust tokens][rust-tokens]. |
-| Go | Allows `.5`, `5.`, `e`/`E` and restricted `_` separators, without internal spaces. See [floating-point literals][go-spec]. |
+| Rust       | Allows decimal exponents and `_`; `5.` can be a float literal, while `.5` is not one. Whitespace separates tokens. See [Rust tokens][rust-tokens].                                                          |
+| Go         | Allows `.5`, `5.`, `e`/`E` and restricted `_` separators, without internal spaces. See [floating-point literals][go-spec].                                                                                  |
 
 SPACE grouping is therefore a deliberate departure from all four reference
 languages, with consequences for collection separators and formatting.
@@ -130,14 +130,14 @@ a lexer cannot make this distinction from the literal alone.
 
 **Other languages.**
 
-| Language | Singleton or nearest equivalent |
-| --- | --- |
-| Kotlin | No general source-level `42` singleton type. Its internal integer-literal types describe admissible integer types, not singleton values. An `object` declaration is a different notion of singleton. See the [type system][kotlin-types]. |
-| TypeScript | Literal types such as `42`, `"ready"` and `true` use value spelling in type positions. Widening can still infer a broader type for a value. See [literal types][ts-everyday]. |
-| Rust | No general value-literal type. Const arguments such as `Buffer<42>` parameterise a type by a value; they do not make `42` itself a type. See [generic parameters][rust-generics]. |
-| Go | Constants are values, possibly untyped; `42` is not a type expression. See [constants and types][go-spec]. |
-| CDuce | Basic and constructed data values share notation with singleton types, including pairs such as `(1,2)`. A particularly close precedent; see [types and patterns][cduce-types]. |
-| Ballerina | Singleton type descriptors use constant expressions; this does not establish the same rule for every composite literal in our design. See the [specification][ballerina-spec]. |
+| Language   | Singleton or nearest equivalent                                                                                                                                                                                                           |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | No general source-level `42` singleton type. Its internal integer-literal types describe admissible integer types, not singleton values. An `object` declaration is a different notion of singleton. See the [type system][kotlin-types]. |
+| TypeScript | Literal types such as `42`, `"ready"` and `true` use value spelling in type positions. Widening can still infer a broader type for a value. See [literal types][ts-everyday].                                                             |
+| Rust       | No general value-literal type. Const arguments such as `Buffer<42>` parameterise a type by a value; they do not make `42` itself a type. See [generic parameters][rust-generics].                                                         |
+| Go         | Constants are values, possibly untyped; `42` is not a type expression. See [constants and types][go-spec].                                                                                                                                |
+| CDuce      | Basic and constructed data values share notation with singleton types, including pairs such as `(1,2)`. A particularly close precedent; see [types and patterns][cduce-types].                                                            |
+| Ballerina  | Singleton type descriptors use constant expressions; this does not establish the same rule for every composite literal in our design. See the [specification][ballerina-spec].                                                            |
 
 ### D3 — Intersection and union
 
@@ -167,14 +167,14 @@ to enter and less familiar to the intended audience.
 
 **Other languages.**
 
-| Language | Intersection | Union |
-| --- | --- | --- |
-| Kotlin | Intersections are generally non-denotable; the restricted `T & Any` form denotes definitely non-nullable types. | No general source-level <code>A &#124; B</code>; sealed hierarchies model alternatives. See [Kotlin types][kotlin-types]. |
-| TypeScript | `A & B` | <code>A &#124; B</code>. This is the closest familiar spelling precedent; see [unions and intersections][ts-algebra]. |
-| Rust | `T: A + B` combines trait bounds; it is not an arbitrary intersection of value types. See [trait bounds][rust-bounds]. | An `enum` declares explicit variants, rather than an untagged <code>A &#124; B</code>. See [enumerations][rust-enums]. |
-| Go | Interface elements intersect type sets. | <code>A &#124; B</code> joins terms in constraints, not general value types. See [interface types][go-spec]. |
-| CDuce | `A & B`; binds more tightly than union. | <code>A &#124; B</code>; both operators are set-theoretic. See [types and patterns][cduce-types]. |
-| Ballerina | `A & B`, with restrictions on intersection descriptors; not every arbitrary intersection is expressible. | <code>A &#124; B</code>. See the [specification][ballerina-spec]. |
+| Language   | Intersection                                                                                                           | Union                                                                                                                     |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | Intersections are generally non-denotable; the restricted `T & Any` form denotes definitely non-nullable types.        | No general source-level <code>A &#124; B</code>; sealed hierarchies model alternatives. See [Kotlin types][kotlin-types]. |
+| TypeScript | `A & B`                                                                                                                | <code>A &#124; B</code>. This is the closest familiar spelling precedent; see [unions and intersections][ts-algebra].     |
+| Rust       | `T: A + B` combines trait bounds; it is not an arbitrary intersection of value types. See [trait bounds][rust-bounds]. | An `enum` declares explicit variants, rather than an untagged <code>A &#124; B</code>. See [enumerations][rust-enums].    |
+| Go         | Interface elements intersect type sets.                                                                                | <code>A &#124; B</code> joins terms in constraints, not general value types. See [interface types][go-spec].              |
+| CDuce      | `A & B`; binds more tightly than union.                                                                                | <code>A &#124; B</code>; both operators are set-theoretic. See [types and patterns][cduce-types].                         |
+| Ballerina  | `A & B`, with restrictions on intersection descriptors; not every arbitrary intersection is expressible.               | <code>A &#124; B</code>. See the [specification][ballerina-spec].                                                         |
 
 ### D4 — Relative difference, without unary negation
 
@@ -215,15 +215,15 @@ recognised ahead of the shorter `&`; this does not settle the rest of the lexer.
 
 **Other languages.**
 
-| Language | Exclusion or nearest equivalent |
-| --- | --- |
-| Kotlin | `!is` narrows control flow; no general denotable type difference. See [type checks][kotlin-checks]. |
+| Language   | Exclusion or nearest equivalent                                                                                                                                                        |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | `!is` narrows control flow; no general denotable type difference. See [type checks][kotlin-checks].                                                                                    |
 | TypeScript | `Exclude<T, U>` removes union members assignable to `U`; it is not arbitrary set subtraction. In particular, `Exclude<number, 0>` remains `number`. See [utility types][ts-utilities]. |
-| Rust | No general type subtraction; enum matching handles remaining alternatives. Value-level set subtraction is a different operation. See [types][rust-types] and [enums][rust-enums]. |
-| Go | No general type difference. Binary `&^` is bit clear (“AND NOT”), a syntactic precedent only. See [operators][go-spec]. |
-| CDuce | `A \ B`; no separate unary complement operator in the documented Boolean type syntax. `Any \ B` expresses global complement. See [types and patterns][cduce-types]. |
-| Elixir | Developing set-theoretic notation uses `A and not B` and `not B`. This differs from the older Erlang-style typespec language. See the [type cheatsheet][elixir-types]. |
-| Scala | Value-level set difference `&~` is another “and not” spelling precedent, rather than a type-difference operator. See [set operations][scala-sets]. |
+| Rust       | No general type subtraction; enum matching handles remaining alternatives. Value-level set subtraction is a different operation. See [types][rust-types] and [enums][rust-enums].      |
+| Go         | No general type difference. Binary `&^` is bit clear (“AND NOT”), a syntactic precedent only. See [operators][go-spec].                                                                |
+| CDuce      | `A \ B`; no separate unary complement operator in the documented Boolean type syntax. `Any \ B` expresses global complement. See [types and patterns][cduce-types].                    |
+| Elixir     | Developing set-theoretic notation uses `A and not B` and `not B`. This differs from the older Erlang-style typespec language. See the [type cheatsheet][elixir-types].                 |
+| Scala      | Value-level set difference `&~` is another “and not” spelling precedent, rather than a type-difference operator. See [set operations][scala-sets].                                     |
 
 ### D5 — Value operators need their own justification
 
@@ -254,12 +254,12 @@ There is no established general merge of arbitrary scalars such as `1 & 2`.
 
 **Other languages.**
 
-| Language | Value-side comparison |
-| --- | --- |
-| Kotlin | Map `+` combines entries with the right operand winning duplicate keys; this is not compatible conjunction. See [map operations][kotlin-maps]. |
+| Language   | Value-side comparison                                                                                                                                                             |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | Map `+` combines entries with the right operand winning duplicate keys; this is not compatible conjunction. See [map operations][kotlin-maps].                                    |
 | TypeScript | Object spread such as `{ ...a, ...b }` constructs an object and overwrites earlier properties; type intersection does not itself perform a merge. See [object spread][ts-spread]. |
-| Rust | `BitAnd` and `BitOr` traits support value operators; their existence does not define type intersection or union. See [operator traits][rust-ops]. |
-| Go | `&` and <code>&#124;</code> are integer bitwise operators, not map merges. See [operators][go-spec]. |
+| Rust       | `BitAnd` and `BitOr` traits support value operators; their existence does not define type intersection or union. See [operator traits][rust-ops].                                 |
+| Go         | `&` and <code>&#124;</code> are integer bitwise operators, not map merges. See [operators][go-spec].                                                                              |
 
 The shared type/value design principle therefore permits a deliberate asymmetry:
 keep the useful type operators, and require each proposed value operation to
@@ -271,27 +271,27 @@ This is the reverse lookup for symbol allocation, including context and unresolv
 collisions. A provisional row does not reserve final grammar. Update it whenever
 a decision changes a token's meaning or availability.
 
-| Symbol / token | Meaning | Context / role | Status / constraints |
-| --- | --- | --- | --- |
-| `&` | Intersection / AllOf | Type expression, binary infix | Fixed; tighter than <code>&#124;</code>; associative chains |
-| `&` | Compatible conjunction / merge | Value expression, binary infix | Provisional; domain and conflict behaviour open |
-| <code>&#124;</code> | Union / AnyOf | Type expression, binary infix | Fixed; associative chains; no general value operator planned |
-| `&!` | Relative difference | Type expression, single binary infix operator | Fixed spelling; precedence and associativity open |
-| `(`, `)` | Group type operations | Type expressions | Fixed for grouping; other uses open |
-| Decimal digits | Decimal significand or exponent | Numeric literal | Fixed; significand requires at least one digit |
-| `.` | Decimal point | Numeric significand | Fixed; at most once; may be leading or trailing |
-| `E` | Power-of-ten exponent marker | Numeric literal | Fixed; uppercase; followed by integer exponent |
-| `_` | Ignored numeric separator | Inside numeric literal | Fixed; no general wildcard meaning assigned |
-| U+0020 SPACE | Ignored numeric separator | Inside numeric literal | Fixed; other whitespace excluded internally |
-| `+`, `-` | Optional exponent sign | After numeric `E` | Fixed there; leading-sign and arithmetic syntax open |
-| The value literal itself | Singleton containing that value | Type position | Fixed contextual interpretation; no additional marker |
-| `!T`, `~T` | General unary type complement | Type expression | Deliberately unavailable; not implied by `&!` or `!...` |
-| `{ … }`, `:`, `,` | Map/record structure and entries | Composite examples | Provisional; complete entry and delimiter grammar open |
-| `...` | Allow additional entries | Map/record type remainder | Candidate; defaults open |
-| `!...` | Forbid additional entries | Map/record type remainder | Candidate local marker, not general unary negation |
-| `...: T` | Constrain additional entries | Map/record type remainder | Candidate; key/value-region semantics open |
-| `?` | Optional entry or nullability | Potential sugar | Unassigned; absence and null must be distinguished |
-| `[ … ]`, `< … >` | Collections or parameters | Illustrative examples | Unassigned; not an agreed grammar |
+| Symbol / token           | Meaning                          | Context / role                                | Status / constraints                                         |
+| ------------------------ | -------------------------------- | --------------------------------------------- | ------------------------------------------------------------ |
+| `&`                      | Intersection / AllOf             | Type expression, binary infix                 | Fixed; tighter than <code>&#124;</code>; associative chains  |
+| `&`                      | Compatible conjunction / merge   | Value expression, binary infix                | Provisional; domain and conflict behaviour open              |
+| <code>&#124;</code>      | Union / AnyOf                    | Type expression, binary infix                 | Fixed; associative chains; no general value operator planned |
+| `&!`                     | Relative difference              | Type expression, single binary infix operator | Fixed spelling; precedence and associativity open            |
+| `(`, `)`                 | Group type operations            | Type expressions                              | Fixed for grouping; other uses open                          |
+| Decimal digits           | Decimal significand or exponent  | Numeric literal                               | Fixed; significand requires at least one digit               |
+| `.`                      | Decimal point                    | Numeric significand                           | Fixed; at most once; may be leading or trailing              |
+| `E`                      | Power-of-ten exponent marker     | Numeric literal                               | Fixed; uppercase; followed by integer exponent               |
+| `_`                      | Ignored numeric separator        | Inside numeric literal                        | Fixed; no general wildcard meaning assigned                  |
+| U+0020 SPACE             | Ignored numeric separator        | Inside numeric literal                        | Fixed; other whitespace excluded internally                  |
+| `+`, `-`                 | Optional exponent sign           | After numeric `E`                             | Fixed there; leading-sign and arithmetic syntax open         |
+| The value literal itself | Singleton containing that value  | Type position                                 | Fixed contextual interpretation; no additional marker        |
+| `!T`, `~T`               | General unary type complement    | Type expression                               | Deliberately unavailable; not implied by `&!` or `!...`      |
+| `{ … }`, `:`, `,`        | Map/record structure and entries | Composite examples                            | Provisional; complete entry and delimiter grammar open       |
+| `...`                    | Allow additional entries         | Map/record type remainder                     | Candidate; defaults open                                     |
+| `!...`                   | Forbid additional entries        | Map/record type remainder                     | Candidate local marker, not general unary negation           |
+| `...: T`                 | Constrain additional entries     | Map/record type remainder                     | Candidate; key/value-region semantics open                   |
+| `?`                      | Optional entry or nullability    | Potential sugar                               | Unassigned; absence and null must be distinguished           |
+| `[ … ]`, `< … >`         | Collections or parameters        | Illustrative examples                         | Unassigned; not an agreed grammar                            |
 
 ## Open design areas
 
@@ -323,31 +323,31 @@ ellipsis and avoids assigning a general postfix operator. Alternatives included
 optional arrow spelling, or full meaning of a restricted remainder was settled.
 A local `!...` would be compatible with the decision against general `!T`.
 
-| Language | Use case | Convention |
-| --- | --- | --- |
-| Kotlin | Map and key access | `mapOf(k to v)`, `Map<K, V>`, `m[k]` |
-| Kotlin | Named records | Data class and constructor |
-| Kotlin | Optional fields and extra keys | Nullable members differ from map-key absence; no structural row marker |
-| Kotlin | Ordered collections and length | `listOf(...)`, `List<T>`; size is a value |
-| Kotlin | Bags / multiplicities | Count map, e.g. `Map<T, Int>` |
-| TypeScript | Map and key access | `Map<K, V>` or index-signature object; distinct key models |
-| TypeScript | Named records | `{ a: A }` / `{ a: value }` |
-| TypeScript | Optional fields and extra keys | `a?: A`; index signatures allow other keys; excess-property checks do not make a general exact type |
-| TypeScript | Ordered collections and length | `[a, b]`; `T[]` versus fixed tuple `[A, B]` |
-| TypeScript | Bags / multiplicities | Count map, e.g. `Map<T, number>` |
-| Rust | Map and key access | `HashMap<K, V>`; lookup returns `Option` |
-| Rust | Named records | `struct S { a: A }` / `S { a: value }` |
-| Rust | Optional fields and extra keys | Fixed struct fields; `Option<A>` is a present field, not an omitted key |
-| Rust | Ordered collections and length | `vec![...]`, `Vec<T>`; array `[T; N]` carries length |
-| Rust | Bags / multiplicities | Count map, e.g. `HashMap<T, usize>` |
-| Go | Map and key access | `map[K]V`; `v, ok := m[k]` distinguishes absence |
-| Go | Named records | `struct { A T }` / composite literal |
-| Go | Optional fields and extra keys | Fixed struct fields; map membership is separate |
-| Go | Ordered collections and length | `[]T` slice; `[N]T` array |
-| Go | Bags / multiplicities | Count map, e.g. `map[T]int` |
-| CDuce | Named records; optional fields and extra keys | Closed records enumerate fields; `..` allows additional fields and `=?` marks optional fields. See [types and patterns][cduce-types]. |
-| CDuce | Ordered collections and length | Sequence types use regular expressions, distinguishing one element of type T from arbitrary repetitions of T. See [types and patterns][cduce-types]. |
-| Ballerina | Named records; optional fields and extra keys | Inclusive `record { … }` and exclusive <code>record {&#124; … &#124;}</code> descriptors, optional fields and typed rest descriptors separate shape closure from field presence. See the [specification][ballerina-spec]. |
+| Language   | Use case                                      | Convention                                                                                                                                                                                                                |
+| ---------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | Map and key access                            | `mapOf(k to v)`, `Map<K, V>`, `m[k]`                                                                                                                                                                                      |
+| Kotlin     | Named records                                 | Data class and constructor                                                                                                                                                                                                |
+| Kotlin     | Optional fields and extra keys                | Nullable members differ from map-key absence; no structural row marker                                                                                                                                                    |
+| Kotlin     | Ordered collections and length                | `listOf(...)`, `List<T>`; size is a value                                                                                                                                                                                 |
+| Kotlin     | Bags / multiplicities                         | Count map, e.g. `Map<T, Int>`                                                                                                                                                                                             |
+| TypeScript | Map and key access                            | `Map<K, V>` or index-signature object; distinct key models                                                                                                                                                                |
+| TypeScript | Named records                                 | `{ a: A }` / `{ a: value }`                                                                                                                                                                                               |
+| TypeScript | Optional fields and extra keys                | `a?: A`; index signatures allow other keys; excess-property checks do not make a general exact type                                                                                                                       |
+| TypeScript | Ordered collections and length                | `[a, b]`; `T[]` versus fixed tuple `[A, B]`                                                                                                                                                                               |
+| TypeScript | Bags / multiplicities                         | Count map, e.g. `Map<T, number>`                                                                                                                                                                                          |
+| Rust       | Map and key access                            | `HashMap<K, V>`; lookup returns `Option`                                                                                                                                                                                  |
+| Rust       | Named records                                 | `struct S { a: A }` / `S { a: value }`                                                                                                                                                                                    |
+| Rust       | Optional fields and extra keys                | Fixed struct fields; `Option<A>` is a present field, not an omitted key                                                                                                                                                   |
+| Rust       | Ordered collections and length                | `vec![...]`, `Vec<T>`; array `[T; N]` carries length                                                                                                                                                                      |
+| Rust       | Bags / multiplicities                         | Count map, e.g. `HashMap<T, usize>`                                                                                                                                                                                       |
+| Go         | Map and key access                            | `map[K]V`; `v, ok := m[k]` distinguishes absence                                                                                                                                                                          |
+| Go         | Named records                                 | `struct { A T }` / composite literal                                                                                                                                                                                      |
+| Go         | Optional fields and extra keys                | Fixed struct fields; map membership is separate                                                                                                                                                                           |
+| Go         | Ordered collections and length                | `[]T` slice; `[N]T` array                                                                                                                                                                                                 |
+| Go         | Bags / multiplicities                         | Count map, e.g. `map[T]int`                                                                                                                                                                                               |
+| CDuce      | Named records; optional fields and extra keys | Closed records enumerate fields; `..` allows additional fields and `=?` marks optional fields. See [types and patterns][cduce-types].                                                                                     |
+| CDuce      | Ordered collections and length                | Sequence types use regular expressions, distinguishing one element of type T from arbitrary repetitions of T. See [types and patterns][cduce-types].                                                                      |
+| Ballerina  | Named records; optional fields and extra keys | Inclusive `record { … }` and exclusive <code>record {&#124; … &#124;}</code> descriptors, optional fields and typed rest descriptors separate shape closure from field presence. See the [specification][ballerina-spec]. |
 
 Sources: Kotlin [collection construction][kotlin-collections] and
 [collection types][kotlin-collection-types]; TypeScript [object and tuple types][ts-objects]
@@ -382,16 +382,16 @@ boundaries; neither its delimiter nor a block form has been chosen.
 
 The discussions identify the following obligations, rather than resolving them:
 
-| Case | Question or proposed direction |
-| --- | --- |
-| No expected type | Require an annotation or explicit interpretation, or define a separate inference rule; no choice yet |
-| Union <code>A &#124; B</code> | Combining parser candidates must not make the semantic union depend on operand order; distinct successful values could require disambiguation |
-| Intersection / refinement | Filter candidate values by membership or predicates, rather than requiring every constraint to recognise the same lexical spelling |
-| Difference `A &! B` | A possible model parses through `A`, then excludes results in `B` |
-| Map / list / record constructor | Compose interpretations for keys, elements and fields using expected component types |
-| Alias | Decide how parser availability behaves for equivalent types and aliases |
-| Top or global complement | A value set alone does not supply a parser for every possible representation |
-| Schema change | The same raw text may acquire another meaning; explicit interpretation and diagnostics need design |
+| Case                            | Question or proposed direction                                                                                                                |
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| No expected type                | Require an annotation or explicit interpretation, or define a separate inference rule; no choice yet                                          |
+| Union <code>A &#124; B</code>   | Combining parser candidates must not make the semantic union depend on operand order; distinct successful values could require disambiguation |
+| Intersection / refinement       | Filter candidate values by membership or predicates, rather than requiring every constraint to recognise the same lexical spelling            |
+| Difference `A &! B`             | A possible model parses through `A`, then excludes results in `B`                                                                             |
+| Map / list / record constructor | Compose interpretations for keys, elements and fields using expected component types                                                          |
+| Alias                           | Decide how parser availability behaves for equivalent types and aliases                                                                       |
+| Top or global complement        | A value set alone does not supply a parser for every possible representation                                                                  |
+| Schema change                   | The same raw text may acquire another meaning; explicit interpretation and diagnostics need design                                            |
 
 One candidate model is a relation between raw syntax and values, allowing zero,
 one or several candidates before validation. That is a useful way to expose
@@ -401,15 +401,15 @@ equal types must not accidentally acquire different semantics because their
 parser registrations differ. Tooling must also preserve source spans and obtain
 type information before formatting or diagnosing the inside of such literals.
 
-| Language | Comparable mechanism and its limit |
-| --- | --- |
-| Kotlin | Expected types influence numeric typing; domain parsing is normally an explicit function over a string, not arbitrary type-selected token syntax. See [literals][kotlin-literals]. |
-| TypeScript | Contextual typing checks expressions; assertions are erased and do not parse strings into domain values. See [type assertions][ts-everyday]. |
-| Rust | `"…".parse::<T>()` selects `FromStr`; the host string boundary is already known. See [FromStr][rust-fromstr]. |
-| Go | Explicit functions such as `time.ParseDuration("30s")` parse domain text within ordinary strings. See [time][go-time]. |
-| Wyvern | Type-specific languages select a literal language through its expected type, including clearly delimited embedded content. A direct research precedent; see the [project description][wyvern]. |
-| YAML | Restricted plain scalars, quoted/block alternatives and later tag resolution separate outer boundaries from interpretation. See the [specification][yaml-spec]. |
-| XSD | Separates lexical representations from value spaces and composes list and union datatypes. Its ordered union-member interpretation is a caution: a first-match rule would conflict with order-independent set union here. See [datatypes][xsd-datatypes]. |
+| Language   | Comparable mechanism and its limit                                                                                                                                                                                                                        |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kotlin     | Expected types influence numeric typing; domain parsing is normally an explicit function over a string, not arbitrary type-selected token syntax. See [literals][kotlin-literals].                                                                        |
+| TypeScript | Contextual typing checks expressions; assertions are erased and do not parse strings into domain values. See [type assertions][ts-everyday].                                                                                                              |
+| Rust       | `"…".parse::<T>()` selects `FromStr`; the host string boundary is already known. See [FromStr][rust-fromstr].                                                                                                                                             |
+| Go         | Explicit functions such as `time.ParseDuration("30s")` parse domain text within ordinary strings. See [time][go-time].                                                                                                                                    |
+| Wyvern     | Type-specific languages select a literal language through its expected type, including clearly delimited embedded content. A direct research precedent; see the [project description][wyvern].                                                            |
+| YAML       | Restricted plain scalars, quoted/block alternatives and later tag resolution separate outer boundaries from interpretation. See the [specification][yaml-spec].                                                                                           |
+| XSD        | Separates lexical representations from value spaces and composes list and union datatypes. Its ordered union-member interpretation is a caution: a first-match rule would conflict with order-independent set union here. See [datatypes][xsd-datatypes]. |
 
 ### O3 — Remaining syntax inventory
 
@@ -417,15 +417,15 @@ The following grouped backlog preserves the draft's coverage without allocating
 syntax prematurely. Rows are open unless they refer to a decision above.
 The comparisons show the nearest mechanism, including explicit absences.
 
-| Area and question for this language | Kotlin | TypeScript | Rust | Go |
-| --- | --- | --- | --- | --- |
-| Lexical foundations: names, qualification, keywords, comments, escaping, line breaks and separators | `pkg.Name`, backtick identifiers, `//`, `/* … */` | Qualified names, `//`, `/* … */`; string property keys | Paths `a::B`, raw identifiers `r#name`, line/block comments | Qualified `pkg.Name`, line/block comments |
-| Other primitives: Boolean/string escapes, tags, empty values; decide whether null/unit/absence exist | `true`, `"…"`, `null`, `Unit`, enums | `true`, `"…"`, `null`, `undefined`, `void`; literal unions | `true`, `"…"`, `()`, enum variants, `Option<T>` | `true`, `"…"`, raw strings, `nil`; typed constants |
-| Elementary types: primitive names, aliases, top/bottom, nominal identity | `typealias`; `Any?`, `Nothing`; classes | `type`; `unknown`, `never`; structural types | `type`; structs/enums; `!` never type | Alias versus defined type; `any`; no general bottom |
-| Refinements: intervals, string/length/cardinality constraints, cross-field relations, quantification and static expressions | Predicates and validated wrappers; ranges are values | Literal unions, conditional/template types and guards; no general predicate type | Validated newtypes; const parameters for some static constraints | Validation functions and defined types; no general predicate type |
-| Type use: ascription, membership, subtype/equality notation, conversion and narrowing | `val x: T`, `is`, `as`; smart casts | `x: T`, guards, `as`, `satisfies`; no general runtime test for arbitrary types | `let x: T`, `match`, `as` / conversion traits; no general runtime type-membership operator | `var x T`, assertions, type switches, conversions |
-| Reuse: definitions, aliases, generic/value parameters, recursion, visibility | `typealias`, `<T>`, bounds; no general const generics | `type`, `<T>`, recursive aliases; literal type arguments are types | `type`, `<T, const N: usize>`; recursive data through indirection | `type`, `[T Constraint]`; recursive-type restrictions |
-| Sugar and grammar: optionality, desugaring, precedence and token conflicts | `T?`, `?:`; fixed host grammar | <code>T &#124; null</code>, `a?: T`; fixed host grammar | `Option<T>`, macros; fixed host grammar | Pointers/interfaces for nil-capable values; fixed host grammar |
+| Area and question for this language                                                                                         | Kotlin                                                | TypeScript                                                                       | Rust                                                                                       | Go                                                                |
+| --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+| Lexical foundations: names, qualification, keywords, comments, escaping, line breaks and separators                         | `pkg.Name`, backtick identifiers, `//`, `/* … */`     | Qualified names, `//`, `/* … */`; string property keys                           | Paths `a::B`, raw identifiers `r#name`, line/block comments                                | Qualified `pkg.Name`, line/block comments                         |
+| Other primitives: Boolean/string escapes, tags, empty values; decide whether null/unit/absence exist                        | `true`, `"…"`, `null`, `Unit`, enums                  | `true`, `"…"`, `null`, `undefined`, `void`; literal unions                       | `true`, `"…"`, `()`, enum variants, `Option<T>`                                            | `true`, `"…"`, raw strings, `nil`; typed constants                |
+| Elementary types: primitive names, aliases, top/bottom, nominal identity                                                    | `typealias`; `Any?`, `Nothing`; classes               | `type`; `unknown`, `never`; structural types                                     | `type`; structs/enums; `!` never type                                                      | Alias versus defined type; `any`; no general bottom               |
+| Refinements: intervals, string/length/cardinality constraints, cross-field relations, quantification and static expressions | Predicates and validated wrappers; ranges are values  | Literal unions, conditional/template types and guards; no general predicate type | Validated newtypes; const parameters for some static constraints                           | Validation functions and defined types; no general predicate type |
+| Type use: ascription, membership, subtype/equality notation, conversion and narrowing                                       | `val x: T`, `is`, `as`; smart casts                   | `x: T`, guards, `as`, `satisfies`; no general runtime test for arbitrary types   | `let x: T`, `match`, `as` / conversion traits; no general runtime type-membership operator | `var x T`, assertions, type switches, conversions                 |
+| Reuse: definitions, aliases, generic/value parameters, recursion, visibility                                                | `typealias`, `<T>`, bounds; no general const generics | `type`, `<T>`, recursive aliases; literal type arguments are types               | `type`, `<T, const N: usize>`; recursive data through indirection                          | `type`, `[T Constraint]`; recursive-type restrictions             |
+| Sugar and grammar: optionality, desugaring, precedence and token conflicts                                                  | `T?`, `?:`; fixed host grammar                        | <code>T &#124; null</code>, `a?: T`; fixed host grammar                          | `Option<T>`, macros; fixed host grammar                                                    | Pointers/interfaces for nil-capable values; fixed host grammar    |
 
 Sources for this inventory: Kotlin [basic syntax][kotlin-basics],
 [type system][kotlin-types], [generics][kotlin-generics] and [checks][kotlin-checks];
