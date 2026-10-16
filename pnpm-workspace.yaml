@@ -9,6 +9,11 @@ optimisticRepeatInstall: false
 # concurrently.
 hoistWorkspacePackages: false
 
+# Remove once a released checker no longer depends on is-online 11 or its crash path:
+# update the checker, delete this override, and verify checkLinks without it.
+overrides:
+  is-online: 12.0.2
+
 # The versions of all dependencies. Packages refer to them with `catalog:`.
 catalog:
   linkinator: 8.1.0
