@@ -1,6 +1,7 @@
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.gradle.spotless.SpotlessTask
+import com.diffplug.spotless.LineEnding
 
 plugins {
   base
@@ -20,6 +21,10 @@ val klintVersion = "1.8.0"
 val prettierRc = rootProject.projectDir.resolve(".prettierrc.yaml")
 
 spotless {
+  // Matches `end_of_line` in .editorconfig. The default policy reads Git attributes through JGit, which reads `PATH`
+  // during configuration, so any change to `PATH` (for example IDE versus terminal) would discard the configuration cache.
+  lineEndings = LineEnding.UNIX
+
   if (project.hasKotlin) {
     kotlin {
       from(projectDir.resolve("src")) {
@@ -123,6 +128,8 @@ fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree =
         "**/build/**",
         "**/.idea/**",
         "**/kotlin-js-store/**",
+        // VitePress writes this directory during its build and deletes it afterwards. Its location is not configurable.
+        "**/.vitepress/.temp/**",
       )
     }
     exclude("yarn.lock", "pnpm-lock.yaml")
