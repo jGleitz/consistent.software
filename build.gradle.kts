@@ -48,6 +48,8 @@ val checkLinks =
     // Locally, skip external URLs when offline. In CI, always check them.
     args.addAll(ci.map { emptyList<String>() }.orElse(listOf("--use", "remark-lint-no-dead-urls=skipOffline:true")))
 
+    // Files that Markdown links to but that are neither Markdown nor configuration aren't inputs. Creating or deleting
+    // one therefore doesn't rerun the check locally; CI always runs it.
     inputs.files(linkCheckSources).withPropertyName("linkCheckSources").withPathSensitivity(PathSensitivity.RELATIVE)
     val marker = layout.buildDirectory.file("checkLinks/success")
     outputs.file(marker).withPropertyName("marker")
