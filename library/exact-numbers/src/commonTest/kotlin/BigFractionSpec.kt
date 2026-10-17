@@ -31,11 +31,11 @@ class BigFractionSpec : DescribeSpec({
         }
       }
 
-      it("rejects a zero denominator") {
-        for (numerator in listOf(
+      describe("rejects a zero denominator") {
+        withData(listOf(
           BigIntegers.ZERO, BigIntegers.ONE, -BigIntegers.ONE, 42.toBigInteger(), (-42).toBigInteger(),
           twoToThe(100), -twoToThe(100),
-        )) {
+        )) { numerator ->
           expect { bigFractionOf(numerator, BigIntegers.ZERO) }.toThrow<ArithmeticException>().and.message.toEqual(
             "Division by zero: attempted to divide $numerator by 0."
           )
@@ -169,8 +169,8 @@ class BigFractionSpec : DescribeSpec({
           }
         }
 
-        it("rejects division by zero") {
-          for ((input, dividendText) in listOf(
+        describe("rejects division by zero") {
+          withData(listOf(
             (0 to 1) to "0",
             (0 to -7) to "0",
             (42 to 1) to "42",
@@ -183,7 +183,7 @@ class BigFractionSpec : DescribeSpec({
             (4 to -6) to "-2/3",
             (-4 to -6) to "2/3",
             (14 to 6) to "7/3",
-          )) {
+          )) { (input, dividendText) ->
             val value = bigFractionOf(input.first.toBigInteger(), input.second.toBigInteger())
             expect { value / BigFractions.ZERO }.toThrow<ArithmeticException>().and.message.toEqual(
               "Division by zero: attempted to divide $dividendText by 0."
@@ -219,15 +219,17 @@ class BigFractionSpec : DescribeSpec({
           }
         }
 
-        it("returns one for exponent zero, including zero to the zeroth power") {
-          for ((numerator, denominator) in listOf(
+        describe("returns one for exponent zero, including zero to the zeroth power") {
+          withData(listOf(
             0 to 1, 1 to 1, -1 to 1, 42 to 1, -42 to 1,
             1 to 2, -1 to 2, 7 to 3, -7 to 3, 4 to -6, -4 to -6,
-          )) {
+          )) { (numerator, denominator) ->
             expect(bigFractionOf(numerator.toBigInteger(), denominator.toBigInteger()).toThePowerOf(0))
               .toEqualNumerically(BigFractions.ONE)
           }
-          expect(bigFractionOf(twoToThe(100), -twoToThe(64)).toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
+          it("supports values beyond Long") {
+            expect(bigFractionOf(twoToThe(100), -twoToThe(64)).toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
+          }
         }
 
         it("returns the base for exponent one") {
@@ -254,14 +256,14 @@ class BigFractionSpec : DescribeSpec({
           }
         }
 
-        it("raises zero to positive powers") {
-          for (exponent in listOf(1, 2, 3, 7, 8, 9, 31, 32, 33, 63, 64, 65, Int.MAX_VALUE - 1, Int.MAX_VALUE)) {
+        describe("raises zero to positive powers") {
+          withData(1, 2, 3, 7, 8, 9, 31, 32, 33, 63, 64, 65, Int.MAX_VALUE - 1, Int.MAX_VALUE) { exponent ->
             expect(BigFractions.ZERO.toThePowerOf(exponent)).toEqualNumerically(BigFractions.ZERO)
           }
         }
 
-        it("rejects negative powers of zero") {
-          for (exponent in listOf(Int.MIN_VALUE, Int.MIN_VALUE + 1, -2, -1)) {
+        describe("rejects negative powers of zero") {
+          withData(Int.MIN_VALUE, Int.MIN_VALUE + 1, -2, -1) { exponent ->
             expect { BigFractions.ZERO.toThePowerOf(exponent) }.toThrow<ArithmeticException>().and.message.toEqual(
               "Division by zero: cannot raise 0 to the negative exponent $exponent."
             )
