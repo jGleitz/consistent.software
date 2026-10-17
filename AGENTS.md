@@ -35,7 +35,7 @@ When using a worktree, every agent task must use its own branch and its own work
 3. Set your commit identity (see [Commit Attribution](#commit-attribution)).
 4. If `.codegraph/` is absent, run `codegraph init`. This is authorised; the cache is gitignored and must never be committed.
 5. Do all work from the worktree. Commit early and often and push checkpoints of your own branch.
-6. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: remove `.codegraph/`, then run `git worktree remove <path>` from another checkout.
+6. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: run `git worktree remove <path>` from another checkout. This also removes ignored files such as the CodeGraph cache.
 
 ## Commit Attribution
 
