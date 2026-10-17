@@ -7,8 +7,13 @@ import ch.tutteli.atrium.logic._logic
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
 import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
+import io.kotest.property.exhaustive.bytes
+import io.kotest.property.exhaustive.enum
+import io.kotest.property.exhaustive.ints
+import io.kotest.property.exhaustive.map
 import software.consistent.exactnumbers.*
 import kotlin.math.sign
 
@@ -85,13 +90,13 @@ class NumberSpec : DescribeSpec({
 
     describe("creation from primitives") {
       it("can be created from bytes") {
-        checkAll(Arb.byte()) { byte ->
+        checkAll(Exhaustive.bytes()) { byte ->
           expect(Number(byte)).feature(Number::toString).toEqual(byte.toString())
         }
       }
 
       it("can be created from uBytes") {
-        checkAll(Arb.uByte()) { uByte ->
+        checkAll(Exhaustive.ints(0..255).map { it.toUByte() }) { uByte ->
           expect(Number(uByte)).feature(Number::toString).toEqual(uByte.toString())
         }
       }
@@ -206,7 +211,7 @@ class NumberSpec : DescribeSpec({
       // A small range makes equal operands frequent.
       describe("orders by value") {
         withData(representationPairs) { (left, right) ->
-          checkAll(Arb.int(-3..3), Arb.int(-3..3)) { a, b ->
+          checkAll(Exhaustive.ints(-3..3), Exhaustive.ints(-3..3)) { a, b ->
             expect(left.of(a).compareTo(right.of(b)).sign).toEqual(a.compareTo(b).sign)
           }
         }
@@ -252,10 +257,10 @@ class NumberSpec : DescribeSpec({
       // A small range makes equal operands frequent.
       it("agrees with compareTo, regardless of representation") {
         checkAll(
-          Arb.int(-3..3),
-          Arb.int(-3..3),
-          Arb.enum<Representation>(),
-          Arb.enum<Representation>()
+          Exhaustive.ints(-3..3),
+          Exhaustive.ints(-3..3),
+          Exhaustive.enum<Representation>(),
+          Exhaustive.enum<Representation>()
         ) { a, b, leftRepresentation, rightRepresentation ->
           val left = leftRepresentation.of(a)
           val right = rightRepresentation.of(b)
