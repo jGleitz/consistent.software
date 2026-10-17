@@ -29,6 +29,22 @@ kotlin {
   }
 }
 
+kotlin.js {
+  nodejs {
+    testTask {
+      /* Mocha raises Error.stackTraceLimit to Infinity. Kotest runs tests about 700 frames deep, and Atrium reads the stack of every exception that
+        toThrow catches, which source-map-support then maps frame by frame. Property tests that expect exceptions spent most of their time on this.
+        We freeze the limit at 20 frames instead: enough to reach the test's own line when a property test fails. Raise it here to debug. */
+      nodeJsArgs +=
+        listOf(
+          "--stack-trace-limit=20",
+          "--import",
+          "data:text/javascript,Object.defineProperty(Error,'stackTraceLimit',{writable:false})",
+        )
+    }
+  }
+}
+
 rootProject.plugins.withType<NodeJsRootPlugin> {
   rootProject.the<NpmExtension>().lockFileDirectory.set(rootProject.layout.projectDirectory.dir("gradle/kotlin-js-store"))
 }
