@@ -176,8 +176,12 @@ class BigFractionSpec : DescribeSpec({
             (4 to -6) to "-2/3",
             (-4 to -6) to "2/3",
             (14 to 6) to "7/3",
+          ).map { (input, dividendText) ->
+            (input.first.toBigInteger() to input.second.toBigInteger()) to dividendText
+          } + listOf(
+            (twoToThe(100) + BigIntegers.ONE to -twoToThe(64)) to "-1267650600228229401496703205377/18446744073709551616",
           )) { (input, dividendText) ->
-            val value = bigFractionOf(input.first.toBigInteger(), input.second.toBigInteger())
+            val value = bigFractionOf(input.first, input.second)
             expect { value / BigFractions.ZERO }.toThrow<ArithmeticException>().and.message.toEqual(
               "Division by zero: attempted to divide $dividendText by 0."
             )
@@ -221,7 +225,7 @@ class BigFractionSpec : DescribeSpec({
               .toEqualNumerically(BigFractions.ONE)
           }
           it("supports values beyond Long") {
-            expect(bigFractionOf(twoToThe(100), -twoToThe(64)).toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
+            expect(bigFractionOf(twoToThe(100) + BigIntegers.ONE, -twoToThe(64)).toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
           }
         }
 
