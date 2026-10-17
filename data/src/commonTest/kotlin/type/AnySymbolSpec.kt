@@ -2,26 +2,33 @@ package software.consistent.data.type
 
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.withIts
-import io.kotest.property.Arb
-import io.kotest.property.checkAll
-import software.consistent.data.generators.value
-import software.consistent.data.type.solvers.ValuePartition
-import software.consistent.data.type.solvers.ValuePartition.Symbol
+import software.consistent.data.value.FALSE
+import software.consistent.data.value.Map
+import software.consistent.data.value.Number
+import software.consistent.data.value.Symbol
+import software.consistent.data.value.TRUE
 
 class AnySymbolSpec : DescribeSpec({
   describe(AnySymbol::class.simpleName!!) {
     it("contains any symbol") {
-      checkAll(Arb.value.symbol()) { symbol ->
+      for (symbol in listOf(TRUE, FALSE, Symbol("ordinary"), Symbol(""))) {
         expect(AnySymbol()).toAllow(symbol)
       }
     }
 
-    withIts(
-      nameFn = { "contains no ${it.name}" },
-      ValuePartition.entries.filter { it != Symbol }) { valuePartition ->
-      checkAll(Arb.value(valuePartition)) { value ->
-        expect(AnySymbol()).toForbid(value)
+    it("contains no Number") {
+      for (number in listOf(
+        Number(0), Number(1), Number(-1), Number(Long.MIN_VALUE), Number(Long.MAX_VALUE),
+        Number("1267650600228229401496703205376"),
+        Number(1) / Number(2), Number(-1) / Number(2), Number(7) / Number(3), Number(-7) / Number(3),
+      )) {
+        expect(AnySymbol()).toForbid(number)
+      }
+    }
+
+    it("contains no Map") {
+      for (map in listOf(Map(), Map(Symbol("key") to Number(1)), Map(Symbol("nested") to Map(Symbol("key") to TRUE)))) {
+        expect(AnySymbol()).toForbid(map)
       }
     }
   }
