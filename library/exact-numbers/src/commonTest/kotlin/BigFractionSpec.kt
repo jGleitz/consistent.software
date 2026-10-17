@@ -372,8 +372,8 @@ class BigFractionSpec : DescribeSpec({
       }
     }
     describe("explicit boundaries for the sampled properties") {
-      it("raises signed and normalised bases at the exponent range endpoints and neighbours") {
-        for (ratio in boundaryRatios) {
+      describe("raises signed and normalised bases at the exponent range endpoints and neighbours") {
+        withData(boundaryRatios) { ratio ->
           for (exponent in listOf(1, 2, 9, 10)) {
             var numerator = BigIntegers.ONE
             var denominator = BigIntegers.ONE
@@ -389,8 +389,8 @@ class BigFractionSpec : DescribeSpec({
         }
       }
 
-      it("compares and equates fractions expanded by signed unit and large factors") {
-        for (ratio in boundaryRatios) {
+      describe("compares and equates fractions expanded by signed unit and large factors") {
+        withData(boundaryRatios) { ratio ->
           for (factor in fractionBoundaryIntegers.filter { it != BigIntegers.ZERO }) {
             val expanded = bigFractionOf(ratio.numerator * factor, ratio.denominator * factor)
             expect(expanded.compareTo(ratio.value)).toEqual(0)

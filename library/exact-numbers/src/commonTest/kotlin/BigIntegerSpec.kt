@@ -297,8 +297,8 @@ class BigIntegerSpec : DescribeSpec({
       }
     }
     describe("explicit boundaries for the sampled properties") {
-      it("checks arithmetic at Int limits and their neighbours") {
-        for (left in intBoundaries) {
+      describe("checks arithmetic at Int limits and their neighbours") {
+        withData(intBoundaries) { left ->
           for (right in intBoundaries) {
             val a = left.toBigInteger()
             val b = right.toBigInteger()
@@ -315,8 +315,8 @@ class BigIntegerSpec : DescribeSpec({
         }
       }
 
-      it("checks negation, absolute value and ordering at Long boundaries") {
-        for (long in longBoundaries) {
+      describe("checks negation, absolute value and ordering at Long boundaries") {
+        withData(longBoundaries) { long ->
           if (long != Long.MIN_VALUE) {
             expect(-long.toBigInteger()).toEqual((-long).toBigInteger())
             expect(long.toBigInteger().absoluteValue).toEqual(kotlin.math.abs(long).toBigInteger())
@@ -327,8 +327,8 @@ class BigIntegerSpec : DescribeSpec({
         }
       }
 
-      it("checks shifts at zero, word boundaries and the sampled range endpoints") {
-        for (integer in bigIntegerBoundaries) {
+      describe("checks shifts at zero, word boundaries and the sampled range endpoints") {
+        withData(bigIntegerBoundaries) { integer ->
           expect(integer shl 0).toEqual(integer)
           expect(integer shr 0).toEqual(integer)
           for (bits in listOf(0, 1, 31, 32, 33, 49, 50, 63, 64, 65, 99, 100)) {
@@ -347,8 +347,8 @@ class BigIntegerSpec : DescribeSpec({
         }
       }
 
-      it("checks recomputed equality and hash codes at zero, signs and large magnitudes") {
-        for (integer in bigIntegerBoundaries) {
+      describe("checks recomputed equality and hash codes at zero, signs and large magnitudes") {
+        withData(bigIntegerBoundaries) { integer ->
           for (other in bigIntegerBoundaries) {
             val recomputed = integer + other - other
             expect(recomputed).toEqual(integer)
