@@ -38,7 +38,7 @@ It explains what the directory is for and how to use it, not how it works inside
 ### `ARCHITECTURE.md`
 
 A directory’s `ARCHITECTURE.md` is written for those who maintain _that directory_.
-It explains how the directory is structured and how to work on it, for example its test strategy.
+It explains how the directory is structured and how to work on it, for example its test strategy, where it goes beyond [the general one](testing.md).
 The root [`ARCHITECTURE.md`](../ARCHITECTURE.md) gives an overview of the whole repository.
 
 ### The Documentation Site
