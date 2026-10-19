@@ -69,7 +69,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build
-        run: ./gradlew build --scan
+        run: ./gradlew build --continue --scan
 
       - name: Upload Documentation
         if: ${{ !cancelled() }}
