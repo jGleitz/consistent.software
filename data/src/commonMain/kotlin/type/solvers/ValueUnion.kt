@@ -1,6 +1,8 @@
 package software.consistent.data.type.solvers
 
 import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.exactly
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.util.compareEach
 import software.consistent.data.value.Value
@@ -21,7 +23,7 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun isTriviallyComplete() = false
     override fun isComplete() = false
 
-    override fun cardinality(max: Int) = orderedMembers.size
+    override fun cardinality(upTo: Int) = exactly(orderedMembers.size)
 
     // [Base DNF Operations](https://pnwamk.github.io/sst-tutorial/#%28part._.Base_.D.N.F_.Operations%29)
 
@@ -76,7 +78,7 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun isTriviallyComplete() = isComplete()
     override fun isComplete() = orderedMembers.isEmpty()
     override fun isFinite() = false
-    override fun cardinality(max: Int) = throw mustNotRequestCardinalityOfInfiniteType()
+    override fun cardinality(upTo: Int) = moreThanIntMaxValue()
     override fun anyMember() = TODO("Not yet implemented")
 
     override val members get() = throw mustNotRequestMembersOfInfiniteType()

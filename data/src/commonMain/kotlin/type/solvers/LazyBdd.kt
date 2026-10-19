@@ -1,5 +1,7 @@
 package software.consistent.data.type.solvers
 
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.exactly
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.util.ComparisonCase.*
 
@@ -118,10 +120,9 @@ internal sealed interface LazyBdd<TValue, Atom : ValueSet.NormalizationComparabl
     override fun isTriviallyComplete() = true
     override fun isComplete() = true
     override fun isFinite() = false
+    override fun cardinality(upTo: Int) = moreThanIntMaxValue()
 
-    override fun cardinality(max: Int) = throw mustNotRequestCardinalityOfInfiniteType()
-
-    override val members: Sequence<TValue> get() = throw mustNotRequestCardinalityOfInfiniteType()
+    override val members: Sequence<TValue> get() = throw mustNotRequestMembersOfInfiniteType()
 
     @Suppress("UNCHECKED_CAST")
     override fun with(otherSet: Bdd) = this as Bdd
@@ -146,7 +147,7 @@ internal sealed interface LazyBdd<TValue, Atom : ValueSet.NormalizationComparabl
     override fun isTriviallyComplete() = false
     override fun isComplete() = false
     override fun isFinite() = true
-    override fun cardinality(max: Int) = 0
+    override fun cardinality(upTo: Int) = exactly(0)
     override fun anyMember() = null
     override val members get() = emptySequence<TValue>()
 
