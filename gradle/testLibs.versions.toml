@@ -2,7 +2,7 @@
 # updates. Renovate already has rules for many monorepos per default.
 
 [libraries]
-kotest-framework = "io.kotest:kotest-framework-engine:6.2.5"
+kotest-framework = "io.kotest:kotest-framework-engine:6.2.6"
 kotest-property = "io.kotest:kotest-property:6.2.5"
 kotest-property-extraArbs = "io.kotest:kotest-property-arbs:3.0.1"
 kotest-runner-junit5 = "io.kotest:kotest-runner-junit5:6.2.6"
