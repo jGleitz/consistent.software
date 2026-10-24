@@ -10,6 +10,7 @@ You don’t need to read every document up front: use this index to find the inf
 
 ## Decision Logs
 
+- [Link checking](decision-logs/link-checking.md) — Which tools check our links and why, the alternatives we discarded, and the accepted gap.
 - [Value and type syntax](decision-logs/value-and-type-syntax.md) — Agreed surface syntax, its rationale, the symbol allocation table, open design areas, and comparisons with other languages.
 
 ## Elsewhere

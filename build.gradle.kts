@@ -1,5 +1,3 @@
-import com.github.gradle.node.pnpm.task.PnpmTask
-
 plugins {
   id("nodejs")
   id("format")
@@ -29,27 +27,41 @@ tasks.pnpmInstall {
   outputs.dirs(workspacePackages.elements.map { packages -> packages.map { it.asFile.resolveSibling("node_modules") } })
 }
 
-// Everything remark reads: the Markdown files that .gitignore doesn't exclude, remark's configuration files, and the
-// lock file that pins remark's version. VitePress creates and deletes .vitepress/.temp during the site build.
+// The Markdown files and the configuration that decide lychee's result. VitePress creates and deletes .vitepress/.temp
+// during the site build.
 val linkCheckSources =
   fileTree(layout.projectDirectory) {
-    include(listOf("md", "markdown", "mdown", "mkdn", "mkd", "mdwn", "mkdown", "ron").map { "**/*.$it" })
-    include("**/.remarkrc*", "**/.remarkignore", "**/package.json", ".gitignore", "pnpm-lock.yaml")
+    include("**/*.md", "lychee.toml", "mise.toml", "mise.lock", ".gitignore")
     exclude("**/node_modules/**", "**/build/**", "**/out/**", "**/.gradle/**", "**/.kotlin/**", "**/.vitepress/.temp/**")
   }
 
+// The site sources are left out: their links use VitePress's routing, which VitePress and checkSiteLinks check.
 val checkLinks =
-  tasks.register<PnpmTask>("checkLinks") {
+  tasks.register<Exec>("checkLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Checks links to files, headings, and external URLs in all Markdown files."
-    dependsOn(tasks.pnpmInstall)
-    args = listOf("run", "check-links")
+    description = "Checks links to files, headings, and external URLs in all Markdown files outside the documentation site."
+    // mise 2026.10.19 cannot generate Java's missing linux-arm64-musl lock entry; skip cross-platform regeneration here.
+    environment("MISE_LOCKFILE_MODE", "merge")
+    commandLine(
+      "mise",
+      "exec",
+      "--",
+      "lychee",
+      "--config",
+      "lychee.toml",
+      "--extensions",
+      "md",
+      "--include-fragments",
+      "--exclude-path",
+      "(^|/)documentation/src/main/markdown/",
+      ".",
+    )
     val ci = providers.environmentVariable("CI")
-    // Locally, skip external URLs when offline. In CI, always check them.
-    args.addAll(ci.map { emptyList<String>() }.orElse(listOf("--use", "remark-lint-no-dead-urls=skipOffline:true")))
+    // Locally, skip external URLs, so that local builds don't depend on the network. In CI, always check them.
+    if (!ci.isPresent) args("--offline")
 
-    // Files that Markdown links to but that are neither Markdown nor configuration aren't inputs. Creating or deleting
-    // one therefore doesn't rerun the check locally; CI always runs it.
+    // Files that Markdown links to but that aren't Markdown aren't inputs. Creating or deleting one therefore doesn't
+    // rerun the check locally; CI always runs it.
     inputs.files(linkCheckSources).withPropertyName("linkCheckSources").withPathSensitivity(PathSensitivity.RELATIVE)
     val marker = layout.buildDirectory.file("checkLinks/success")
     outputs.file(marker).withPropertyName("marker")

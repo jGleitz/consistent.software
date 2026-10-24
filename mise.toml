@@ -1,4 +1,5 @@
 [tools]
 java = "temurin-25"
+lychee = "0"
 node = "26"
 pnpm = "12"
