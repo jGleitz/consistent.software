@@ -1,4 +1,0 @@
-# Links between pages use VitePress’s routing (e.g. clean URLs), which remark-validate-links does not understand.
-# VitePress checks those links itself when building the site, and checkSiteLinks checks the built site.
-plugins:
-  - remark-gfm

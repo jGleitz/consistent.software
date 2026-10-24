@@ -1,5 +1,3 @@
-import com.github.gradle.node.pnpm.task.PnpmTask
-
 plugins {
   id("nodejs")
   id("format")
@@ -29,41 +27,19 @@ tasks.pnpmInstall {
   outputs.dirs(workspacePackages.elements.map { packages -> packages.map { it.asFile.resolveSibling("node_modules") } })
 }
 
-// Everything remark reads: the Markdown files that .gitignore doesn't exclude, remark's configuration files, and the
-// lock file that pins remark's version. VitePress creates and deletes .vitepress/.temp during the site build.
+// The Markdown files and the configuration that decide lychee's result. VitePress creates and deletes .vitepress/.temp
+// during the site build.
 val linkCheckSources =
   fileTree(layout.projectDirectory) {
-    include(listOf("md", "markdown", "mdown", "mkdn", "mkd", "mdwn", "mkdown", "ron").map { "**/*.$it" })
-    include("**/.remarkrc*", "**/.remarkignore", "**/package.json", ".gitignore", "pnpm-lock.yaml")
+    include("**/*.md", "lychee.toml", "mise.toml", "mise.lock", ".gitignore")
     exclude("**/node_modules/**", "**/build/**", "**/out/**", "**/.gradle/**", "**/.kotlin/**", "**/.vitepress/.temp/**")
   }
 
+// The site sources are left out: their links use VitePress's routing, which VitePress and checkSiteLinks check.
 val checkLinks =
-  tasks.register<PnpmTask>("checkLinks") {
+  tasks.register<Exec>("checkLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Checks links to files and headings in all Markdown files."
-    dependsOn(tasks.pnpmInstall)
-    args = listOf("run", "check-links")
-    val ci = providers.environmentVariable("CI")
-
-    // Files that Markdown links to but that are neither Markdown nor configuration aren't inputs. Creating or deleting
-    // one therefore doesn't rerun the check locally; CI always runs it.
-    inputs.files(linkCheckSources).withPropertyName("linkCheckSources").withPathSensitivity(PathSensitivity.RELATIVE)
-    val marker = layout.buildDirectory.file("checkLinks/success")
-    outputs.file(marker).withPropertyName("marker")
-    outputs.upToDateWhen { !ci.isPresent }
-    outputs.cacheIf { !ci.isPresent }
-    doLast { marker.get().asFile.writeText("") }
-  }
-
-// The site sources are left out because checkSiteLinks checks the URLs of the built site.
-val checkExternalLinks =
-  tasks.register<Exec>("checkExternalLinks") {
-    group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Checks external URLs in all Markdown files outside the documentation site."
-    // External URLs can break without any input changing, and we don't want local builds to depend on the network.
-    val ci = providers.environmentVariable("CI")
-    onlyIf("external URLs are only checked in CI") { ci.isPresent }
+    description = "Checks links to files, headings, and external URLs in all Markdown files outside the documentation site."
     commandLine(
       "mise",
       "exec",
@@ -73,17 +49,26 @@ val checkExternalLinks =
       "lychee.toml",
       "--extensions",
       "md",
-      "--scheme",
-      "https",
-      "--scheme",
-      "http",
       "--include-fragments",
       "--exclude-path",
       "(^|/)documentation/src/main/markdown/",
       ".",
     )
+    val ci = providers.environmentVariable("CI")
+    // Locally, skip external URLs, so that local builds don't depend on the network. In CI, always check them.
+    if (!ci.isPresent) args("--offline")
+
+    // Files that Markdown links to but that aren't Markdown aren't inputs. Creating or deleting one therefore doesn't
+    // rerun the check locally; CI always runs it.
+    inputs.files(linkCheckSources).withPropertyName("linkCheckSources").withPathSensitivity(PathSensitivity.RELATIVE)
+    val marker = layout.buildDirectory.file("checkLinks/success")
+    outputs.file(marker).withPropertyName("marker")
+    // External URLs can break without any input changing, so CI always runs the check.
+    outputs.upToDateWhen { !ci.isPresent }
+    outputs.cacheIf { !ci.isPresent }
+    doLast { marker.get().asFile.writeText("") }
   }
 
 tasks.check {
-  dependsOn(checkLinks, checkExternalLinks)
+  dependsOn(checkLinks)
 }
