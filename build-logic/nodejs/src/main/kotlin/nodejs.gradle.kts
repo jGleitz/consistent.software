@@ -103,8 +103,7 @@ if (project.path == rootProject.path) {
   NodeExtension[project].apply {
     resolvedNodeDir = nodeJsExtension.nodeDir
     // We hard-code the platform because the node plugin accesses it. It does not influence the plugin’s behaviour
-    // because we set absolute paths to the executables below
+    // because we use absolute paths to the executables
     resolvedPlatform = Platform("windows", "x64")
-    // pnpmCommand = nodeJsExtension.pnpmExecutable.map { it.asFile.absolutePath }
   }
 }
