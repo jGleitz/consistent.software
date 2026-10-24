@@ -43,10 +43,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Set Up Java and Lychee
+      - name: Set Up Development Tools
         uses: jdx/mise-action@v4
-        with:
-          install_args: java lychee
 
       - name: Cache PNPM Store
         uses: actions/cache@v6

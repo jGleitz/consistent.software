@@ -21,11 +21,15 @@ val workspacePackages =
     exclude("**/node_modules/**", "**/build/**", "**/.gradle/**", "**/.kotlin/**", "**/.vitepress/.temp/**")
   }
 
-tasks.pnpmInstall {
-  inputs.file("pnpm-workspace.yaml")
-  inputs.files(workspacePackages)
-  outputs.dirs(workspacePackages.elements.map { packages -> packages.map { it.asFile.resolveSibling("node_modules") } })
-}
+val pnpmInstall =
+  tasks.register<Exec>("pnpmInstall") {
+    commandLine("mise", "exec", "--", "pnpm", "install", "--frozen-lockfile", "--loglevel=warn")
+    inputs.file("pnpm-workspace.yaml")
+    inputs.file("pnpm-lock.yaml")
+    inputs.files("mise.toml", "mise.lock").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(workspacePackages)
+    outputs.dirs(workspacePackages.elements.map { packages -> packages.map { it.asFile.resolveSibling("node_modules") } })
+  }
 
 // The Markdown files and the configuration that decide lychee's result. VitePress creates and deletes .vitepress/.temp
 // during the site build.

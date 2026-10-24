@@ -1,6 +1,7 @@
 @file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
 
@@ -46,5 +47,11 @@ kotlin.js {
 }
 
 rootProject.plugins.withType<NodeJsRootPlugin> {
+  val installedNode = rootProject.the<NodeJsExtension>()
+  rootProject.the<NodeJsEnvSpec>().apply {
+    download.set(false)
+    command.set(installedNode.nodeExecutable)
+  }
+  rootProject.the<NpmExtension>().command.set(installedNode.npmExecutable)
   rootProject.the<NpmExtension>().lockFileDirectory.set(rootProject.layout.projectDirectory.dir("gradle/kotlin-js-store"))
 }
