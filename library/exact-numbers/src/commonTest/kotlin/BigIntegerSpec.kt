@@ -3,9 +3,15 @@ package software.consistent.exactnumbers
 import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.datatest.withData
 import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
+import io.kotest.property.Gen
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
+import io.kotest.property.exhaustive.bytes
+import io.kotest.property.exhaustive.ints
+import io.kotest.property.exhaustive.map
 import kotlin.math.sign
 
 class BigIntegerSpec : DescribeSpec({
@@ -13,8 +19,8 @@ class BigIntegerSpec : DescribeSpec({
     // Each primitive type has its own conversion on each target. The extremes are checked explicitly because random
     // generation does not guarantee to hit them.
     describe("toBigInteger – conversion from primitives") {
-      it("converts bytes") { checkConversion(Arb.byte(), Byte.MIN_VALUE, Byte.MAX_VALUE) { it.toBigInteger() } }
-      it("converts uBytes") { checkConversion(Arb.uByte(), UByte.MIN_VALUE, UByte.MAX_VALUE) { it.toBigInteger() } }
+      it("converts bytes") { checkConversion(Exhaustive.bytes()) { it.toBigInteger() } }
+      it("converts uBytes") { checkConversion(Exhaustive.ints(0..255).map { it.toUByte() }) { it.toBigInteger() } }
       it("converts shorts") { checkConversion(Arb.short(), Short.MIN_VALUE, Short.MAX_VALUE) { it.toBigInteger() } }
       it("converts uShorts") { checkConversion(Arb.uShort(), UShort.MIN_VALUE, UShort.MAX_VALUE) { it.toBigInteger() } }
       it("converts ints") { checkConversion(Arb.int(), Int.MIN_VALUE, Int.MAX_VALUE) { it.toBigInteger() } }
@@ -105,11 +111,11 @@ class BigIntegerSpec : DescribeSpec({
           }
         }
 
-        it("rejects division by zero") {
-          expect {
-            42.toBigInteger().divideAndRemainder(BigIntegers.ZERO) { quotient, remainder -> quotient + remainder }
-          }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide 42 by 0.")
-          checkAll(Arb.bigInteger()) { dividend ->
+        describe("rejects division by zero") {
+          withData(listOf(
+            BigIntegers.ZERO, BigIntegers.ONE, -BigIntegers.ONE, 42.toBigInteger(), (-42).toBigInteger(),
+            twoToThe(100), -twoToThe(100),
+          )) { dividend ->
             expect {
               dividend.divideAndRemainder(BigIntegers.ZERO) { quotient, remainder -> quotient + remainder }
             }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide $dividend by 0.")
@@ -121,7 +127,7 @@ class BigIntegerSpec : DescribeSpec({
     describe("bit shifts") {
       describe("shl") {
         it("shifts zero to zero") {
-          checkAll(Arb.int(0, 100)) { bits ->
+          checkAll(Exhaustive.ints(0..100)) { bits ->
             expect(BigIntegers.ZERO shl bits).toEqual(BigIntegers.ZERO)
           }
         }
@@ -178,7 +184,7 @@ class BigIntegerSpec : DescribeSpec({
 
       describe("shr") {
         it("shifts zero to zero") {
-          checkAll(Arb.int(0, 100)) { bits ->
+          checkAll(Exhaustive.ints(0..100)) { bits ->
             expect(BigIntegers.ZERO shr bits).toEqual(BigIntegers.ZERO)
           }
         }
@@ -263,11 +269,11 @@ class BigIntegerSpec : DescribeSpec({
   }
 })
 
-private suspend fun <T> checkConversion(arb: Arb<T>, vararg extremes: T, convert: (T) -> BigInteger) {
+private suspend fun <T> checkConversion(gen: Gen<T>, vararg extremes: T, convert: (T) -> BigInteger) {
   for (extreme in extremes) {
     expect(convert(extreme).toString()).toEqual(extreme.toString())
   }
-  checkAll(arb) { value ->
+  checkAll(gen) { value ->
     expect(convert(value).toString()).toEqual(value.toString())
   }
 }
