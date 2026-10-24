@@ -7,7 +7,9 @@ For an overview of all maintainer documentation, see [`contributing/index.md`](c
 
 ## Prerequisites
 
-The build runs some tools through [mise](https://mise.jdx.dev/), so install mise and trust this repository with `mise trust`.
+We install the development tools, such as Java and lychee, with [mise](https://mise.jdx.dev/); `mise.toml` declares them and `mise.lock` pins their versions.
+Install mise, then run `mise trust` and `mise install` in your checkout.
+Run Gradle with the tools activated: either [activate mise in your shell](https://mise.jdx.dev/getting-started.html#activate-mise), or prefix commands with `mise exec --`.
 
 ## Commit & PR message format
 
