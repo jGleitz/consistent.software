@@ -49,13 +49,15 @@ mise install
 
 Both are authorised, as is installing the tools that `mise.toml` declares. `mise trust` may report that there is nothing to trust; that is fine.
 
-Then activate the checkout's tools in every shell you run commands from, because your shell may have inherited the tools of another checkout or none at all:
+Changing into the checkout does not activate its tools. Harnesses usually run each command in a new non-interactive shell, which does not load mise's shell hook and inherits the tools of the directory the harness was started in, often another checkout. So run every command that needs the tools through mise:
 
 ```sh
-eval "$(mise env)"
+mise exec -- ./gradlew check
 ```
 
-If your harness starts a new shell for every command, prefix each command with `mise exec --` instead, for example `mise exec -- ./gradlew check`. Activating the tools is authorised. Never change mise's global configuration or trust settings.
+If your harness keeps one shell open across commands, you may instead activate mise once in that shell, with the name of your shell, for example `eval "$(mise activate bash)"`. The hook then switches the tools whenever you change the directory.
+
+Activating the tools is authorised. Never change mise's global configuration or trust settings.
 
 ## Commit Attribution
 
