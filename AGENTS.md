@@ -34,8 +34,28 @@ When using a worktree, every agent task must use its own branch and its own work
 2. Enter the worktree and verify `pwd`, `git branch --show-current`, and `git status`.
 3. Set your commit identity (see [Commit Attribution](#commit-attribution)).
 4. If `.codegraph/` is absent, run `codegraph init`. This is authorised; the cache is gitignored and must never be committed.
-5. Do all work from the worktree. Commit early and often and push checkpoints of your own branch.
-6. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: run `git worktree remove <path>` from another checkout. This also removes ignored files such as the CodeGraph cache.
+5. Set up the development tools (see [Development Tools](#development-tools)).
+6. Do all work from the worktree. Commit early and often and push checkpoints of your own branch.
+7. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: run `git worktree remove <path>` from another checkout. This also removes ignored files such as the CodeGraph cache.
+
+## Development Tools
+
+mise installs the development tools (see [`CONTRIBUTING.md`](CONTRIBUTING.md#prerequisites)). Before you build or test in a checkout, run there:
+
+```sh
+mise trust
+mise install
+```
+
+Both are authorised, as is installing the tools that `mise.toml` declares. `mise trust` may report that there is nothing to trust; that is fine.
+
+Then activate the checkout's tools in every shell you run commands from, because your shell may have inherited the tools of another checkout or none at all:
+
+```sh
+eval "$(mise env)"
+```
+
+If your harness starts a new shell for every command, prefix each command with `mise exec --` instead, for example `mise exec -- ./gradlew check`. Activating the tools is authorised. Never change mise's global configuration or trust settings.
 
 ## Commit Attribution
 
