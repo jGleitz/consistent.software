@@ -1,7 +1,3 @@
-[settings]
-# Java 25.0.5 lacks lock metadata for linux-arm64-musl and windows-x64; generate mode otherwise fails on every host.
-lockfile_platforms = ["linux-arm64", "linux-x64", "linux-x64-musl", "macos-arm64", "macos-x64"]
-
 [tools]
 java = "temurin-25"
 lychee = "0"

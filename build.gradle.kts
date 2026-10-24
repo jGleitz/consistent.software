@@ -40,6 +40,8 @@ val checkLinks =
   tasks.register<Exec>("checkLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Checks links to files, headings, and external URLs in all Markdown files outside the documentation site."
+    // mise 2026.10.19 cannot generate Java's missing linux-arm64-musl lock entry; skip cross-platform regeneration here.
+    environment("MISE_LOCKFILE_MODE", "merge")
     commandLine(
       "mise",
       "exec",
