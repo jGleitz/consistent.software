@@ -9,22 +9,12 @@
   "devDependencies": {
     "remark-cli": "catalog:",
     "remark-gfm": "catalog:",
-    "remark-lint-no-dead-urls": "catalog:",
     "remark-validate-links": "catalog:"
   },
   "remarkConfig": {
     "plugins": [
       "remark-gfm",
-      "remark-validate-links",
-      [
-        "remark-lint-no-dead-urls",
-        {
-          "deadOrAliveOptions": {
-            "timeout": 15000,
-            "maxRetries": 2
-          }
-        }
-      ]
+      "remark-validate-links"
     ]
   }
 }

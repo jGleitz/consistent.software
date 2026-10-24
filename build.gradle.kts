@@ -41,24 +41,49 @@ val linkCheckSources =
 val checkLinks =
   tasks.register<PnpmTask>("checkLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
-    description = "Checks links to files, headings, and external URLs in all Markdown files."
+    description = "Checks links to files and headings in all Markdown files."
     dependsOn(tasks.pnpmInstall)
     args = listOf("run", "check-links")
     val ci = providers.environmentVariable("CI")
-    // Locally, skip external URLs when offline. In CI, always check them.
-    args.addAll(ci.map { emptyList<String>() }.orElse(listOf("--use", "remark-lint-no-dead-urls=skipOffline:true")))
 
     // Files that Markdown links to but that are neither Markdown nor configuration aren't inputs. Creating or deleting
     // one therefore doesn't rerun the check locally; CI always runs it.
     inputs.files(linkCheckSources).withPropertyName("linkCheckSources").withPathSensitivity(PathSensitivity.RELATIVE)
     val marker = layout.buildDirectory.file("checkLinks/success")
     outputs.file(marker).withPropertyName("marker")
-    // External URLs can break without any input changing, so CI always runs the check.
     outputs.upToDateWhen { !ci.isPresent }
     outputs.cacheIf { !ci.isPresent }
     doLast { marker.get().asFile.writeText("") }
   }
 
+// The site sources are left out because checkSiteLinks checks the URLs of the built site.
+val checkExternalLinks =
+  tasks.register<Exec>("checkExternalLinks") {
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    description = "Checks external URLs in all Markdown files outside the documentation site."
+    // External URLs can break without any input changing, and we don't want local builds to depend on the network.
+    val ci = providers.environmentVariable("CI")
+    onlyIf("external URLs are only checked in CI") { ci.isPresent }
+    commandLine(
+      "mise",
+      "exec",
+      "--",
+      "lychee",
+      "--config",
+      "lychee.toml",
+      "--extensions",
+      "md",
+      "--scheme",
+      "https",
+      "--scheme",
+      "http",
+      "--include-fragments",
+      "--exclude-path",
+      "(^|/)documentation/src/main/markdown/",
+      ".",
+    )
+  }
+
 tasks.check {
-  dependsOn(checkLinks)
+  dependsOn(checkLinks, checkExternalLinks)
 }
