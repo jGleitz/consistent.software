@@ -4,6 +4,6 @@ lockfile_platforms = ["linux-arm64", "linux-x64", "linux-x64-musl", "macos-arm64
 
 [tools]
 java = "temurin-25"
-lychee = "0.24"
+lychee = "0"
 node = "26"
 pnpm = "12"

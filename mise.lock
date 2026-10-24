@@ -30,7 +30,7 @@ url = "https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0
 [[tools.lychee]]
 version = "0.24.2"
 backend = "aqua:lycheeverse/lychee"
-specifiers = ["0.24"]
+specifiers = ["0"]
 
 [tools.lychee."platforms.linux-arm64"]
 checksum = "sha256:91a7bd65685da41b90ccb9bc867a3d649a7818042dae04ff405e55a25bddee4c"
