@@ -3,7 +3,7 @@ package software.consistent.exactnumbers
 import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.withData
+import io.kotest.datatest.withIts
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.Gen
@@ -112,7 +112,7 @@ class BigIntegerSpec : DescribeSpec({
         }
 
         describe("rejects division by zero") {
-          withData(listOf(
+          withIts(listOf(
             BigIntegers.ZERO, BigIntegers.ONE, -BigIntegers.ONE, 42.toBigInteger(), (-42).toBigInteger(),
             twoToThe(100), -twoToThe(100),
           )) { dividend ->
