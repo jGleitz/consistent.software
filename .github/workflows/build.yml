@@ -8,6 +8,12 @@ on:
       - "renovate/**"
   pull_request:
 
+concurrency:
+  # A new push cancels the outdated run, except on main: there, every commit gets its own group, so that each one is
+  # built and we can tell which commit broke the build
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: Assemble & Test (${{ matrix.name }})
@@ -80,7 +86,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: build
 
+    # Publishing one commit at a time lets the check below rule out that an older commit overwrites a newer one's
+    # documentation. A newer commit's publication may displace a waiting one, which is fine.
+    concurrency:
+      group: ${{ github.workflow }}-publish-documentation
+      cancel-in-progress: false
+
     permissions:
+      contents: read
       pages: write
       id-token: write
 
@@ -88,5 +101,20 @@ jobs:
       name: github-pages
 
     steps:
+      - name: Check for Newer Commits
+        id: latest
+        # If main has moved on, the newer commit’s run publishes its documentation instead, provided its build succeeds
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)
+          if [[ "$head" == "$GITHUB_SHA" ]]; then
+            echo "is-latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Not publishing, because $GITHUB_REF_NAME has moved on to $head"
+            echo "is-latest=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Deploy to GitHub Pages
+        if: steps.latest.outputs.is-latest == 'true'
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
