@@ -46,7 +46,10 @@ tasks.withType<KotlinTest>().configureEach {
 // out. Node modules are covered: the tasks already track the installed package-lock.json.
 tasks.withType<KotlinJsTest>().configureEach {
   outputs.cacheIf { true }
+  // npm must be installed before input snapshotting loads the launcher. Do not query the version provider during configuration.
+  dependsOn(rootProject.tasks.named("kotlinNpmInstall"))
   val providers = project.providers
+  val testEnvironment = providers.provider { environment.toMap() }
   val nodeVersion =
     rootProject.the<NodeJsExtension>().nodeExecutable.flatMap { node ->
       providers
@@ -58,16 +61,15 @@ tasks.withType<KotlinJsTest>().configureEach {
   inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(PathSensitivity.RELATIVE)
   onTestFrameworkSet {
     if (this is KotlinKarma) {
-      // Karma’s Chrome launcher prefers $CHROME_BIN. Without it we cannot identify the browser, so keep caching disabled.
+      val karma = this
       val chromeVersion =
-        providers.environmentVariable("CHROME_BIN").flatMap { chrome ->
-          providers
-            .exec { commandLine(chrome, "--version") }
-            .standardOutput.asText
-            .map { it.trim() }
+        providers.of(KarmaChromeVersion::class) {
+          parameters.nodeExecutable.set(karma.executable)
+          parameters.workingDirectory.set(karma.workingDir)
+          parameters.environment.set(testEnvironment)
         }
       inputs.property("chromeVersion", chromeVersion).optional(true)
-      outputs.doNotCacheIf("Chrome version is unknown; set CHROME_BIN to enable browser test caching") { !chromeVersion.isPresent }
+      outputs.doNotCacheIf("Chrome version could not be identified") { !chromeVersion.isPresent }
     }
   }
 }

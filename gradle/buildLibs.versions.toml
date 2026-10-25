@@ -4,6 +4,7 @@
 kotlin-multiplatform = "org.jetbrains.kotlin.multiplatform:2.4.21"
 
 [libraries]
+test-junit = "junit:junit:4.13.2"
 plugin-kotlin-multiplatform = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin:2.4.21"
 plugin-spotless = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.10.4"
 plugin-kotest = "io.kotest:io.kotest.gradle.plugin:6.2.6"
