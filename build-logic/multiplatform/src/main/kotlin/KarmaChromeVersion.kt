@@ -22,7 +22,9 @@ abstract class KarmaChromeVersion : ValueSource<String, KarmaChromeVersion.Param
     val script = checkNotNull(javaClass.getResource("/karma-chrome-version.cjs")).readText()
     val output = ByteArrayOutputStream()
     execOperations.exec {
-      commandLine(parameters.nodeExecutable.get(), "--eval", script)
+      // Standard input avoids Windows command-line quoting changing the JavaScript source.
+      commandLine(parameters.nodeExecutable.get(), "--input-type=commonjs")
+      standardInput = script.byteInputStream()
       workingDir(parameters.workingDirectory.get())
       environment(parameters.environment.get())
       standardOutput = output
