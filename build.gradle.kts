@@ -59,8 +59,15 @@ val checkLinks =
       ".",
     )
     val ci = providers.environmentVariable("CI")
-    // Locally, skip external URLs, so that local builds don't depend on the network. In CI, always check them.
-    if (!ci.isPresent) args("--offline")
+    // Locally, skip external URLs, so that local builds don't depend on the network. In CI, check them unless
+    // -PcheckExternalLinks=false says otherwise.
+    val checkExternalLinks =
+      providers
+        .gradleProperty("checkExternalLinks")
+        .map(String::toBoolean)
+        .orElse(ci.map { true })
+        .getOrElse(false)
+    if (!checkExternalLinks) args("--offline")
 
     // Files that Markdown links to but that aren't Markdown aren't inputs. Creating or deleting one therefore doesn't
     // rerun the check locally; CI always runs it.

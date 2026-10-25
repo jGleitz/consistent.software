@@ -11,6 +11,8 @@ This log records which tools check our links, and why we discarded the alternati
 - VitePress checks links between pages when it builds the site.
 
 External URLs are only checked in CI, so that local builds don’t depend on the network.
+`-PcheckExternalLinks=true` or `false` overrides this.
+CI checks external URLs only in its Linux build, so that the builds on the other operating systems don’t send the same requests again.
 
 ## Why lychee
 
