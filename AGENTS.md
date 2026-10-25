@@ -73,7 +73,9 @@ Commits that contain only agent work carry the agent's identity. This is the sta
 
 If your harness gives you a commit identity for the agent, use it. This is the case if the harness's instructions name it, or if the harness configured Git in an environment it set up for your task alone, such as a cloud container. If the harness also provides a signing key for the agent, sign your commits with it. Never use an identity or signing key from Git configuration that you cannot attribute to your harness: on a developer's machine, the global configuration belongs to the human.
 
-Otherwise, use the default identity: your agent name and an email address made from it, lowercase with spaces as hyphens, for example `Sisyphus Junior <sisyphus-junior@noreply>`. Disable signing so that no human's key signs agent commits.
+Otherwise, use the default identity: your agent name and an email address made from it, lowercase with spaces as hyphens, for example `Sisyphus Junior <sisyphus-junior@noreply>`.
+
+Unless the harness provides a signing key for the agent, explicitly disable signing for agent commits in the same safe scope as the identity settings below, so that no human's key signs agent commits.
 
 Set the identity and signing settings in the narrowest safe scope. Never change system-wide or global settings, or the settings of a human's checkout:
 
