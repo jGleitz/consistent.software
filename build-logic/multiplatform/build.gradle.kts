@@ -33,7 +33,15 @@ tasks.processTestResources {
   }
 }
 
+abstract class TestKitArguments : CommandLineArgumentProvider {
+  @get:Internal
+  abstract val gradleUserHome: DirectoryProperty
+
+  override fun asArguments() = listOf("-Dtest.gradleUserHome=${gradleUserHome.get().asFile.absolutePath}")
+}
+
 tasks.test {
-  // Reuse the invoking build's dependency cache and network configuration for the real KMP fixture builds.
-  systemProperty("test.gradleUserHome", gradle.gradleUserHomeDir.absolutePath)
+  inputs.property("operatingSystem", providers.systemProperty("os.name"))
+  // This location controls download reuse, not test semantics; keep it out of the task's cache key.
+  jvmArgumentProviders.add(objects.newInstance<TestKitArguments>().apply { gradleUserHome.fileValue(gradle.gradleUserHomeDir) })
 }

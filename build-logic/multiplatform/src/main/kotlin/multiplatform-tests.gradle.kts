@@ -46,8 +46,6 @@ tasks.withType<KotlinTest>().configureEach {
 // out. Node modules are covered: the tasks already track the installed package-lock.json.
 tasks.withType<KotlinJsTest>().configureEach {
   outputs.cacheIf { true }
-  // npm must be installed before input snapshotting loads the launcher. Do not query the version provider during configuration.
-  dependsOn(rootProject.tasks.named("kotlinNpmInstall"))
   val providers = project.providers
   val testEnvironment = providers.provider { environment.toMap() }
   val nodeVersion =
@@ -61,6 +59,9 @@ tasks.withType<KotlinJsTest>().configureEach {
   inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(PathSensitivity.RELATIVE)
   onTestFrameworkSet {
     if (this is KotlinKarma) {
+      // ValueSource providers do not propagate task dependencies from their parameters.
+      // Install npm before input snapshotting loads the launcher; do not query the provider during configuration.
+      dependsOn(":kotlinNpmInstall")
       val karma = this
       val chromeVersion =
         providers.of(KarmaChromeVersion::class) {
