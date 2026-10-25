@@ -82,7 +82,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Test Build Logic
-        run: mise exec java@temurin-25.0.4+7.0.LTS -- .\gradlew.bat :build-logic:multiplatform:check --console=plain
+        run: mise exec java@temurin-25.0.4+7.0.LTS -- .\gradlew.bat :build-logic:multiplatform:check -PbrowserTestDiagnostics --console=plain
 
       - name: Upload Test Results
         if: ${{ !cancelled() }}

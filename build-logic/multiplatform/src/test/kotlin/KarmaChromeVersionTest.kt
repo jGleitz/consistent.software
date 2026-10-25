@@ -182,6 +182,7 @@ class KarmaChromeVersionTest {
           ) + extraEnvironment,
       )
       .withArguments("jsBrowserTest", "--configuration-cache", "--build-cache", "--max-workers=2", "--stacktrace")
+      .forwardOutput()
       .build()
 
   private fun installedBrowser(environment: Map<String, String> = System.getenv()): File {
