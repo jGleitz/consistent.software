@@ -2,6 +2,7 @@ package software.consistent.data.type.solvers
 
 import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.exactly
 import software.consistent.data.value.Value
 
 internal data class MapComponent(
@@ -26,7 +27,7 @@ internal data class MapComponent(
       }
       // All keys present in value have the correct value. Now we have to check that all expected keys were present:
       // We rely our invariant that only finite keys may be required
-      keys.cardinality(keyMatches + 1) == keyMatches
+      keys.cardinality(keyMatches) == exactly(keyMatches)
     }
 
   override fun normalizationComparedTo(other: MapComponent) =

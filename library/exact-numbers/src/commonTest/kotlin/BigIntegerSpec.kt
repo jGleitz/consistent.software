@@ -3,7 +3,7 @@ package software.consistent.exactnumbers
 import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.withData
+import io.kotest.datatest.withIts
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.Gen
@@ -12,7 +12,6 @@ import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
 import io.kotest.property.exhaustive.ints
-import io.kotest.property.exhaustive.map
 import kotlin.math.sign
 
 class BigIntegerSpec : DescribeSpec({
@@ -21,7 +20,7 @@ class BigIntegerSpec : DescribeSpec({
     // generation does not guarantee to hit them.
     describe("toBigInteger – conversion from primitives") {
       it("converts bytes") { checkConversion(Exhaustive.bytes()) { it.toBigInteger() } }
-      it("converts uBytes") { checkConversion(Exhaustive.ints(0..255).map { it.toUByte() }) { it.toBigInteger() } }
+      it("converts uBytes") { checkConversion(Exhaustive.uBytes()) { it.toBigInteger() } }
       it("converts shorts") {
         checkConversion(
           Arb.short(), Short.MIN_VALUE, (Short.MIN_VALUE + 1).toShort(), (-1).toShort(), 0.toShort(), 1.toShort(),
@@ -142,7 +141,7 @@ class BigIntegerSpec : DescribeSpec({
         }
 
         describe("rejects division by zero") {
-          withData(listOf(
+          withIts(listOf(
             BigIntegers.ZERO, BigIntegers.ONE, -BigIntegers.ONE, 42.toBigInteger(), (-42).toBigInteger(),
             twoToThe(100), -twoToThe(100),
           )) { dividend ->
@@ -298,7 +297,7 @@ class BigIntegerSpec : DescribeSpec({
     }
     describe("explicit boundaries for the sampled properties") {
       describe("checks arithmetic at Int limits and their neighbours") {
-        withData(intBoundaries) { left ->
+        withIts(intBoundaries) { left ->
           for (right in intBoundaries) {
             val a = left.toBigInteger()
             val b = right.toBigInteger()
@@ -316,7 +315,7 @@ class BigIntegerSpec : DescribeSpec({
       }
 
       describe("checks negation, absolute value and ordering at Long boundaries") {
-        withData(longBoundaries) { long ->
+        withIts(longBoundaries) { long ->
           if (long != Long.MIN_VALUE) {
             expect(-long.toBigInteger()).toEqual((-long).toBigInteger())
             expect(long.toBigInteger().absoluteValue).toEqual(kotlin.math.abs(long).toBigInteger())
@@ -328,7 +327,7 @@ class BigIntegerSpec : DescribeSpec({
       }
 
       describe("checks shifts at zero, word boundaries and the sampled range endpoints") {
-        withData(bigIntegerBoundaries) { integer ->
+        withIts(bigIntegerBoundaries) { integer ->
           expect(integer shl 0).toEqual(integer)
           expect(integer shr 0).toEqual(integer)
           for (bits in listOf(0, 1, 31, 32, 33, 49, 50, 63, 64, 65, 99, 100)) {
@@ -348,7 +347,7 @@ class BigIntegerSpec : DescribeSpec({
       }
 
       describe("checks recomputed equality and hash codes at zero, signs and large magnitudes") {
-        withData(bigIntegerBoundaries) { integer ->
+        withIts(bigIntegerBoundaries) { integer ->
           for (other in bigIntegerBoundaries) {
             val recomputed = integer + other - other
             expect(recomputed).toEqual(integer)

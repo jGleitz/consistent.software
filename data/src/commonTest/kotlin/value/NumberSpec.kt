@@ -5,7 +5,7 @@ import ch.tutteli.atrium.api.verbs.expect
 import ch.tutteli.atrium.creating.Expect
 import ch.tutteli.atrium.logic._logic
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.withData
+import io.kotest.datatest.withIts
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
 import io.kotest.property.PropTestConfig
@@ -14,7 +14,7 @@ import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
 import io.kotest.property.exhaustive.enum
 import io.kotest.property.exhaustive.ints
-import io.kotest.property.exhaustive.map
+import software.consistent.data.generators.uBytes
 import software.consistent.exactnumbers.*
 import kotlin.math.sign
 
@@ -100,7 +100,7 @@ class NumberSpec : DescribeSpec({
       }
 
       it("can be created from uBytes") {
-        checkAll(Exhaustive.ints(0..255).map { it.toUByte() }) { uByte ->
+        checkAll(Exhaustive.uBytes()) { uByte ->
           expect(Number(uByte)).feature(Number::toString).toEqual(uByte.toString())
         }
       }
@@ -188,7 +188,7 @@ class NumberSpec : DescribeSpec({
     // for every combination of the two, so all combinations are checked against Long arithmetic on Int operands.
     describe("arithmetic") {
       describe("unaryMinus negates") {
-        withData(Representation.entries) { representation ->
+        withIts(Representation.entries) { representation ->
           for (int in intBoundaries) {
             expect(-representation.of(int)).toEqualNumerically(Number(-int.toLong()))
           }
@@ -199,7 +199,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("plus") {
-        withData(representationPairs) { (left, right) ->
+        withIts(representationPairs) { (left, right) ->
           checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
             expect(left.of(a) + right.of(b)).toEqualNumerically(Number(a.toLong() + b))
           }
@@ -207,7 +207,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("minus") {
-        withData(representationPairs) { (left, right) ->
+        withIts(representationPairs) { (left, right) ->
           checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
             expect(left.of(a) - right.of(b)).toEqualNumerically(Number(a.toLong() - b))
           }
@@ -215,7 +215,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("times") {
-        withData(representationPairs) { (left, right) ->
+        withIts(representationPairs) { (left, right) ->
           checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
             expect(left.of(a) * right.of(b)).toEqualNumerically(Number(a.toLong() * b))
           }
@@ -224,7 +224,7 @@ class NumberSpec : DescribeSpec({
 
       describe("div") {
         describe("divides") {
-          withData(representationPairs) { (left, right) ->
+          withIts(representationPairs) { (left, right) ->
             checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int().filter { it != 0 }) { a, b ->
               expect((left.of(a) / right.of(b)) * Number(b)).toEqualNumerically(Number(a))
             }
@@ -233,7 +233,7 @@ class NumberSpec : DescribeSpec({
 
         // Zero dividends are included because 0/0 has been mishandled by the JVM backend of exact-numbers.
         describe("rejects division by zero") {
-          withData(representationPairs) { (left, right) ->
+          withIts(representationPairs) { (left, right) ->
             for (dividend in listOf(0, 1)) {
               expect { left.of(dividend) / right.of(0) }.toThrow<ArithmeticException>()
             }
@@ -245,7 +245,7 @@ class NumberSpec : DescribeSpec({
     describe("compareTo") {
       // A small range makes equal operands frequent.
       describe("orders by value") {
-        withData(representationPairs) { (left, right) ->
+        withIts(representationPairs) { (left, right) ->
           checkAll(Exhaustive.ints(-3..3), Exhaustive.ints(-3..3)) { a, b ->
             expect(left.of(a).compareTo(right.of(b)).sign).toEqual(a.compareTo(b).sign)
           }
@@ -266,7 +266,7 @@ class NumberSpec : DescribeSpec({
     }
 
     describe("isInteger") {
-      withData(
+      withIts(
         mapOf(
           "recognises an Integer" to (Number(5) to true),
           "recognises an integer-valued Fraction" to (Number(10) / Number(2) to true),
@@ -316,7 +316,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("considers equal values from different sources equal and gives them the same hash code") {
-        withData(
+        withIts(
           mapOf(
             "2 and 2.0" to (Number(2) to Number(2.0)),
             "0 and -0.0" to (Number(0) to Number(-0.0)),
@@ -347,7 +347,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("prints integers created from other sources like integers") {
-        withData(
+        withIts(
           mapOf(
             "2.0" to (Number(2.0) to "2"),
             "-0.0" to (Number(-0.0) to "0"),
@@ -358,7 +358,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("prints fractions using raised and lowered digits around a fraction slash") {
-        withData(
+        withIts(
           mapOf(
             "one half" to (Number(1) / Number(2) to "¹⁄₂"),
             "negative one eighth" to (Number(1) / Number(-8) to "-¹⁄₈"),
@@ -429,7 +429,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("accepts non-canonical fractions") {
-        withData(
+        withIts(
           mapOf(
             "unreduced mixed fraction with an integer result" to ("5 20/4" to Number(10)),
             "unreduced mixed fraction with a fractional result" to ("5 21/4" to Number(41) / Number(4)),
@@ -481,7 +481,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("accepts non-canonical integers") {
-        withData(
+        withIts(
           mapOf(
             "leading zeros" to ("007" to 7L),
             "negative zero" to ("-0" to 0L),
@@ -498,7 +498,7 @@ class NumberSpec : DescribeSpec({
       }
 
       describe("explains invalid input") {
-        withData(
+        withIts(
           mapOf(
             "empty" to ("" to "Expected at least one digit."),
             "only spaces" to ("  " to "Expected at least one digit."),
@@ -594,7 +594,7 @@ class NumberSpec : DescribeSpec({
       }
     }
     describe("arithmetic at explicit Int boundaries") {
-      withData(representationPairs) { (left, right) ->
+      withIts(representationPairs) { (left, right) ->
         for (a in intBoundaries) {
           for (b in intBoundaries) {
             expect(left.of(a) + right.of(b)).toEqualNumerically(Number(a.toLong() + b))

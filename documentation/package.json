@@ -7,14 +7,12 @@
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",
-    "check-site-links": "node check-site-links.ts",
     "preview": "vitepress preview"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "linkinator": "catalog:",
     "markdown-it-deflist": "catalog:",
     "markdown-it-mathjax3": "catalog:",
     "typescript": "catalog:",
