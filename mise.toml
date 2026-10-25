@@ -1,5 +1,7 @@
 [tools]
-java = "temurin-25"
+# Temurin 25.0.5 has no Windows build in mise's Java metadata. Pinned to the newest version that is available on every
+# platform; the CI on Windows fails on updates to versions without a Windows build.
+java = "temurin-25.0.4+101.0.LTS"
 lychee = "0"
 node = "26"
 pnpm = "12"
