@@ -11,6 +11,7 @@ Individual HTML and JUnit XML reports remain available under each module’s `bu
 
 JavaScript test results are cached, including the version of the Node executable selected by mise.
 Browser test caching tracks the version of the executable selected by Karma’s ChromeHeadless launcher, including its default browser lookup when `CHROME_BIN` is unset.
+CI requires this version to be available (`-PrequireChromeVersion=true`), so a broken probe cannot silently disable browser test caching.
 Unchanged tests restored from the cache do not explore new random inputs in property tests.
 Use `--rerun-tasks` when you want fresh test execution.
 

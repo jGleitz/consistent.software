@@ -69,7 +69,9 @@ tasks.withType<KotlinJsTest>().configureEach {
           parameters.workingDirectory.set(karma.workingDir)
           parameters.environment.set(testEnvironment)
         }
-      inputs.property("chromeVersion", chromeVersion).optional(true)
+      // CI must detect a broken probe instead of silently running every browser test without caching.
+      val requireChromeVersion = providers.gradleProperty("requireChromeVersion").map(String::toBoolean).getOrElse(false)
+      inputs.property("chromeVersion", chromeVersion).optional(!requireChromeVersion)
       outputs.doNotCacheIf("Chrome version could not be identified") { !chromeVersion.isPresent }
     }
   }

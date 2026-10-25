@@ -63,6 +63,8 @@ jobs:
         env:
           # Only Linux checks external links, so that the other operating systems don't send the same requests again
           ORG_GRADLE_PROJECT_checkExternalLinks: ${{ runner.os == 'Linux' }}
+          # Exercise real browser-version discovery as well as the mocked cache regression tests.
+          ORG_GRADLE_PROJECT_requireChromeVersion: "true"
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
           GITHUB_TOKEN: ${{ github.token }}
 
