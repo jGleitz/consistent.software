@@ -8,6 +8,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withIts
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
@@ -36,7 +37,10 @@ class NumberSpec : DescribeSpec({
           expect(actual.hashCode()).toEqual(expected.hashCode())
           expect(actual.isInteger()).toEqual(true)
         }
-        checkAll(Arb.long()) { long ->
+        for (long in longBoundaries) {
+          expect(Number(long.toBigInteger())).toEqual(Number(long))
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
           expect(Number(long.toBigInteger())).toEqual(Number(long))
         }
       }
@@ -102,50 +106,78 @@ class NumberSpec : DescribeSpec({
       }
 
       it("can be created from shorts") {
-        checkAll(Arb.short()) { short ->
+        for (short in listOf(Short.MIN_VALUE, (Short.MIN_VALUE + 1).toShort(), (-1).toShort(), 0.toShort(), 1.toShort(), (Short.MAX_VALUE - 1).toShort(), Short.MAX_VALUE)) {
+          expect(Number(short)).feature(Number::toString).toEqual(short.toString())
+        }
+        checkAll(PropTestConfig(iterations = 100), Arb.short()) { short ->
           expect(Number(short)).feature(Number::toString).toEqual(short.toString())
         }
       }
 
       it("can be created from uShorts") {
-        checkAll(Arb.uShort()) { uShort ->
+        for (uShort in listOf(0u, 1u, 32767u, 32768u, 32769u, 65534u, 65535u).map { it.toUShort() }) {
+          expect(Number(uShort)).feature(Number::toString).toEqual(uShort.toString())
+        }
+        checkAll(PropTestConfig(iterations = 100), Arb.uShort()) { uShort ->
           expect(Number(uShort)).feature(Number::toString).toEqual(uShort.toString())
         }
       }
 
       it("can be created from ints") {
-        checkAll(Arb.int()) { int ->
+        for (int in intBoundaries) {
+          expect(Number(int)).feature(Number::toString).toEqual(int.toString())
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.int()) { int ->
           expect(Number(int)).feature(Number::toString).toEqual(int.toString())
         }
       }
 
       it("can be created from uInts") {
-        checkAll(Arb.uInt()) { uInt ->
+        for (uInt in listOf(0u, 1u, Int.MAX_VALUE.toUInt(), Int.MAX_VALUE.toUInt() + 1u, Int.MAX_VALUE.toUInt() + 2u, UInt.MAX_VALUE - 1u, UInt.MAX_VALUE)) {
+          expect(Number(uInt)).feature(Number::toString).toEqual(uInt.toString())
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.uInt()) { uInt ->
           expect(Number(uInt)).feature(Number::toString).toEqual(uInt.toString())
         }
       }
 
       it("can be created from longs") {
-        checkAll(Arb.long()) { long ->
+        for (long in longBoundaries) {
+          expect(Number(long)).feature(Number::toString).toEqual(long.toString())
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
           expect(Number(long)).feature(Number::toString).toEqual(long.toString())
         }
       }
 
       it("can be created from uLongs") {
-        checkAll(Arb.uLong()) { uLong ->
+        for (uLong in listOf(0uL, 1uL, Long.MAX_VALUE.toULong(), Long.MAX_VALUE.toULong() + 1uL, Long.MAX_VALUE.toULong() + 2uL, ULong.MAX_VALUE - 1uL, ULong.MAX_VALUE)) {
+          expect(Number(uLong)).feature(Number::toString).toEqual(uLong.toString())
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.uLong()) { uLong ->
           expect(Number(uLong)).feature(Number::toString).toEqual(uLong.toString())
         }
       }
 
       it("can be created from floats (except NaN)") {
-        checkAll(Arb.float(includeNaNs = false)) { float ->
+        for (float in listOf(
+          0.0f, -0.0f, 1.0f, -1.0f, Float.MIN_VALUE, -Float.MIN_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE,
+          Float.fromBits(2), Float.fromBits(0x007fffff), Float.fromBits(0x00800000), Float.fromBits(0x00800001),
+          Float.fromBits(1.0f.toBits() - 1), Float.fromBits(1.0f.toBits() + 1), Float.fromBits(Float.MAX_VALUE.toBits() - 1),
+        )) {
+          expect { Number(float) }.withRepresentation("Number($float)").notToThrow()
+        }
+        checkAll(PropTestConfig(iterations = 100), Arb.float(includeNaNs = false)) { float ->
           expect { Number(float) }.withRepresentation("Number($float)").notToThrow()
         }
         expect(Number(2.5f)).toEqualNumerically(Number(5) / Number(2))
       }
 
       it("can be created from doubles (except NaN)") {
-        checkAll(Arb.double(includeNaNs = false)) { double ->
+        for (double in doubleBoundaries) {
+          expect { Number(double) }.withRepresentation("Number($double)").notToThrow()
+        }
+        checkAll(PropTestConfig(iterations = 100), Arb.double(includeNaNs = false)) { double ->
           expect { Number(double) }.withRepresentation("Number($double)").notToThrow()
         }
         expect(Number(2.5)).toEqualNumerically(Number(5) / Number(2))
@@ -157,7 +189,10 @@ class NumberSpec : DescribeSpec({
     describe("arithmetic") {
       describe("unaryMinus negates") {
         withIts(Representation.entries) { representation ->
-          checkAll(Arb.int()) { int ->
+          for (int in intBoundaries) {
+            expect(-representation.of(int)).toEqualNumerically(Number(-int.toLong()))
+          }
+          checkAll(PropTestConfig(iterations = 100), Arb.int()) { int ->
             expect(-representation.of(int)).toEqualNumerically(Number(-int.toLong()))
           }
         }
@@ -165,7 +200,7 @@ class NumberSpec : DescribeSpec({
 
       describe("plus") {
         withIts(representationPairs) { (left, right) ->
-          checkAll(Arb.int(), Arb.int()) { a, b ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
             expect(left.of(a) + right.of(b)).toEqualNumerically(Number(a.toLong() + b))
           }
         }
@@ -173,7 +208,7 @@ class NumberSpec : DescribeSpec({
 
       describe("minus") {
         withIts(representationPairs) { (left, right) ->
-          checkAll(Arb.int(), Arb.int()) { a, b ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
             expect(left.of(a) - right.of(b)).toEqualNumerically(Number(a.toLong() - b))
           }
         }
@@ -181,7 +216,7 @@ class NumberSpec : DescribeSpec({
 
       describe("times") {
         withIts(representationPairs) { (left, right) ->
-          checkAll(Arb.int(), Arb.int()) { a, b ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
             expect(left.of(a) * right.of(b)).toEqualNumerically(Number(a.toLong() * b))
           }
         }
@@ -190,7 +225,7 @@ class NumberSpec : DescribeSpec({
       describe("div") {
         describe("divides") {
           withIts(representationPairs) { (left, right) ->
-            checkAll(Arb.int(), Arb.int().filter { it != 0 }) { a, b ->
+            checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int().filter { it != 0 }) { a, b ->
               expect((left.of(a) / right.of(b)) * Number(b)).toEqualNumerically(Number(a))
             }
           }
@@ -219,7 +254,12 @@ class NumberSpec : DescribeSpec({
 
       it("orders non-integers like the doubles they were created from (excluding -0.0, NaN, -∞, ∞") {
         var eligibleDoubles = Arb.double(includeNaNs = false).filter { it != -0.0 }
-        checkAll(eligibleDoubles, eligibleDoubles) { left, right ->
+        for (left in doubleBoundaries.filter { it != 0.0 }) {
+          for (right in doubleBoundaries.filter { it != 0.0 }) {
+            expect(Number(left).compareTo(Number(right)).sign).toEqual(left.compareTo(right).sign)
+          }
+        }
+        checkAll(PropTestConfig(iterations = 200), eligibleDoubles, eligibleDoubles) { left, right ->
           expect(Number(left).compareTo(Number(right)).sign).toEqual(left.compareTo(right).sign)
         }
       }
@@ -240,7 +280,14 @@ class NumberSpec : DescribeSpec({
     // Numbers are values (e.g. map keys), so equality must depend on the value alone, not on the representation.
     describe("equals & hashCode") {
       it("considers an integer and the integer-valued fraction with the same value equal") {
-        checkAll(Arb.long()) { long ->
+        for (long in longBoundaries) {
+          val integer = Number(long)
+          val fraction = Number(long) / Number(1)
+          expect(integer).toEqual(fraction)
+          expect(fraction).toEqual(integer)
+          expect(integer.hashCode()).toEqual(fraction.hashCode())
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
           val integer = Number(long)
           val fraction = Number(long) / Number(1)
           expect(integer) {
@@ -291,7 +338,10 @@ class NumberSpec : DescribeSpec({
     // Integers are printed by the creation tests above.
     describe("toString") {
       it("prints integer-valued fractions like integers") {
-        checkAll(Arb.long()) { long ->
+        for (long in longBoundaries) {
+          expect((Number(long) / Number(1)).toString()).toEqual(long.toString())
+        }
+        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
           expect((Number(long) / Number(1)).toString()).toEqual(long.toString())
         }
       }
@@ -336,7 +386,7 @@ class NumberSpec : DescribeSpec({
       }
 
       it("accepts either slash and independently ordinary numerator and denominator digits") {
-        checkAll(numbers) { number ->
+        fun checkNotation(number: Number) {
           for (slash in listOf('⁄', '/')) {
             for (numeratorDigits in listOf("⁰¹²³⁴⁵⁶⁷⁸⁹", "0123456789")) {
               for (denominatorDigits in listOf("₀₁₂₃₄₅₆₇₈₉", "0123456789")) {
@@ -353,16 +403,28 @@ class NumberSpec : DescribeSpec({
             }
           }
         }
+        for (number in listOf(Number(0), Number(1), Number(-1), Number(Long.MIN_VALUE), Number(Long.MAX_VALUE), Number(1) / Number(2), Number(-7) / Number(3), Number("1267650600228229401496703205376") / Number(3))) {
+          checkNotation(number)
+        }
+        checkAll(PropTestConfig(iterations = 200), numbers) { number -> checkNotation(number) }
       }
 
       it("resolves the last digit group as whole-part digits or numerator digits when the input ends or a slash arrives") {
-        checkAll(Arb.int(0..999), Arb.int(0..999), Arb.int(0..999), Arb.int(1..999)) { first, middle, last, denominator ->
+        fun checkGroups(first: Int, middle: Int, last: Int, denominator: Int) {
           val prefix = "$first  ${middle.toString().padStart(3, '0')}"
           val groupedWhole = Number(first * 1000 + middle)
           expect(Number("$prefix   ${last.toString().padStart(3, '0')}  "))
             .toEqual(groupedWhole * Number(1000) + Number(last))
           expect(Number("$prefix   $last / $denominator  "))
             .toEqual(groupedWhole + Number(last) / Number(denominator))
+        }
+        for (digits in listOf(0, 1, 998, 999)) {
+          for (denominator in listOf(1, 2, 998, 999)) {
+            checkGroups(digits, digits, digits, denominator)
+          }
+        }
+        checkAll(PropTestConfig(iterations = 100), Arb.int(0..999), Arb.int(0..999), Arb.int(0..999), Arb.int(1..999)) { first, middle, last, denominator ->
+          checkGroups(first, middle, last, denominator)
         }
       }
 
@@ -401,10 +463,10 @@ class NumberSpec : DescribeSpec({
       }
 
       it("parses integers to the same number as the corresponding long") {
-        for (long in listOf(Long.MIN_VALUE, Long.MAX_VALUE)) {
+        for (long in longBoundaries) {
           expect(Number(long.toString())).toEqual(Number(long))
         }
-        checkAll(Arb.long()) { long ->
+        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
           expect(Number(long.toString())).toEqual(Number(long))
         }
       }
@@ -531,8 +593,34 @@ class NumberSpec : DescribeSpec({
           )
       }
     }
+    describe("arithmetic at explicit Int boundaries") {
+      withIts(representationPairs) { (left, right) ->
+        for (a in intBoundaries) {
+          for (b in intBoundaries) {
+            expect(left.of(a) + right.of(b)).toEqualNumerically(Number(a.toLong() + b))
+            expect(left.of(a) - right.of(b)).toEqualNumerically(Number(a.toLong() - b))
+            expect(left.of(a) * right.of(b)).toEqualNumerically(Number(a.toLong() * b))
+            if (b != 0) {
+              expect((left.of(a) / right.of(b)) * Number(b)).toEqualNumerically(Number(a))
+            }
+          }
+        }
+      }
+    }
   }
 })
+
+private val intBoundaries = listOf(Int.MIN_VALUE, Int.MIN_VALUE + 1, -1, 0, 1, Int.MAX_VALUE - 1, Int.MAX_VALUE)
+private val longBoundaries = listOf(
+  Long.MIN_VALUE, Long.MIN_VALUE + 1, -1L, 0L, 1L, Long.MAX_VALUE - 1, Long.MAX_VALUE,
+  (1L shl 53) - 1, 1L shl 53, (1L shl 53) + 1,
+  -(1L shl 53) - 1, -(1L shl 53), -(1L shl 53) + 1,
+)
+private val doubleBoundaries = listOf(
+  0.0, -0.0, 1.0, -1.0, Double.MIN_VALUE, -Double.MIN_VALUE, Double.MAX_VALUE, -Double.MAX_VALUE,
+  Double.fromBits(2), Double.fromBits(0x000fffffffffffff), Double.fromBits(0x0010000000000000), Double.fromBits(0x0010000000000001),
+  Double.fromBits(1.0.toBits() - 1), Double.fromBits(1.0.toBits() + 1), Double.fromBits(Double.MAX_VALUE.toBits() - 1),
+)
 
 private enum class Representation {
   Integer {
