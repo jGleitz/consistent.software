@@ -39,18 +39,11 @@ jobs:
       - name: Set Up Development Tools
         uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
 
-      - name: Locate PNPM Store
-        id: pnpm-store
-        # On Windows, the output may end with a carriage return
-        run: echo "path=$(mise exec -- pnpm store path | tr -d '\r')" >> "$GITHUB_OUTPUT"
-
       - name: Cache PNPM Store
-        uses: actions/cache@v6
+        # Without node-version, setup-node only caches. It locates the store with the pnpm that mise installed.
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          path: ${{ steps.pnpm-store.outputs.path }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+          cache: pnpm
 
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
