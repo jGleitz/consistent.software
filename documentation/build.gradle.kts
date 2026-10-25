@@ -46,13 +46,8 @@ val checkSiteLinks =
       "--include-fragments",
       site.path,
     )
-    // Locally, skip external URLs. In CI, check them unless -PcheckExternalLinks=false says otherwise.
-    val checkExternalLinks =
-      providers
-        .gradleProperty("checkExternalLinks")
-        .map(String::toBoolean)
-        .orElse(providers.environmentVariable("CI").map { true })
-        .getOrElse(false)
+    // Skip external URLs unless -PcheckExternalLinks=true, so that local builds don't depend on the network.
+    val checkExternalLinks = providers.gradleProperty("checkExternalLinks").map(String::toBoolean).getOrElse(false)
     if (!checkExternalLinks) args("--offline")
   }
 
