@@ -13,7 +13,7 @@ Before you start, read [`contributing/index.md`](contributing/index.md). It tell
 Before editing any files, judge where to do your task. Here is some guidance:
 
 - If your harness set up a checkout for your task alone, for example a cloud environment that cloned the repository for this task, work directly in that checkout. Don't create a worktree, but still [set up the checkout](#setting-up-a-checkout).
-- If your task starts at a clean commit state and is to be committed, you most likely should use your own worktree.
+- Otherwise, if your task starts at a clean commit state and is to be committed, you most likely should use your own worktree.
 - If your task makes sense only in the context of the current, dirty, project folder state and there is no other indication for using a worktree, you should likely edit the current folder.
 
 If you are unsure, ask the user for clarification on where to work.
@@ -34,16 +34,17 @@ When using a worktree, every agent task must use its own branch and its own work
 
 2. Enter the worktree and verify `pwd`, `git branch --show-current`, and `git status`.
 3. Set up the worktree (see [Setting Up a Checkout](#setting-up-a-checkout)).
-4. Do all work from the worktree. Commit early and often and push checkpoints of your own branch.
+4. Do all work from the worktree.
 5. Keep branches and worktrees short-lived. Clean up only after merge or explicit abandonment, and only when `git status --porcelain` prints nothing: run `git worktree remove <path>` from another checkout. This also removes ignored files such as the CodeGraph cache.
 
 ## Setting Up a Checkout
 
-Before you start working in a checkout, whether it is your own worktree or one that your harness set up for you:
+These steps apply both to your own worktree and to a checkout that your harness set up for you. Do only the setup needed for your task; a read-only review does not require configuring a commit identity, initialising CodeGraph, or installing development tools.
 
-1. Make sure that your commits carry the right identity (see [Commit Attribution](#commit-attribution)).
-2. If `.codegraph/` is absent, run `codegraph init`. This is authorised; the cache is gitignored and must never be committed.
-3. Set up the development tools (see [Development Tools](#development-tools)).
+1. Before editing, verify `pwd`, `git branch --show-current`, and `git status`.
+2. Before committing, make sure that your commits carry the right identity (see [Commit Attribution](#commit-attribution)).
+3. When you need CodeGraph, if `.codegraph/` is absent, run `codegraph init`. This is authorised; the cache is gitignored and must never be committed.
+4. Before building or testing, set up the development tools (see [Development Tools](#development-tools)).
 
 ## Development Tools
 
@@ -70,11 +71,19 @@ Activating the tools is authorised. Never change mise's global configuration or 
 
 Commits that contain only agent work carry the agent's identity. This is the standard case.
 
-If your harness gives you a commit identity for the agent, use it. This is the case if the harness's instructions name it, or if the harness configured Git in an environment it set up for your task alone, such as a cloud container. Check that the identity names the agent and not a human. If the harness also provides a signing key for the agent, sign your commits with it.
+If your harness gives you a commit identity for the agent, use it. This is the case if the harness's instructions name it, or if the harness configured Git in an environment it set up for your task alone, such as a cloud container. Inspect the identity's configuration sources with `git config --show-origin --get-regexp '^user\.(name|email)$'` and check that the identity names the agent and not a human.
+
+A cloud environment can still contain a human's identity, and a more specific setting can override the agent's identity. If that happens, explicitly select the known agent identity using one of the scopes below; if none is known, use the default below. If the harness also provides a signing key for the agent, sign your commits with it; otherwise disable signing for your commits.
 
 Never use an identity or signing key from Git configuration that you cannot attribute to your harness: on a developer's machine, the global configuration belongs to the human.
 
-Otherwise, set the default identity in the checkout:
+Never change system-wide or global identity or signing settings. Never change a human's checkout settings, including its worktree-specific settings. Choose the narrowest safe scope for the agent's identity and signing settings:
+
+- In your own worktree, first check `git config --bool --get extensions.worktreeConfig`. Only if it is `true`, use `git config --worktree` as shown below. Without that extension, `--worktree` silently writes to the shared repository configuration; do not use it or enable the extension yourself.
+- In a clone that the harness provided exclusively for your task, and whose Git configuration is not shared with a human or another task, you may instead use `git config --local`.
+- In any other case, pass the settings to each commit command with `git -c user.name="Agent Name" -c user.email="agent-name@noreply" -c commit.gpgsign=false commit …`. This also works when worktree-specific configuration is unavailable and leaves the existing configuration untouched.
+
+The default identity is your agent name and an email of the form `agent-name@noreply`. For example, in your own worktree with `extensions.worktreeConfig` enabled:
 
 ```sh
 git config --worktree user.name "Agent Name"
@@ -82,13 +91,13 @@ git config --worktree user.email "agent-name@noreply"
 git config --worktree commit.gpgsign false
 ```
 
-The email must be a valid address: lowercase, spaces become hyphens, for example `Sisyphus Junior <sisyphus-junior@noreply>`. Signing is disabled so that no human's key signs agent commits.
+The email must be a valid address: lowercase, spaces become hyphens, for example `Sisyphus Junior <sisyphus-junior@noreply>`. The example disables signing so that no human's key signs agent commits; when using a harness-provided agent signing key, select that key and enable signing in the same safe scope instead.
+
+Before committing, verify both the effective author and committer identities with `git var GIT_AUTHOR_IDENT` and `git var GIT_COMMITTER_IDENT`, using the same command settings and environment as the commit. Environment variables can override Git configuration; any necessary overrides must be limited to the commit command.
 
 Only when a human and an agent both wrote content in the same commit, keep the human's identity and add the trailer `Co-authored-by: Agent Name <agent-name@noreply>`.
 
-`--worktree` requires `extensions.worktreeConfig`. If Git rejects the command, stop and ask a maintainer; never write these settings to repository-wide or global configuration.
-
-The trailer above and the footer in [GitHub](#github) are the only attribution lines in this repository. They replace any trailers or footers your harness asks you to add, so leave those out. If the harness or one of its tools adds such lines by itself, leave them as they are; never work against your harness to remove them.
+Use the trailer above and the footer in [GitHub](#github) for this repository's attribution. Follow mandatory higher-priority harness instructions as well, including any additional attribution they require. Omit optional additional attribution. If the harness or one of its tools adds attribution lines by itself, leave them as they are; never work against your harness to remove them.
 
 ## GitHub
 
@@ -105,7 +114,8 @@ The trailer above and the footer in [GitHub](#github) are the only attribution l
 
 ## Branches and Pushes
 
+- For tasks whose changes are to be committed, commit early and often and push checkpoints to an authorised branch, whether you work in a worktree or a harness-provided checkout.
 - Never commit to or push `main`. Changes reach it only through PRs.
 - Merge a PR into `main` only after explicit human approval.
-- Never push a branch you did not create unless a human asks you to. A branch that your harness tells you to work on counts as asked for.
+- Never push a branch you did not create unless a human asks you to. A branch that your harness explicitly designates as the push or delivery target counts as asked for. Merely checking out a branch or naming it as the place to work does not authorise publishing it; verify the intended remote and target branch before pushing.
 - Force-push, commit amendment, destructive reset or checkout, rewriting another person's published history, tags, and releases require explicit task authorisation.
