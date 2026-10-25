@@ -4,6 +4,9 @@ import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.invariants.Invariants.hasSameSizeAs
 import software.consistent.data.invariants.Invariants.isNonDecreasing
 import software.consistent.data.invariants.checkInvariant
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.atLeast
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.exactly
+import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.util.ComparisonCase.*
 import software.consistent.data.util.compare
 import software.consistent.data.util.compareEach
@@ -88,28 +91,17 @@ private constructor(
   override fun isTriviallyComplete() = isComplete()
   override fun isComplete() = orderedBoundaries.isEmpty() && !isClosed()
 
-  override fun isFinite(): Boolean {
-    if (!isClosed()) return false
+  override fun isFinite() = isClosed() && eachBoundary { lower, upper -> lower == upper }
 
-    var i = 0
-    while (i <= orderedBoundaries.lastIndex) {
-      if (orderedBoundaries[i] != orderedBoundaries[i + 1]) return false
-      i += 2
+  override fun cardinality(upTo: Int): ClosedSolvableSet.Cardinality {
+    if (!isClosed()) return moreThanIntMaxValue()
+    var singletons = 0
+    forEachBoundary { lower, upper ->
+      if (lower != upper) return moreThanIntMaxValue()
+      singletons += 1
+      if (singletons > upTo) return atLeast(singletons)
     }
-    return true
-  }
-
-  override fun cardinality(max: Int): Int {
-    if (orderedBoundaries.isEmpty()) {
-      if (isClosed()) return 0
-      else throw mustNotRequestCardinalityOfInfiniteType()
-    }
-    var i = 0
-    while (i <= orderedBoundaries.lastIndex) {
-      if (orderedBoundaries[i] != orderedBoundaries[i + 1]) throw mustNotRequestCardinalityOfInfiniteType()
-      i += 2
-    }
-    return i / 2
+    return exactly(singletons)
   }
 
   override val members
@@ -118,7 +110,7 @@ private constructor(
       orderedBoundaries.isEmpty() -> emptySequence()
       else -> (0 until (orderedBoundaries.size / 2)).asSequence().map { intervalIndex ->
         val lowerBoundary = orderedBoundaries[intervalIndex * 2]
-        if (lowerBoundary != orderedBoundaries[intervalIndex * 2 + 1]) throw mustNotRequestCardinalityOfInfiniteType()
+        if (lowerBoundary != orderedBoundaries[intervalIndex * 2 + 1]) throw mustNotRequestMembersOfInfiniteType()
         lowerBoundary
       }
     }
@@ -350,6 +342,19 @@ private constructor(
     if (inclusive[index]) '[' else '('
   } else {
     if (inclusive[index]) ']' else ')'
+  }
+
+  private inline fun eachBoundary(predicate: (lower: TValue, upper: TValue) -> Boolean): Boolean {
+    forEachBoundary { lower, upper -> if (!predicate(lower, upper)) return false }
+    return true
+  }
+
+  private inline fun forEachBoundary(action: (lower: TValue, upper: TValue) -> Unit) {
+    var i = 0
+    while (i < orderedBoundaries.size) {
+      action(orderedBoundaries[i], orderedBoundaries[i + 1])
+      i += 2
+    }
   }
 
   override fun toString() = monospaceLayout.renderToString()

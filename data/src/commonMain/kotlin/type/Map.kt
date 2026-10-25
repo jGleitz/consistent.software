@@ -47,7 +47,7 @@ private class MapComponentImpl(override val key: Type, override val keyRequired:
     get() {
       return Monospace.line(separator = if (keyRequired) "=" else "?=", 2) {
         -key.monospaceLayout.containerWrappedIn("(", ")")
-        -value.monospaceLayout
+        -value.monospaceLayout.containerWrappedIn("(", ")")
       }
     }
 
@@ -108,7 +108,7 @@ private class OpenMapImpl(override val components: List<Map.Component>, override
 
 private fun openSolver(components: List<Map.Component>, remainder: Type): MapSolver {
   val remainderSolver = remainder.solver
-  if (remainderSolver.isComplete()) {
+  if (remainderSolver.isTriviallyComplete()) {
     return MapSolver.allOf(components.map { it.solver })
   }
 
@@ -121,7 +121,7 @@ private fun openSolver(components: List<Map.Component>, remainder: Type): MapSol
     solver = solver overlapWith componentSolver
     remainingKeys = remainingKeys without keySolver
   }
-  if (!remainingKeys.isEmpty()) {
+  if (!remainingKeys.isTriviallyEmpty()) {
     solver = solver overlapWith MapSolver.just(MapComponent(remainingKeys, MaybeAbsent(remainderSolver, includesAbsent = true)))
   }
   return solver

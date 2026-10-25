@@ -1,0 +1,13 @@
+# Shared configuration of the lychee link checks. The Gradle tasks that run lychee add the inputs and the options that
+# differ between them.
+
+# Wikimedia blocks and rate-limits clients that don't identify themselves, see
+# https://foundation.wikimedia.org/wiki/Policy:Wikimedia_Foundation_User-Agent_Policy
+user_agent = "consistent.software-link-check-bot (https://github.com/jGleitz/consistent.software) lychee"
+no_progress = true
+
+# Wikimedia asks bots for fewer than 10 concurrent requests and at most 20 per second, see
+# https://wikitech.wikimedia.org/wiki/Robot_policy
+[hosts."en.wikipedia.org"]
+concurrency = 2
+request_interval = "200ms"

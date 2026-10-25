@@ -22,14 +22,14 @@ internal data class PartitionedTypeUnion(
   override fun isComplete() = symbols.isComplete() && numbers.isComplete() && maps.isComplete()
   override fun isFinite() = symbols.isFinite() && numbers.isFinite() && maps.isFinite()
 
-  override fun cardinality(max: Int): Int {
-    var result = symbols.cardinality(max)
-    if (result >= max) return result
+  override fun cardinality(upTo: Int): ClosedSolvableSet.Cardinality {
+    var result = symbols.cardinality(upTo)
+    if (result > upTo) return result
 
-    result += numbers.cardinality(max - result)
-    if (result >= max) return result
+    result += numbers.cardinality(upTo - result.lowerBound)
+    if (result > upTo) return result
 
-    result += maps.cardinality(max - result)
+    result += maps.cardinality(upTo - result.lowerBound)
     return result
   }
 
@@ -69,7 +69,7 @@ internal data class PartitionedTypeUnion(
   override val monospaceLayout
     get() = when {
       isTriviallyEmpty() -> Monospace.atom("∅")
-      isComplete() -> Monospace.atom("Any")
+      isTriviallyComplete() -> Monospace.atom("Any")
       else -> Monospace.line("∪", 3) {
         if (!symbols.isTriviallyEmpty()) {
           -symbols.monospaceLayout.containerWrappedIn("(", ")")

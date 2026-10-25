@@ -3,7 +3,9 @@ package software.consistent.exactnumbers
 import ch.tutteli.atrium.creating.Expect
 import ch.tutteli.atrium.logic._logic
 import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
 import io.kotest.property.arbitrary.*
+import io.kotest.property.exhaustive.exhaustive
 
 internal val twoToThe63: BigInteger = (1uL shl 63).toBigInteger()
 
@@ -39,6 +41,10 @@ internal fun Arb.Companion.bigInteger(): Arb<BigInteger> = choice(
   long().map { it.toBigInteger() },
   bind(long(), long(), long()) { a, b, c -> a.toBigInteger() * b.toBigInteger() + c.toBigInteger() },
 )
+
+/** All [UByte]s from [from] to [to]; the unsigned counterpart of [io.kotest.property.exhaustive.bytes]. */
+internal fun Exhaustive.Companion.uBytes(from: UByte = UByte.MIN_VALUE, to: UByte = UByte.MAX_VALUE): Exhaustive<UByte> =
+  (from..to).map { it.toUByte() }.exhaustive()
 
 internal fun Arb.Companion.nonZeroBigInteger(): Arb<BigInteger> = bigInteger().filter { it.compareTo(BigIntegers.ZERO) != 0 }
 

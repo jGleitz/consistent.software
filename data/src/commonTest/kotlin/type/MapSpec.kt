@@ -213,8 +213,7 @@ class MapSpec : DescribeSpec({
     }
 
     describe("inhabitation with competing negative components") {
-      // TODO fix the solver to pass this test: one key can witness several compatible negations.
-      it("!shares one key between several negative components") {
+      it("shares one key between several negative components") {
         val three = Value.Number(3)
         val positive = Map.Closed(required(Just(a) to (Just(one) or Just(two) or Just(three))))
         val remaining = positive butNot Map.Open(optional(Just(a) to Just(one))) butNot
@@ -224,8 +223,7 @@ class MapSpec : DescribeSpec({
         expect(remaining).toAllow(Value.Map(a to three)).toForbid(Value.Map(a to one)).toForbid(Value.Map(a to two))
       }
 
-      // TODO fix the solver to pass this test: fewer keys than negations need not mean a single shared witness.
-      it("!distributes three negative components over two keys") {
+      it("distributes three negative components over two keys") {
         val three = Value.Number(3)
         val keys = Just(a) or Just(b)
         var remaining: Type = Map.Closed(required(keys to (Just(one) or Just(two) or Just(three))))
@@ -238,8 +236,7 @@ class MapSpec : DescribeSpec({
         expect(remaining).toAllow(Value.Map(a to one, b to two)).toForbid(Value.Map(a to one, b to one))
       }
 
-      // TODO fix the solver to pass this test: individually possible witnesses can exceed the available keys.
-      it("!rejects three incompatible witness requirements on two keys") {
+      it("rejects three incompatible witness requirements on two keys") {
         val three = Value.Number(3)
         val keys = Just(a) or Just(b)
         val values = Just(one) or Just(two) or Just(three)
@@ -253,8 +250,7 @@ class MapSpec : DescribeSpec({
         expect(remaining).toBeSubtypeOf(noValues)
       }
 
-      // TODO fix the solver to pass this test: success in one partition must not hide an impossible obligation elsewhere.
-      it("!rejects a conjunction with an unwitnessable negative component") {
+      it("rejects a conjunction with an unwitnessable negative component") {
         val positive = Map.Closed(required(Just(a) to Just(one)), required(Just(b) to Just(one)))
         val remaining = positive butNot Map.Open(optional(Just(a) to Just(two))) butNot
           Map.Open(optional(Just(b) to (Just(one) or Just(two))))
@@ -263,8 +259,7 @@ class MapSpec : DescribeSpec({
         expect(remaining).toBeSubtypeOf(noValues)
       }
 
-      // TODO fix the solver to pass this test: a deferred partition must retain alternatives until other witnesses are known.
-      it("!uses another partition to resolve competing witnesses") {
+      it("uses another partition to resolve competing witnesses") {
         val positive = Map.Closed(required(Just(a) to (Just(one) or Just(two))), required(Just(b) to Just(two)))
         val remaining = positive butNot Map.Open(optional((Just(a) or Just(b)) to Just(one))) butNot
           Map.Open(optional(Just(a) to Just(two)))
@@ -287,8 +282,7 @@ class MapSpec : DescribeSpec({
         return remaining
       }
 
-      // TODO fix the solver to pass this test: compatible choices must be coordinated across several partitions.
-      it("!finds a consistent assignment around an even cycle of partitions") {
+      it("finds a consistent assignment around an even cycle of partitions") {
         val d = Value.Symbol("d")
         val remaining = alternatingCycle(listOf(a, b, c, d))
 
@@ -300,7 +294,7 @@ class MapSpec : DescribeSpec({
       }
 
       // TODO fix the solver to pass this test: local feasibility does not imply a globally consistent assignment.
-      it("!rejects an odd cycle although every edge can be satisfied on its own") {
+      it("rejects an odd cycle although every edge can be satisfied on its own") {
         val remaining = alternatingCycle(listOf(a, b, c))
 
         // Three pairwise adjacent keys cannot alternate between just two values.
@@ -308,7 +302,7 @@ class MapSpec : DescribeSpec({
       }
 
       // TODO fix the solver to pass this test: absence and presence cannot serve as two witnesses at the same key.
-      it("!rejects incompatible absent and present witnesses at one optional key") {
+      it("rejects incompatible absent and present witnesses at one optional key") {
         val positive = Map.Closed(optional(Just(a) to Just(one)))
         val remaining = positive butNot Map.Open(required(Just(a) to Just(one))) butNot
           Map.Open(optional(Just(a) to noValues))
@@ -352,8 +346,7 @@ class MapSpec : DescribeSpec({
           .toForbid(Value.Map(a to b))
       }
 
-      // TODO fix the code to pass this test
-      it("!contains a required-key type in the corresponding optional-key type") {
+      it("contains a required-key type in the corresponding optional-key type") {
         expect(requiredA).toBeSubtypeOf(optionalA)
         expect(optionalA).notToBeSubtypeOf(requiredA)
       }
@@ -364,8 +357,7 @@ class MapSpec : DescribeSpec({
         expect(open).notToBeSubtypeOf(requiredA)
       }
 
-      // TODO fix the code to pass this test
-      it("!contains narrower value types") {
+      it("contains narrower value types") {
         val narrow = Map.Closed(required(Just(a) to Just(one)))
         expect(narrow).toBeSubtypeOf(requiredA)
         expect(requiredA).notToBeSubtypeOf(narrow)

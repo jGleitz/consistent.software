@@ -5,6 +5,12 @@ First off, thanks for taking the time to contribute! All types of contributions 
 For an overview of the repository, see [`ARCHITECTURE.md`](ARCHITECTURE.md).
 For an overview of all maintainer documentation, see [`contributing/index.md`](contributing/index.md).
 
+## Prerequisites
+
+We install the development tools, such as Java and lychee, with [mise](https://mise.jdx.dev/); `mise.toml` declares them and `mise.lock` pins their versions.
+Install mise, then run `mise trust` and `mise install` in your checkout.
+Run Gradle with the tools activated: either [activate mise in your shell](https://mise.jdx.dev/getting-started.html#activate-mise), or prefix commands with `mise exec --`.
+
 ## Commit & PR message format
 
 We use [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) on `main` and we [squash](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/configuring-commit-squashing-for-pull-requests) pull requests.

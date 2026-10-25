@@ -8,20 +8,20 @@ internal data class MaybeAbsent(
   val values: SolvableSet,
   val includesAbsent: Boolean
 ) : SetOperations<MaybeAbsent>, NormalizationComparable<MaybeAbsent>, WithMonospaceLayout {
-  override fun isEmpty() = !includesAbsent && values.isEmpty()
+  fun isEmpty() = !includesAbsent && values.isEmpty()
 
-  override fun with(otherSet: MaybeAbsent) =
+  infix fun with(otherSet: MaybeAbsent) =
     MaybeAbsent(this.values with otherSet.values, this.includesAbsent || otherSet.includesAbsent)
 
-  override fun overlapWith(otherSet: MaybeAbsent) =
+  infix fun overlapWith(otherSet: MaybeAbsent) =
     MaybeAbsent(this.values overlapWith otherSet.values, this.includesAbsent && otherSet.includesAbsent)
 
-  override fun not() = MaybeAbsent(!values, !includesAbsent)
+  operator fun not() = MaybeAbsent(!values, !includesAbsent)
 
-  override fun without(otherSet: MaybeAbsent) =
+  infix fun without(otherSet: MaybeAbsent) =
     MaybeAbsent(this.values without otherSet.values, this.includesAbsent && !otherSet.includesAbsent)
 
-  override fun isSubsetOf(largerSet: MaybeAbsent) =
+  infix fun isSubsetOf(largerSet: MaybeAbsent) =
     (!this.includesAbsent || largerSet.includesAbsent) && (this.values isSubsetOf largerSet.values)
 
   override fun normalizationComparedTo(other: MaybeAbsent) = (this.values normalizationComparedTo other.values)

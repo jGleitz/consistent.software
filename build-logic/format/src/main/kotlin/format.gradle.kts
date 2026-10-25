@@ -1,6 +1,5 @@
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
-import com.diffplug.gradle.spotless.SpotlessTask
 import com.diffplug.spotless.LineEnding
 
 plugins {
@@ -128,6 +127,8 @@ fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree =
         "**/build/**",
         "**/.idea/**",
         "**/kotlin-js-store/**",
+        "**/.omo/**",
+        "**/.codegraph/**",
         // VitePress writes this directory during its build and deletes it afterwards. Its location is not configurable.
         "**/.vitepress/.temp/**",
       )
@@ -160,16 +161,9 @@ fun FormatExtension.csPrettier(): FormatExtension.PrettierConfig = configurePret
 private fun Project.configurePrettier(prettier: FormatExtension.PrettierConfig) =
   prettier.configFile(prettierRc).nodeExecutable(nodeJs.nodeExecutable).npmExecutable(nodeJs.npmExecutable)
 
-// Register the dependency outside the format action: Spotless executes that action
-// only when it configures the task, where configuring other tasks is forbidden.
 fun SpotlessExtension.prettierFormat(
   name: String,
   config: Action<FormatExtension>,
 ) {
   format(name, config)
-  // format() registers the task immediately; only its formatter configuration is deferred.
-  val npmSetupTask = nodeJs.npmSetupTask
-  tasks.named<SpotlessTask>("spotless${name.replaceFirstChar { it.uppercaseChar() }}") {
-    dependsOn(npmSetupTask)
-  }
 }
