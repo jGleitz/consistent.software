@@ -10,20 +10,19 @@ on:
 
 jobs:
   build:
-    name: Assemble & Test${{ matrix.suffix }}
+    name: Assemble & Test (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          # Linux’s job and artifact keep the names they had before we added the other operating systems
-          - os: ubuntu-latest
-            suffix: ""
-          - os: macos-latest
-            suffix: " (macOS)"
-          - os: windows-latest
-            suffix: " (Windows)"
+          - name: Linux
+            os: ubuntu-latest
+          - name: macOS
+            os: macos-latest
+          - name: Windows
+            os: windows-latest
 
     permissions:
       contents: read
@@ -70,8 +69,8 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          # Test Report creates one report per test-results artifact and appends the suffix to the report’s name
-          name: test-results${{ matrix.suffix }}
+          # Test Report creates one report per test-results artifact and names it after the operating system
+          name: test-results (${{ matrix.name }})
           path: "**/build/test-results/"
 
   publish_documentation:
