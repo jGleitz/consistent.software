@@ -71,33 +71,21 @@ Activating the tools is authorised. Never change mise's global configuration or 
 
 Commits that contain only agent work carry the agent's identity. This is the standard case.
 
-If your harness gives you a commit identity for the agent, use it. This is the case if the harness's instructions name it, or if the harness configured Git in an environment it set up for your task alone, such as a cloud container. Inspect the identity's configuration sources with `git config --show-origin --get-regexp '^user\.(name|email)$'` and check that the identity names the agent and not a human.
+If your harness gives you a commit identity for the agent, use it. This is the case if the harness's instructions name it, or if the harness configured Git in an environment it set up for your task alone, such as a cloud container. If the harness also provides a signing key for the agent, sign your commits with it. Never use an identity or signing key from Git configuration that you cannot attribute to your harness: on a developer's machine, the global configuration belongs to the human.
 
-A cloud environment can still contain a human's identity, and a more specific setting can override the agent's identity. If that happens, explicitly select the known agent identity using one of the scopes below; if none is known, use the default below. If the harness also provides a signing key for the agent, sign your commits with it; otherwise disable signing for your commits.
+Otherwise, use the default identity: your agent name and an email address made from it, lowercase with spaces as hyphens, for example `Sisyphus Junior <sisyphus-junior@noreply>`. Disable signing so that no human's key signs agent commits.
 
-Never use an identity or signing key from Git configuration that you cannot attribute to your harness: on a developer's machine, the global configuration belongs to the human.
+Set the identity and signing settings in the narrowest safe scope. Never change system-wide or global settings, or the settings of a human's checkout:
 
-Never change system-wide or global identity or signing settings. Never change a human's checkout settings, including its worktree-specific settings. Choose the narrowest safe scope for the agent's identity and signing settings:
+- In your own worktree, use `git config --worktree`, but only if `git config --bool --get extensions.worktreeConfig` prints `true`. Otherwise, `--worktree` may write to the configuration that all checkouts share, even if Git reports no error. In that case, don't use it and don't enable the extension yourself.
+- In a clone that your harness set up for your task alone and whose configuration no human or other task shares, you may use `git config --local`.
+- In any other case, pass the settings to each commit command, for example `git -c user.name="Agent Name" -c user.email="agent-name@noreply" -c commit.gpgsign=false commit …`.
 
-- In your own worktree, first check `git config --bool --get extensions.worktreeConfig`. Only if it is `true`, use `git config --worktree` as shown below. Without that extension, `--worktree` silently writes to the shared repository configuration; do not use it or enable the extension yourself.
-- In a clone that the harness provided exclusively for your task, and whose Git configuration is not shared with a human or another task, you may instead use `git config --local`.
-- In any other case, pass the settings to each commit command with `git -c user.name="Agent Name" -c user.email="agent-name@noreply" -c commit.gpgsign=false commit …`. This also works when worktree-specific configuration is unavailable and leaves the existing configuration untouched.
-
-The default identity is your agent name and an email of the form `agent-name@noreply`. For example, in your own worktree with `extensions.worktreeConfig` enabled:
-
-```sh
-git config --worktree user.name "Agent Name"
-git config --worktree user.email "agent-name@noreply"
-git config --worktree commit.gpgsign false
-```
-
-The email must be a valid address: lowercase, spaces become hyphens, for example `Sisyphus Junior <sisyphus-junior@noreply>`. The example disables signing so that no human's key signs agent commits; when using a harness-provided agent signing key, select that key and enable signing in the same safe scope instead.
-
-Before committing, verify both the effective author and committer identities with `git var GIT_AUTHOR_IDENT` and `git var GIT_COMMITTER_IDENT`, using the same command settings and environment as the commit. Environment variables can override Git configuration; any necessary overrides must be limited to the commit command.
+Before committing, check that the effective author and committer name the agent and not a human: run `git var GIT_AUTHOR_IDENT` and `git var GIT_COMMITTER_IDENT` with the same settings and environment variables as the commit. A more specific configuration or an environment variable can override the identity you expect; `git config --show-origin --get-regexp '^user\.'` shows where each value comes from. If the check fails, set the agent's identity as described above. If you need to override environment variables, do so for the commit command only.
 
 Only when a human and an agent both wrote content in the same commit, keep the human's identity and add the trailer `Co-authored-by: Agent Name <agent-name@noreply>`.
 
-Use the trailer above and the footer in [GitHub](#github) for this repository's attribution. Follow mandatory higher-priority harness instructions as well, including any additional attribution they require. Omit optional additional attribution. If the harness or one of its tools adds attribution lines by itself, leave them as they are; never work against your harness to remove them.
+The trailer above and the footer in [GitHub](#github) are this repository's attribution. Leave out any further attribution your harness asks for. Add it only if your harness's instructions take precedence over this file and don't let repository instructions replace their attribution. If the harness or one of its tools adds attribution lines by itself, leave them as they are; never work against your harness to remove them.
 
 ## GitHub
 
