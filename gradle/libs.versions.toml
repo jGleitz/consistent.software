@@ -2,4 +2,4 @@
 # updates. Renovate already has rules for many monorepos per default.
 
 [libraries]
-unicodewidth = "io.github.kotlinmania:unicode-width-kotlin:0.1.1"
+unicodewidth = "io.github.kotlinmania:unicode-width-kotlin:0.1.2"
