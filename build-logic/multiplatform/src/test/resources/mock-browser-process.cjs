@@ -21,7 +21,8 @@ childProcess.spawnSync = (executable, args, options) => {
   const expected = explicit || launcher.DEFAULT_CMD[process.platform]
   assert.ok(expected, "The real launcher must select a default browser command")
   if (process.platform === "win32") {
-    assert.equal(executable, "powershell.exe")
+    assert.ok(path.isAbsolute(executable), "Use the system PowerShell rather than searching PATH")
+    assert.equal(path.basename(executable).toLowerCase(), "powershell.exe")
     assert.deepEqual(args.slice(0, 3), ["-NoProfile", "-NonInteractive", "-Command"])
     assert.equal(args.length, 4)
     assert.match(args[3], /Get-Command.*\$env:KARMA_CHROME_VERSION_EXECUTABLE/)

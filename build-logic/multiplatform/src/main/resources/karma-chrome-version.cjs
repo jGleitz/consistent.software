@@ -9,7 +9,7 @@ if (executable) {
   // Windows Chrome is a GUI executable: --version does not reliably write to stdout or exit.
   // Read the selected executable's version resource instead, resolving command names through PATH.
   const result = process.platform === "win32"
-    ? spawnSync("powershell.exe", [
+    ? spawnSync(require("node:path").join(process.env.SystemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe"), [
         "-NoProfile", "-NonInteractive", "-Command",
         "$browser = Get-Command -Name $env:KARMA_CHROME_VERSION_EXECUTABLE -CommandType Application -ErrorAction Stop; " +
           "(Get-Item -LiteralPath $browser.Source -ErrorAction Stop).VersionInfo.ProductVersion",
