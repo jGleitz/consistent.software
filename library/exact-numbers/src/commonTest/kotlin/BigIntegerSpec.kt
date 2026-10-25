@@ -3,9 +3,15 @@ package software.consistent.exactnumbers
 import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.datatest.withIts
 import io.kotest.property.Arb
+import io.kotest.property.Exhaustive
+import io.kotest.property.Gen
+import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
+import io.kotest.property.exhaustive.bytes
+import io.kotest.property.exhaustive.ints
 import kotlin.math.sign
 
 class BigIntegerSpec : DescribeSpec({
@@ -13,20 +19,49 @@ class BigIntegerSpec : DescribeSpec({
     // Each primitive type has its own conversion on each target. The extremes are checked explicitly because random
     // generation does not guarantee to hit them.
     describe("toBigInteger – conversion from primitives") {
-      it("converts bytes") { checkConversion(Arb.byte(), Byte.MIN_VALUE, Byte.MAX_VALUE) { it.toBigInteger() } }
-      it("converts uBytes") { checkConversion(Arb.uByte(), UByte.MIN_VALUE, UByte.MAX_VALUE) { it.toBigInteger() } }
-      it("converts shorts") { checkConversion(Arb.short(), Short.MIN_VALUE, Short.MAX_VALUE) { it.toBigInteger() } }
-      it("converts uShorts") { checkConversion(Arb.uShort(), UShort.MIN_VALUE, UShort.MAX_VALUE) { it.toBigInteger() } }
-      it("converts ints") { checkConversion(Arb.int(), Int.MIN_VALUE, Int.MAX_VALUE) { it.toBigInteger() } }
-      it("converts uInts") { checkConversion(Arb.uInt(), UInt.MIN_VALUE, UInt.MAX_VALUE) { it.toBigInteger() } }
-      it("converts longs") { checkConversion(Arb.long(), Long.MIN_VALUE, Long.MAX_VALUE) { it.toBigInteger() } }
-      it("converts uLongs") { checkConversion(Arb.uLong(), ULong.MIN_VALUE, ULong.MAX_VALUE) { it.toBigInteger() } }
+      it("converts bytes") { checkConversion(Exhaustive.bytes()) { it.toBigInteger() } }
+      it("converts uBytes") { checkConversion(Exhaustive.uBytes()) { it.toBigInteger() } }
+      it("converts shorts") {
+        checkConversion(
+          Arb.short(), Short.MIN_VALUE, (Short.MIN_VALUE + 1).toShort(), (-1).toShort(), 0.toShort(), 1.toShort(),
+          (Short.MAX_VALUE - 1).toShort(), Short.MAX_VALUE, config = PropTestConfig(iterations = 100),
+        ) { it.toBigInteger() }
+      }
+      it("converts uShorts") {
+        checkConversion(
+          Arb.uShort(), UShort.MIN_VALUE, 1u.toUShort(), 32767u.toUShort(), 32768u.toUShort(), 32769u.toUShort(),
+          (UShort.MAX_VALUE - 1u).toUShort(), UShort.MAX_VALUE, config = PropTestConfig(iterations = 100),
+        ) { it.toBigInteger() }
+      }
+      it("converts ints") {
+        checkConversion(Arb.int(), *intBoundaries.toTypedArray(), config = PropTestConfig(iterations = 200)) { it.toBigInteger() }
+      }
+      it("converts uInts") {
+        checkConversion(
+          Arb.uInt(), UInt.MIN_VALUE, 1u, Int.MAX_VALUE.toUInt(), Int.MAX_VALUE.toUInt() + 1u, Int.MAX_VALUE.toUInt() + 2u,
+          UInt.MAX_VALUE - 1u, UInt.MAX_VALUE, config = PropTestConfig(iterations = 200),
+        ) { it.toBigInteger() }
+      }
+      it("converts longs") {
+        checkConversion(Arb.long(), *longBoundaries.toTypedArray(), config = PropTestConfig(iterations = 200)) { it.toBigInteger() }
+      }
+      it("converts uLongs") {
+        checkConversion(
+          Arb.uLong(), ULong.MIN_VALUE, 1uL, Long.MAX_VALUE.toULong(), Long.MAX_VALUE.toULong() + 1uL, Long.MAX_VALUE.toULong() + 2uL,
+          ULong.MAX_VALUE - 1uL, ULong.MAX_VALUE,
+          *listOf(8, 16, 24, 32, 40, 48, 56).flatMap { bits ->
+            val boundary = 1uL shl bits
+            listOf(boundary - 1uL, boundary, boundary + 1uL)
+          }.toTypedArray(),
+          config = PropTestConfig(iterations = 200),
+        ) { it.toBigInteger() }
+      }
     }
 
     describe("arithmetic") {
       describe("unaryMinus") {
         it("negates") {
-          checkAll(Arb.long(min = Long.MIN_VALUE + 1)) { long ->
+          checkAll(PropTestConfig(iterations = 100), Arb.long(min = Long.MIN_VALUE + 1)) { long ->
             expect(-(long.toBigInteger())).toEqual((-long).toBigInteger())
           }
         }
@@ -38,7 +73,7 @@ class BigIntegerSpec : DescribeSpec({
 
       describe("absoluteValue") {
         it("computes the absolute value") {
-          checkAll(Arb.long(min = Long.MIN_VALUE + 1)) { long ->
+          checkAll(PropTestConfig(iterations = 100), Arb.long(min = Long.MIN_VALUE + 1)) { long ->
             expect(long.toBigInteger().absoluteValue).toEqual(kotlin.math.abs(long).toBigInteger())
           }
         }
@@ -51,7 +86,7 @@ class BigIntegerSpec : DescribeSpec({
       describe("plus") {
         // The sums, differences, and products of ints always fit into a long, which gives an exact oracle.
         it("adds") {
-          checkAll(Arb.int(), Arb.int()) { left, right ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { left, right ->
             expect(left.toBigInteger() + right.toBigInteger()).toEqual((left.toLong() + right).toBigInteger())
           }
         }
@@ -63,7 +98,7 @@ class BigIntegerSpec : DescribeSpec({
 
       describe("minus") {
         it("subtracts") {
-          checkAll(Arb.int(), Arb.int()) { left, right ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { left, right ->
             expect(left.toBigInteger() - right.toBigInteger()).toEqual((left.toLong() - right).toBigInteger())
           }
         }
@@ -75,7 +110,7 @@ class BigIntegerSpec : DescribeSpec({
 
       describe("times") {
         it("multiplies") {
-          checkAll(Arb.int(), Arb.int()) { left, right ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { left, right ->
             expect(left.toBigInteger() * right.toBigInteger()).toEqual((left.toLong() * right).toBigInteger())
           }
         }
@@ -88,7 +123,7 @@ class BigIntegerSpec : DescribeSpec({
 
       describe("divideAndRemainder") {
         it("divides with remainder") {
-          checkAll(Arb.int(), Arb.int().filter { it != 0 }) { dividend, divisor ->
+          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int().filter { it != 0 }) { dividend, divisor ->
             val (quotient, remainder) = dividend.toBigInteger().divideAndRemainder(divisor.toBigInteger()) { quotient, remainder ->
               quotient to remainder
             }
@@ -105,11 +140,11 @@ class BigIntegerSpec : DescribeSpec({
           }
         }
 
-        it("rejects division by zero") {
-          expect {
-            42.toBigInteger().divideAndRemainder(BigIntegers.ZERO) { quotient, remainder -> quotient + remainder }
-          }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide 42 by 0.")
-          checkAll(Arb.bigInteger()) { dividend ->
+        describe("rejects division by zero") {
+          withIts(listOf(
+            BigIntegers.ZERO, BigIntegers.ONE, -BigIntegers.ONE, 42.toBigInteger(), (-42).toBigInteger(),
+            twoToThe(100), -twoToThe(100),
+          )) { dividend ->
             expect {
               dividend.divideAndRemainder(BigIntegers.ZERO) { quotient, remainder -> quotient + remainder }
             }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide $dividend by 0.")
@@ -121,19 +156,19 @@ class BigIntegerSpec : DescribeSpec({
     describe("bit shifts") {
       describe("shl") {
         it("shifts zero to zero") {
-          checkAll(Arb.int(0, 100)) { bits ->
+          checkAll(Exhaustive.ints(0..100)) { bits ->
             expect(BigIntegers.ZERO shl bits).toEqual(BigIntegers.ZERO)
           }
         }
 
         it("shifts by zero without changing the value") {
-          checkAll(Arb.bigInteger()) { integer ->
+          checkAll(PropTestConfig(iterations = 100), Arb.bigInteger()) { integer ->
             expect(integer shl 0).toEqual(integer)
           }
         }
 
         it("multiplies by powers of two") {
-          checkAll(Arb.bigInteger(), Arb.int(0, 50)) { integer, bits ->
+          checkAll(PropTestConfig(iterations = 200), Arb.bigInteger(), Arb.int(0, 50)) { integer, bits ->
             expect(integer shl bits).toEqual(integer * twoToThe(bits))
           }
         }
@@ -151,13 +186,13 @@ class BigIntegerSpec : DescribeSpec({
           expect((-1).toBigInteger() shl 63).toEqual(-twoToThe63)
           expect((-1).toBigInteger() shl 64).toEqual(-twoToThe(64))
           expect(Long.MIN_VALUE.toBigInteger() shl 1).toEqual(-twoToThe(64))
-          checkAll(Arb.bigInteger(), Arb.int(0, 50)) { integer, bits ->
+          checkAll(PropTestConfig(iterations = 200), Arb.bigInteger(), Arb.int(0, 50)) { integer, bits ->
             expect((-integer) shl bits).toEqual(-(integer shl bits))
           }
         }
 
         it("chains shifts additively") {
-          checkAll(Arb.bigInteger(), Arb.int(0, 50), Arb.int(0, 50)) { integer, a, b ->
+          checkAll(PropTestConfig(iterations = 200), Arb.bigInteger(), Arb.int(0, 50), Arb.int(0, 50)) { integer, a, b ->
             expect((integer shl a) shl b).toEqual(integer shl (a + b))
           }
         }
@@ -165,12 +200,12 @@ class BigIntegerSpec : DescribeSpec({
         it("shifts right when given a negative bit count") {
           expect(8.toBigInteger() shl -2).toEqual(2.toBigInteger())
           expect(twoToThe(64) shl -64).toEqual(BigIntegers.ONE)
-          checkAll(Arb.bigInteger(), Arb.int(0, 100)) { integer, bits ->
+          checkAll(PropTestConfig(iterations = 100), Arb.bigInteger(), Arb.int(0, 100)) { integer, bits ->
             expect(integer shl -bits).toEqual(integer shr bits)
           }
         }
         it("is reversed by shr for any integer") {
-          checkAll(Arb.bigInteger(), Arb.int(0, 100)) { integer, bits ->
+          checkAll(PropTestConfig(iterations = 200), Arb.bigInteger(), Arb.int(0, 100)) { integer, bits ->
             expect((integer shl bits) shr bits).toEqual(integer)
           }
         }
@@ -178,13 +213,13 @@ class BigIntegerSpec : DescribeSpec({
 
       describe("shr") {
         it("shifts zero to zero") {
-          checkAll(Arb.int(0, 100)) { bits ->
+          checkAll(Exhaustive.ints(0..100)) { bits ->
             expect(BigIntegers.ZERO shr bits).toEqual(BigIntegers.ZERO)
           }
         }
 
         it("shifts by zero without changing the value") {
-          checkAll(Arb.bigInteger()) { integer ->
+          checkAll(PropTestConfig(iterations = 100), Arb.bigInteger()) { integer ->
             expect(integer shr 0).toEqual(integer)
           }
         }
@@ -214,7 +249,7 @@ class BigIntegerSpec : DescribeSpec({
         }
 
         it("chains shifts additively") {
-          checkAll(Arb.bigInteger(), Arb.int(0, 50), Arb.int(0, 50)) { integer, a, b ->
+          checkAll(PropTestConfig(iterations = 200), Arb.bigInteger(), Arb.int(0, 50), Arb.int(0, 50)) { integer, a, b ->
             expect((integer shr a) shr b).toEqual(integer shr (a + b))
           }
         }
@@ -222,7 +257,7 @@ class BigIntegerSpec : DescribeSpec({
         it("shifts left when given a negative bit count") {
           expect(BigIntegers.TWO shr -2).toEqual(8.toBigInteger())
           expect(BigIntegers.ONE shr -64).toEqual(twoToThe(64))
-          checkAll(Arb.bigInteger(), Arb.int(0, 100)) { integer, bits ->
+          checkAll(PropTestConfig(iterations = 100), Arb.bigInteger(), Arb.int(0, 100)) { integer, bits ->
             expect(integer shr -bits).toEqual(integer shl bits)
           }
         }
@@ -232,7 +267,7 @@ class BigIntegerSpec : DescribeSpec({
 
     describe("compareTo") {
       it("orders like Long") {
-        checkAll(Arb.long(), Arb.long()) { left, right ->
+        checkAll(PropTestConfig(iterations = 200), Arb.long(), Arb.long()) { left, right ->
           expect(left.toBigInteger().compareTo(right.toBigInteger()).sign).toEqual(left.compareTo(right).sign)
         }
       }
@@ -251,7 +286,7 @@ class BigIntegerSpec : DescribeSpec({
     // Values used as map keys must have value-based equals and hashCode, also when computed along different paths.
     describe("equals & hashCode") {
       it("considers equal values computed in different ways equal") {
-        checkAll(Arb.bigInteger(), Arb.bigInteger()) { integer, other ->
+        checkAll(PropTestConfig(iterations = 200), Arb.bigInteger(), Arb.bigInteger()) { integer, other ->
           val recomputed = integer + other - other
           expect(recomputed) {
             toEqual(integer)
@@ -260,14 +295,89 @@ class BigIntegerSpec : DescribeSpec({
         }
       }
     }
+    describe("explicit boundaries for the sampled properties") {
+      describe("checks arithmetic at Int limits and their neighbours") {
+        withIts(intBoundaries) { left ->
+          for (right in intBoundaries) {
+            val a = left.toBigInteger()
+            val b = right.toBigInteger()
+            expect(a + b).toEqual((left.toLong() + right).toBigInteger())
+            expect(a - b).toEqual((left.toLong() - right).toBigInteger())
+            expect(a * b).toEqual((left.toLong() * right).toBigInteger())
+            if (right != 0) {
+              a.divideAndRemainder(b) { quotient, remainder ->
+                expect(quotient).toEqual((left.toLong() / right).toBigInteger())
+                expect(remainder).toEqual((left.toLong() % right).toBigInteger())
+              }
+            }
+          }
+        }
+      }
+
+      describe("checks negation, absolute value and ordering at Long boundaries") {
+        withIts(longBoundaries) { long ->
+          if (long != Long.MIN_VALUE) {
+            expect(-long.toBigInteger()).toEqual((-long).toBigInteger())
+            expect(long.toBigInteger().absoluteValue).toEqual(kotlin.math.abs(long).toBigInteger())
+          }
+          for (other in longBoundaries) {
+            expect(long.toBigInteger().compareTo(other.toBigInteger()).sign).toEqual(long.compareTo(other).sign)
+          }
+        }
+      }
+
+      describe("checks shifts at zero, word boundaries and the sampled range endpoints") {
+        withIts(bigIntegerBoundaries) { integer ->
+          expect(integer shl 0).toEqual(integer)
+          expect(integer shr 0).toEqual(integer)
+          for (bits in listOf(0, 1, 31, 32, 33, 49, 50, 63, 64, 65, 99, 100)) {
+            expect(integer shl bits).toEqual(integer * twoToThe(bits))
+            expect((-integer) shl bits).toEqual(-(integer shl bits))
+            expect(integer shl -bits).toEqual(integer shr bits)
+            expect(integer shr -bits).toEqual(integer shl bits)
+            expect((integer shl bits) shr bits).toEqual(integer)
+          }
+          for (a in listOf(0, 1, 31, 32, 49, 50)) {
+            for (b in listOf(0, 1, 31, 32, 49, 50)) {
+              expect((integer shl a) shl b).toEqual(integer shl (a + b))
+              expect((integer shr a) shr b).toEqual(integer shr (a + b))
+            }
+          }
+        }
+      }
+
+      describe("checks recomputed equality and hash codes at zero, signs and large magnitudes") {
+        withIts(bigIntegerBoundaries) { integer ->
+          for (other in bigIntegerBoundaries) {
+            val recomputed = integer + other - other
+            expect(recomputed).toEqual(integer)
+            expect(recomputed.hashCode()).toEqual(integer.hashCode())
+          }
+        }
+      }
+    }
   }
 })
 
-private suspend fun <T> checkConversion(arb: Arb<T>, vararg extremes: T, convert: (T) -> BigInteger) {
+private val intBoundaries = listOf(Int.MIN_VALUE, Int.MIN_VALUE + 1, -1, 0, 1, Int.MAX_VALUE - 1, Int.MAX_VALUE)
+private val longBoundaries = listOf(
+  Long.MIN_VALUE, Long.MIN_VALUE + 1, -1L, 0L, 1L, Long.MAX_VALUE - 1, Long.MAX_VALUE,
+  (1L shl 53) - 1, 1L shl 53, (1L shl 53) + 1,
+  -(1L shl 53) - 1, -(1L shl 53), -(1L shl 53) + 1,
+)
+private val bigIntegerBoundaries =
+  longBoundaries.map { it.toBigInteger() } + listOf(twoToThe(100) - BigIntegers.ONE, twoToThe(100), -twoToThe(100))
+
+private suspend fun <T> checkConversion(
+  gen: Gen<T>,
+  vararg extremes: T,
+  config: PropTestConfig = PropTestConfig(),
+  convert: (T) -> BigInteger,
+) {
   for (extreme in extremes) {
     expect(convert(extreme).toString()).toEqual(extreme.toString())
   }
-  checkAll(arb) { value ->
+  checkAll(config, gen) { value ->
     expect(convert(value).toString()).toEqual(value.toString())
   }
 }

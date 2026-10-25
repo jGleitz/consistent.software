@@ -1,4 +1,3 @@
-import com.github.gradle.node.pnpm.task.PnpmTask
 import org.gradle.api.tasks.PathSensitivity.RELATIVE
 
 plugins {
@@ -6,34 +5,51 @@ plugins {
   id("format")
 }
 
-val pnpmInstall = nodeJs.registerPnpmInstall()
-
 val buildVitepressSite =
-  tasks.register<PnpmTask>("buildVitepressSite") {
-    args = listOf("build")
-    dependsOn(pnpmInstall)
+  tasks.register<Exec>("buildVitepressSite") {
+    commandLine("mise", "exec", "--", "pnpm", "build")
+    dependsOn(":pnpmInstall")
 
     inputs.dir(project.layout.projectDirectory.dir(".vitepress")).withPathSensitivity(RELATIVE)
     inputs.dir(project.layout.projectDirectory.dir("src")).withPathSensitivity(RELATIVE)
     inputs.file(rootProject.layout.projectDirectory.file("pnpm-lock.yaml")).withPathSensitivity(RELATIVE)
+    inputs.files(rootProject.files("mise.toml", "mise.lock")).withPathSensitivity(RELATIVE)
     inputs.file(project.layout.projectDirectory.file("package.json")).withPathSensitivity(RELATIVE)
     outputs.dir(project.layout.buildDirectory.dir("site"))
     outputs.cacheIf { true }
   }
 
 val checkSiteLinks =
-  tasks.register<PnpmTask>("checkSiteLinks") {
+  tasks.register<Exec>("checkSiteLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Checks links and fragments in every page of the built documentation site."
     dependsOn(buildVitepressSite)
-    args = listOf("run", "check-site-links")
-    // Locally, skip external URLs. In CI, always check them. linkinator serves the site on 127.0.0.1.
-    args.addAll(
-      providers
-        .environmentVariable("CI")
-        .map { emptyList<String>() }
-        .orElse(listOf("--skip", "^https?://(?!127\\.0\\.0\\.1[:/])")),
+    // Keep mise from regenerating unsupported Java platform entries while running lychee.
+    environment("MISE_LOCKFILE_MODE", "merge")
+    val site =
+      layout.buildDirectory
+        .dir("site")
+        .get()
+        .asFile
+    commandLine(
+      "mise",
+      "exec",
+      "--",
+      "lychee",
+      "--config",
+      rootProject.file("lychee.toml").path,
+      // resolve links like VitePress's clean URLs do
+      "--root-dir",
+      site.absolutePath,
+      "--fallback-extensions",
+      "html",
+      "--index-files",
+      "index.html",
+      "--include-fragments",
+      site.path,
     )
+    // Locally, skip external URLs. In CI, always check them.
+    if (!providers.environmentVariable("CI").isPresent) args("--offline")
   }
 
 val assemble =

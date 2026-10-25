@@ -6,9 +6,11 @@ You don’t need to read every document up front: use this index to find the inf
 ## In This Directory
 
 - [Documentation](documentation.md) — Where each piece of documentation goes and who it is written for, the role of `AGENTS.md`, and how to write documentation: for the target audience, in British English, and only where its usefulness outweighs its cost.
+- [Testing](testing.md) — The project’s test strategy: testing against public APIs, explicit tests for every relevant edge case, and how to use property tests, including why not to rely on the edge cases of Kotest `Arb`s.
 
 ## Decision Logs
 
+- [Link checking](decision-logs/link-checking.md) — Which tools check our links and why, the alternatives we discarded, and the accepted gap.
 - [Value and type syntax](decision-logs/value-and-type-syntax.md) — Agreed surface syntax, its rationale, the symbol allocation table, open design areas, and comparisons with other languages.
 
 ## Elsewhere
