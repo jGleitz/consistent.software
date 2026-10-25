@@ -2,6 +2,10 @@ name: Build
 
 on:
   push:
+    branches:
+      - main
+      # Renovate merges most updates without a pull request, so its branches need CI on push
+      - "renovate/**"
   pull_request:
 
 jobs:
