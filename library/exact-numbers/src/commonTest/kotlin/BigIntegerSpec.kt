@@ -11,7 +11,6 @@ import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
 import io.kotest.property.exhaustive.ints
-import io.kotest.property.exhaustive.map
 import kotlin.math.sign
 
 class BigIntegerSpec : DescribeSpec({
@@ -20,7 +19,7 @@ class BigIntegerSpec : DescribeSpec({
     // generation does not guarantee to hit them.
     describe("toBigInteger – conversion from primitives") {
       it("converts bytes") { checkConversion(Exhaustive.bytes()) { it.toBigInteger() } }
-      it("converts uBytes") { checkConversion(Exhaustive.ints(0..255).map { it.toUByte() }) { it.toBigInteger() } }
+      it("converts uBytes") { checkConversion(Exhaustive.uBytes()) { it.toBigInteger() } }
       it("converts shorts") { checkConversion(Arb.short(), Short.MIN_VALUE, Short.MAX_VALUE) { it.toBigInteger() } }
       it("converts uShorts") { checkConversion(Arb.uShort(), UShort.MIN_VALUE, UShort.MAX_VALUE) { it.toBigInteger() } }
       it("converts ints") { checkConversion(Arb.int(), Int.MIN_VALUE, Int.MAX_VALUE) { it.toBigInteger() } }

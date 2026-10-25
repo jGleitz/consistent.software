@@ -13,7 +13,7 @@ import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
 import io.kotest.property.exhaustive.enum
 import io.kotest.property.exhaustive.ints
-import io.kotest.property.exhaustive.map
+import software.consistent.data.generators.uBytes
 import software.consistent.exactnumbers.*
 import kotlin.math.sign
 
@@ -96,7 +96,7 @@ class NumberSpec : DescribeSpec({
       }
 
       it("can be created from uBytes") {
-        checkAll(Exhaustive.ints(0..255).map { it.toUByte() }) { uByte ->
+        checkAll(Exhaustive.uBytes()) { uByte ->
           expect(Number(uByte)).feature(Number::toString).toEqual(uByte.toString())
         }
       }
