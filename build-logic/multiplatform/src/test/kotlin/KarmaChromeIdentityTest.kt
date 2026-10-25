@@ -1,6 +1,8 @@
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
+import org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -9,7 +11,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 
-class KarmaChromeVersionTest {
+class KarmaChromeIdentityTest {
   @get:Rule
   val temporaryFolder = TemporaryFolder()
 
@@ -19,25 +21,33 @@ class KarmaChromeVersionTest {
     assertFalse(project.resolve("build/js/node_modules").exists())
 
     val first = run(project)
-    assertEquals(TaskOutcome.SUCCESS, first.task(":kotlinNpmInstall")?.outcome)
-    assertEquals(TaskOutcome.SUCCESS, first.task(":jsBrowserTest")?.outcome)
+    assertEquals(SUCCESS, first.task(":kotlinNpmInstall")?.outcome)
+    assertEquals(SUCCESS, first.task(":jsBrowserTest")?.outcome)
     assertTrue(project.resolve("build/js/node_modules/karma-chrome-launcher/index.js").isFile)
     assertResultWritten(project)
     assertEquals(listOf("executed"), executions(project))
 
     val unchanged = run(project)
     assertReusedConfigurationCache(unchanged)
-    assertEquals(TaskOutcome.UP_TO_DATE, unchanged.task(":jsBrowserTest")?.outcome)
+    assertEquals(UP_TO_DATE, unchanged.task(":jsBrowserTest")?.outcome)
+
+    if (System.getProperty("os.name").startsWith("Windows")) {
+      project.resolve("default-browser.exe").copyTo(project.resolve("relocated-browser.exe"))
+      val relocated = run(project, extraEnvironment = mapOf("TEST_BROWSER_FILENAME" to "relocated-browser.exe"))
+      assertReusedConfigurationCache(relocated)
+      assertEquals(UP_TO_DATE, relocated.task(":jsBrowserTest")?.outcome)
+      assertEquals(listOf("executed"), executions(project))
+    }
 
     project.resolve("build/mock-browser-result.txt").delete()
     val cached = run(project)
     assertReusedConfigurationCache(cached)
-    assertEquals(TaskOutcome.FROM_CACHE, cached.task(":jsBrowserTest")?.outcome)
+    assertEquals(FROM_CACHE, cached.task(":jsBrowserTest")?.outcome)
     assertEquals(listOf("executed"), executions(project))
 
     val updated = run(project, defaultVersion = "Chrome 2")
     assertReusedConfigurationCache(updated)
-    assertEquals(TaskOutcome.SUCCESS, updated.task(":jsBrowserTest")?.outcome)
+    assertEquals(SUCCESS, updated.task(":jsBrowserTest")?.outcome)
     assertResultWritten(project)
     assertEquals(listOf("executed", "executed"), executions(project))
   }
@@ -51,18 +61,18 @@ class KarmaChromeVersionTest {
     )
 
     val first = run(project, extraEnvironment = explicitEnvironment)
-    assertEquals(TaskOutcome.SUCCESS, first.task(":jsBrowserTest")?.outcome)
+    assertEquals(SUCCESS, first.task(":jsBrowserTest")?.outcome)
     assertResultWritten(project)
     assertEquals(listOf("executed"), executions(project))
 
     val unusedBrowserChanged = run(project, defaultVersion = "Chrome 2", extraEnvironment = explicitEnvironment)
     assertReusedConfigurationCache(unusedBrowserChanged)
-    assertEquals(TaskOutcome.UP_TO_DATE, unusedBrowserChanged.task(":jsBrowserTest")?.outcome)
+    assertEquals(UP_TO_DATE, unusedBrowserChanged.task(":jsBrowserTest")?.outcome)
 
     val selectedBrowserChanged =
       run(project, defaultVersion = "Chrome 2", explicitVersion = "Explicit Chrome 2", extraEnvironment = explicitEnvironment)
     assertReusedConfigurationCache(selectedBrowserChanged)
-    assertEquals(TaskOutcome.SUCCESS, selectedBrowserChanged.task(":jsBrowserTest")?.outcome)
+    assertEquals(SUCCESS, selectedBrowserChanged.task(":jsBrowserTest")?.outcome)
     assertEquals(listOf("executed", "executed"), executions(project))
   }
 
@@ -70,16 +80,17 @@ class KarmaChromeVersionTest {
   fun `an unidentified browser version prevents cache restoration`() {
     val project = fixture()
     val first = run(project, defaultVersion = "")
-    assertEquals(TaskOutcome.SUCCESS, first.task(":jsBrowserTest")?.outcome)
+    assertEquals(SUCCESS, first.task(":jsBrowserTest")?.outcome)
 
     project.resolve("build/mock-browser-result.txt").delete()
     val repeated = run(project, defaultVersion = "")
     assertReusedConfigurationCache(repeated)
-    assertEquals(TaskOutcome.SUCCESS, repeated.task(":jsBrowserTest")?.outcome)
+    assertEquals(SUCCESS, repeated.task(":jsBrowserTest")?.outcome)
     assertEquals(listOf("executed", "executed"), executions(project))
 
     val required = run(project, defaultVersion = "", requireVersion = true, expectFailure = true)
-    assertTrue(required.output, required.output.contains("chromeVersion"))
+    val inputName = if (System.getProperty("os.name").startsWith("Windows")) "chromeExecutable" else "chromeVersion"
+    assertTrue(required.output, required.output.contains(inputName))
     assertTrue(required.output, required.output.contains("doesn't have a configured value"))
   }
 
@@ -118,8 +129,12 @@ class KarmaChromeVersionTest {
     extraEnvironment: Map<String, String> = emptyMap(),
     requireVersion: Boolean = false,
     expectFailure: Boolean = false,
-  ): BuildResult =
-    GradleRunner.create()
+  ): BuildResult {
+    // Windows fingerprints the file; Unix probes the reported version. Neither requires an installed browser.
+    for ((name, version) in mapOf("default-browser.exe" to defaultVersion, "explicit-browser.exe" to explicitVersion)) {
+      project.resolve(name).apply { if (version.isEmpty()) delete() else writeText(version) }
+    }
+    return GradleRunner.create()
       .withProjectDir(project)
       .withTestKitDir(File(System.getProperty("test.gradleUserHome")))
       .withPluginClasspath()
@@ -131,9 +146,10 @@ class KarmaChromeVersionTest {
             "TEST_EXPLICIT_CHROME_VERSION" to explicitVersion,
           ) + extraEnvironment,
       )
-      .withArguments("jsBrowserTest", "-PrequireChromeVersion=$requireVersion", "--configuration-cache", "--build-cache", "--max-workers=2", "--stacktrace")
+      .withArguments("jsBrowserTest", "-PrequireChromeIdentity=$requireVersion", "--configuration-cache", "--build-cache", "--max-workers=2", "--stacktrace")
       .forwardOutput()
       .let { if (expectFailure) it.buildAndFail() else it.build() }
+  }
 
   private fun assertReusedConfigurationCache(result: BuildResult) {
     assertTrue(result.output, result.output.contains("Reusing configuration cache."))

@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+
 plugins {
   `kotlin-dsl`
 }
@@ -42,7 +44,7 @@ abstract class TestKitArguments : CommandLineArgumentProvider {
 
 tasks.test {
   inputs.property("operatingSystem", providers.systemProperty("os.name"))
-  testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+  testLogging.exceptionFormat = FULL
   // This location controls download reuse, not test semantics; keep it out of the task's cache key.
   jvmArgumentProviders.add(objects.newInstance<TestKitArguments>().apply { gradleUserHome.fileValue(gradle.gradleUserHomeDir) })
 }

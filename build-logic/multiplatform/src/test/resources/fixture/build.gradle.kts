@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.targets.js.npm.LockFileMismatchReport
+import org.jetbrains.kotlin.gradle.targets.js.npm.LockFileMismatchReport.NONE
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
 
 plugins {
@@ -8,7 +8,7 @@ plugins {
 
 // Retain the locked tooling versions while adapting workspace entries to this smaller fixture.
 extensions.configure<NpmExtension> {
-  packageLockMismatchReport.set(LockFileMismatchReport.NONE)
+  packageLockMismatchReport.set(NONE)
   packageLockAutoReplace.set(true)
 }
 

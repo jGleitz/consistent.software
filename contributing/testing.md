@@ -10,8 +10,10 @@ Without `--continue`, Gradle stops scheduling new tasks after a failure.
 Individual HTML and JUnit XML reports remain available under each module’s `build/reports/tests/` and `build/test-results/`; the aggregate `allTests` HTML report may not be generated when a dependency fails.
 
 JavaScript test results are cached, including the version of the Node executable selected by mise.
-Browser test caching tracks the version of the executable selected by Karma’s ChromeHeadless launcher, including its default browser lookup when `CHROME_BIN` is unset.
-CI requires this version to be available (`-PrequireChromeVersion=true`), so a broken probe cannot silently disable browser test caching.
+Browser test caching tracks the browser selected by Karma’s ChromeHeadless launcher, including its default lookup when `CHROME_BIN` is unset.
+On Windows it fingerprints the selected executable without its path; elsewhere it queries the browser version, since a launcher script can stay unchanged across browser updates.
+The Windows fingerprint assumes that runtime updates also change the executable; it does not track separate DLLs or custom launchers’ dependencies.
+CI requires this browser identity to be available (`-PrequireChromeIdentity=true`), so a broken probe cannot silently disable browser test caching.
 Unchanged tests restored from the cache do not explore new random inputs in property tests.
 Use `--rerun-tasks` when you want fresh test execution.
 
