@@ -10,7 +10,8 @@ This log records which tools check our links, and why we discarded the alternati
 - [lychee](https://lychee.cli.rs/) checks all links and fragments in the Markdown files outside the documentation site (`checkLinks`) and in the built site (`checkSiteLinks`). [mise](https://mise.jdx.dev/) installs it.
 - VitePress checks links between pages when it builds the site.
 
-External URLs are only checked in CI, so that local builds don’t depend on the network.
+External URLs are only checked with `-PcheckExternalLinks=true`, so that local builds don’t depend on the network.
+CI sets it only in its Linux build, so that the builds on the other operating systems don’t send the same requests again.
 
 ## Why lychee
 

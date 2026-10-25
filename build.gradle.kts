@@ -44,8 +44,6 @@ val checkLinks =
   tasks.register<Exec>("checkLinks") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Checks links to files, headings, and external URLs in all Markdown files outside the documentation site."
-    // mise 2026.10.19 cannot generate Java's missing linux-arm64-musl lock entry; skip cross-platform regeneration here.
-    environment("MISE_LOCKFILE_MODE", "merge")
     commandLine(
       "mise",
       "exec",
@@ -60,18 +58,18 @@ val checkLinks =
       "(^|/)documentation/src/main/markdown/",
       ".",
     )
-    val ci = providers.environmentVariable("CI")
-    // Locally, skip external URLs, so that local builds don't depend on the network. In CI, always check them.
-    if (!ci.isPresent) args("--offline")
+    // Skip external URLs unless -PcheckExternalLinks=true, so that local builds don't depend on the network.
+    val checkExternalLinks = providers.gradleProperty("checkExternalLinks").map(String::toBoolean).getOrElse(false)
+    if (!checkExternalLinks) args("--offline")
 
     // Files that Markdown links to but that aren't Markdown aren't inputs. Creating or deleting one therefore doesn't
-    // rerun the check locally; CI always runs it.
+    // rerun an offline check; a check of external URLs always runs.
     inputs.files(linkCheckSources).withPropertyName("linkCheckSources").withPathSensitivity(PathSensitivity.RELATIVE)
     val marker = layout.buildDirectory.file("checkLinks/success")
     outputs.file(marker).withPropertyName("marker")
-    // External URLs can break without any input changing, so CI always runs the check.
-    outputs.upToDateWhen { !ci.isPresent }
-    outputs.cacheIf { !ci.isPresent }
+    // External URLs can break without any input changing, so a check of external URLs always runs.
+    outputs.upToDateWhen { !checkExternalLinks }
+    outputs.cacheIf { !checkExternalLinks }
     doLast { marker.get().asFile.writeText("") }
   }
 

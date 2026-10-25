@@ -24,8 +24,6 @@ val checkSiteLinks =
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Checks links and fragments in every page of the built documentation site."
     dependsOn(buildVitepressSite)
-    // Keep mise from regenerating unsupported Java platform entries while running lychee.
-    environment("MISE_LOCKFILE_MODE", "merge")
     val site =
       layout.buildDirectory
         .dir("site")
@@ -48,8 +46,9 @@ val checkSiteLinks =
       "--include-fragments",
       site.path,
     )
-    // Locally, skip external URLs. In CI, always check them.
-    if (!providers.environmentVariable("CI").isPresent) args("--offline")
+    // Skip external URLs unless -PcheckExternalLinks=true, so that local builds don't depend on the network.
+    val checkExternalLinks = providers.gradleProperty("checkExternalLinks").map(String::toBoolean).getOrElse(false)
+    if (!checkExternalLinks) args("--offline")
   }
 
 val assemble =
