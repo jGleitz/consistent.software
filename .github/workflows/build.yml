@@ -10,66 +10,20 @@ on:
 
 jobs:
   build:
-    name: Assemble & Test
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set Up Development Tools
-        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
-
-      - name: Cache PNPM Store
-        uses: actions/cache@v6
-        with:
-          path: ~/.local/share/pnpm/store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
-
-      - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          build-scan-publish: true
-          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
-          build-scan-terms-of-use-agree: "yes"
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-      - name: Build
-        run: ./gradlew build --continue --scan
-        env:
-          # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload Documentation
-        if: ${{ !cancelled() }}
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
-        with:
-          path: documentation/build/site
-
-      - name: Upload Test Results
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: test-results
-          path: "**/build/test-results/"
-
-  test:
-    name: Test on ${{ matrix.name }}
+    name: Assemble & Test${{ matrix.suffix }}
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: macOS
-            os: macos-latest
-          - name: Windows
-            os: windows-latest
+          # Linux’s job and artifact keep the names they had before we added the other operating systems
+          - os: ubuntu-latest
+            suffix: ""
+          - os: macos-latest
+            suffix: " (macOS)"
+          - os: windows-latest
+            suffix: " (Windows)"
 
     permissions:
       contents: read
@@ -84,8 +38,19 @@ jobs:
 
       - name: Set Up Development Tools
         uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
+
+      - name: Locate PNPM Store
+        id: pnpm-store
+        # On Windows, the output may end with a carriage return
+        run: echo "path=$(mise exec -- pnpm store path | tr -d '\r')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache PNPM Store
+        uses: actions/cache@v6
         with:
-          install_args: java node
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -95,22 +60,32 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-      - name: Test
-        run: ./gradlew allTests --continue --scan
+      - name: Build
+        # Only Linux checks external links, so that the other operating systems don't send the same requests again
+        run: ./gradlew build --continue --scan -PcheckExternalLinks=${{ runner.os == 'Linux' }}
+        env:
+          # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload Documentation
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: documentation/build/site
 
       - name: Upload Test Results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           # Test Report creates one report per test-results artifact and appends the suffix to the report’s name
-          name: test-results (${{ matrix.name }})
+          name: test-results${{ matrix.suffix }}
           path: "**/build/test-results/"
 
   publish_documentation:
     name: Publish Documentation
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [build, test]
+    needs: build
 
     permissions:
       pages: write
