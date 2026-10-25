@@ -90,16 +90,27 @@ jobs:
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
         with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Test
-        run: ./gradlew allTests --continue
+        run: ./gradlew allTests --continue --scan
+
+      - name: Upload Test Results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          # Test Report creates one report per test-results artifact and appends the suffix to the report’s name
+          name: test-results (${{ matrix.name }})
+          path: "**/build/test-results/"
 
   publish_documentation:
     name: Publish Documentation
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
+    needs: [build, test]
 
     permissions:
       pages: write
