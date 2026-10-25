@@ -24,8 +24,6 @@ val checkSiteLinks =
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     description = "Checks links and fragments in every page of the built documentation site."
     dependsOn(buildVitepressSite)
-    // Keep mise from regenerating unsupported Java platform entries while running lychee.
-    environment("MISE_LOCKFILE_MODE", "merge")
     val site =
       layout.buildDirectory
         .dir("site")
