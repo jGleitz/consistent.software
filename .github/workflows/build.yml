@@ -53,9 +53,10 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build
-        # Only Linux checks external links, so that the other operating systems don't send the same requests again
-        run: ./gradlew build --continue --scan -PcheckExternalLinks=${{ runner.os == 'Linux' }}
+        run: ./gradlew build --continue --scan
         env:
+          # Only Linux checks external links, so that the other operating systems don't send the same requests again
+          ORG_GRADLE_PROJECT_checkExternalLinks: ${{ runner.os == 'Linux' }}
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
           GITHUB_TOKEN: ${{ github.token }}
 
