@@ -42,9 +42,7 @@ abstract class TestKitArguments : CommandLineArgumentProvider {
 
 tasks.test {
   inputs.property("operatingSystem", providers.systemProperty("os.name"))
-  failFast = true
   testLogging.exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-  testLogging.showStandardStreams = providers.gradleProperty("browserTestDiagnostics").isPresent
   // This location controls download reuse, not test semantics; keep it out of the task's cache key.
   jvmArgumentProviders.add(objects.newInstance<TestKitArguments>().apply { gradleUserHome.fileValue(gradle.gradleUserHomeDir) })
 }

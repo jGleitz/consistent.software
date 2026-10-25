@@ -1,0 +1,4 @@
+# Check out text files with LF on every operating system, as .editorconfig and the format checks require
+* text=auto eol=lf
+# Batch files keep the CRLF line endings that the Gradle wrapper generates for them
+*.bat -text

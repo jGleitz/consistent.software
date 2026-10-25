@@ -8,13 +8,34 @@ on:
       - "renovate/**"
   pull_request:
 
+concurrency:
+  # A new push cancels the outdated run, except on main: there, every commit gets its own group, so that each one is
+  # built and we can tell which commit broke the build
+  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    name: Assemble & Test
-    runs-on: ubuntu-latest
+    name: Assemble & Test (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux
+            os: ubuntu-latest
+          - name: macOS
+            os: macos-latest
+          - name: Windows
+            os: windows-latest
 
     permissions:
       contents: read
+
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Checkout
@@ -24,12 +45,10 @@ jobs:
         uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
 
       - name: Cache PNPM Store
-        uses: actions/cache@v6
+        # Without node-version, setup-node only caches. It locates the store with the pnpm that mise installed.
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          path: ~/.local/share/pnpm/store
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+          cache: pnpm
 
       - name: Set Up Gradle
         uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
@@ -42,11 +61,13 @@ jobs:
       - name: Build
         run: ./gradlew build --continue --scan
         env:
+          # Only Linux checks external links, so that the other operating systems don't send the same requests again
+          ORG_GRADLE_PROJECT_checkExternalLinks: ${{ runner.os == 'Linux' }}
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload Documentation
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && runner.os == 'Linux' }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: documentation/build/site
@@ -55,43 +76,9 @@ jobs:
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: test-results
+          # Test Report creates one report per test-results artifact and names it after the operating system
+          name: test-results (${{ matrix.name }})
           path: "**/build/test-results/"
-
-  build_logic_windows:
-    name: Build Logic Tests (Windows)
-    runs-on: windows-latest
-    timeout-minutes: 20
-
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set Up Development Tools
-        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
-        with:
-          # Temurin 25.0.5 has no Windows artifact yet; keep the project's other tool pins.
-          install_args: node pnpm lychee
-
-      - name: Set Up Gradle
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-
-      - name: Test Build Logic
-        run: mise exec java@temurin-25.0.4+7.0.LTS -- .\gradlew.bat :build-logic:multiplatform:check -PbrowserTestDiagnostics --console=plain
-
-      - name: Upload Test Results
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: build-logic-windows-test-results
-          path: |
-            build-logic/multiplatform/build/test-results/
-            build-logic/multiplatform/build/reports/tests/
 
   publish_documentation:
     name: Publish Documentation
@@ -99,7 +86,14 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: build
 
+    # Publishing one commit at a time lets the check below rule out that an older commit overwrites a newer one's
+    # documentation. A newer commit's publication may displace a waiting one, which is fine.
+    concurrency:
+      group: ${{ github.workflow }}-publish-documentation
+      cancel-in-progress: false
+
     permissions:
+      contents: read
       pages: write
       id-token: write
 
@@ -107,5 +101,20 @@ jobs:
       name: github-pages
 
     steps:
+      - name: Check for Newer Commits
+        id: latest
+        # If main has moved on, the newer commit’s run publishes its documentation instead, provided its build succeeds
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)
+          if [[ "$head" == "$GITHUB_SHA" ]]; then
+            echo "is-latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Not publishing, because $GITHUB_REF_NAME has moved on to $head"
+            echo "is-latest=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Deploy to GitHub Pages
+        if: steps.latest.outputs.is-latest == 'true'
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
