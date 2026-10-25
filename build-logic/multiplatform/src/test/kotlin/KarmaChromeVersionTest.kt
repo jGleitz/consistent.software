@@ -16,7 +16,7 @@ class KarmaChromeVersionTest {
   private val windows = System.getProperty("os.name").startsWith("Windows")
   private val macOs = System.getProperty("os.name").startsWith("Mac")
 
-  @Test
+  @Test(timeout = 300_000)
   fun `real browser tests cache the discovered browser and invalidate its changed version`() {
     val project = fixture()
     assertFalse(project.resolve("build/js/node_modules").exists())
@@ -45,7 +45,7 @@ class KarmaChromeVersionTest {
     assertEquals(listOf("default", "default"), launches(project))
   }
 
-  @Test
+  @Test(timeout = 300_000)
   fun `real browser tests honour the test task environment over the inherited environment`() {
     val project = fixture()
     val explicitEnvironment = mapOf(

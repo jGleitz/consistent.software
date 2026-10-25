@@ -61,6 +61,7 @@ jobs:
   build_logic_windows:
     name: Build Logic Tests (Windows)
     runs-on: windows-latest
+    timeout-minutes: 20
 
     permissions:
       contents: read
