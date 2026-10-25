@@ -56,6 +56,20 @@ class KarmaChromeVersionTest {
     assertEquals(listOf("explicit", "explicit"), launches(project))
   }
 
+  @Test
+  fun `real browser tests accept a command name in the host CHROME_BIN`() {
+    val project = fixture()
+    val browser = installedBrowser()
+    val hostEnvironment = System.getenv() + mapOf(
+      "CHROME_BIN" to browser.name,
+      "PATH" to "${browser.parent}${File.pathSeparator}${System.getenv("PATH")}",
+    )
+
+    assertEquals(TaskOutcome.SUCCESS, run(project, hostEnvironment = hostEnvironment).task(":jsBrowserTest")?.outcome)
+    assertBrowserTestPassed(project)
+    assertEquals(listOf("default"), launches(project))
+  }
+
   private fun fixture(): File {
     assumeTrue("The default browser lookup fixture uses Linux PATH discovery", System.getProperty("os.name") == "Linux")
     val project = temporaryFolder.newFolder()
@@ -146,30 +160,36 @@ class KarmaChromeVersionTest {
     defaultVersion: String = "Chrome 1",
     explicitVersion: String = "Explicit Chrome 1",
     extraEnvironment: Map<String, String> = emptyMap(),
+    hostEnvironment: Map<String, String> = System.getenv(),
   ): BuildResult =
     GradleRunner.create()
       .withProjectDir(project)
       .withTestKitDir(File(System.getProperty("test.gradleUserHome")))
       .withPluginClasspath()
       .withEnvironment(
-        System.getenv().filterKeys { it != "CHROME_BIN" && it != "TEST_TASK_CHROME_BIN" } + mapOf(
-          "PATH" to "${project.resolve("bin")}${File.pathSeparator}${System.getenv("PATH")}",
+        hostEnvironment.filterKeys { it != "CHROME_BIN" && it != "TEST_TASK_CHROME_BIN" } + mapOf(
+          "PATH" to "${project.resolve("bin")}${File.pathSeparator}${hostEnvironment["PATH"]}",
           "MISE_TRUSTED_CONFIG_PATHS" to project.absolutePath,
           "TEST_DEFAULT_CHROME_VERSION" to defaultVersion,
           "TEST_EXPLICIT_CHROME_VERSION" to explicitVersion,
-          "TEST_CHROME_EXECUTABLE" to installedBrowser().absolutePath,
+          "TEST_CHROME_EXECUTABLE" to installedBrowser(hostEnvironment).absolutePath,
           "TEST_CHROME_LAUNCH_LOG" to project.resolve("browser-launches.txt").absolutePath,
         ) + extraEnvironment,
       )
       .withArguments("jsBrowserTest", "--configuration-cache", "--build-cache", "--max-workers=2", "--stacktrace")
       .build()
 
-  private fun installedBrowser(): File {
-    System.getenv("CHROME_BIN")?.takeIf { it.isNotBlank() }?.let { return File(it) }
-    for (command in listOf("google-chrome", "google-chrome-stable", "chromium", "chromium-browser")) {
-      for (directory in System.getenv("PATH").split(File.pathSeparator)) {
-        File(directory, command).takeIf { it.isFile && it.canExecute() }?.let { return it }
+  private fun installedBrowser(environment: Map<String, String> = System.getenv()): File {
+    val commands = environment["CHROME_BIN"]?.takeIf { it.isNotBlank() }?.let { listOf(it) }
+      ?: listOf("google-chrome", "google-chrome-stable", "chromium", "chromium-browser")
+    for (command in commands) {
+      val executable = File(command)
+      val candidates = if (executable.isAbsolute || command.contains(File.separatorChar)) {
+        listOf(executable)
+      } else {
+        environment["PATH"].orEmpty().split(File.pathSeparator).map { File(it, command) }
       }
+      candidates.firstOrNull { it.isFile && it.canExecute() }?.let { return it.absoluteFile }
     }
     error("Browser integration tests require an installed Chrome or Chromium")
   }
