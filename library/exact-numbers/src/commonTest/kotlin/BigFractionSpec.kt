@@ -4,7 +4,7 @@ import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.test.Enabled.Companion.disabled
-import io.kotest.datatest.withData
+import io.kotest.datatest.withIts
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.int
@@ -30,14 +30,11 @@ class BigFractionSpec : DescribeSpec({
         }
       }
 
-      it("rejects a zero denominator") {
-        expect {
-          bigFractionOf(BigIntegers.ZERO, BigIntegers.ZERO)
-        }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide 0 by 0.")
-        expect {
-          bigFractionOf(42.toBigInteger(), BigIntegers.ZERO)
-        }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide 42 by 0.")
-        checkAll(Arb.bigInteger()) { numerator ->
+      describe("rejects a zero denominator") {
+        withIts(listOf(
+          BigIntegers.ZERO, BigIntegers.ONE, -BigIntegers.ONE, 42.toBigInteger(), (-42).toBigInteger(),
+          twoToThe(100), -twoToThe(100),
+        )) { numerator ->
           expect { bigFractionOf(numerator, BigIntegers.ZERO) }.toThrow<ArithmeticException>().and.message.toEqual(
             "Division by zero: attempted to divide $numerator by 0."
           )
@@ -61,7 +58,7 @@ class BigFractionSpec : DescribeSpec({
 
       // Independent ground truth for the oracle used above, for the kinds of values most likely to be mishandled.
       describe("converts doubles to their exact binary value") {
-        withData(
+        withIts(
           mapOf(
             "0.1 (not 1/10)" to (0.1 to bigFractionOf(3602879701896397L.toBigInteger(), twoToThe(55))),
             "1.0 / 3.0 (not 1/3)" to ((1.0 / 3.0) to bigFractionOf(6004799503160661L.toBigInteger(), twoToThe(54))),
@@ -85,7 +82,7 @@ class BigFractionSpec : DescribeSpec({
       }
 
       describe("rejects non-finite doubles") {
-        withData(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY) { double ->
+        withIts(Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY) { double ->
           expect { double.toBigFraction() }.toThrow<IllegalArgumentException>().and.message.toEqual(
             "Cannot convert $double to an exact fraction: the value must be finite."
           )
@@ -102,7 +99,7 @@ class BigFractionSpec : DescribeSpec({
       }
 
       describe("rejects non-finite floats") {
-        withData(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY) { float ->
+        withIts(Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY) { float ->
           expect { float.toBigFraction() }.toThrow<IllegalArgumentException>().and.message.toEqual(
             "Cannot convert $float to an exact fraction: the value must be finite."
           )
@@ -165,21 +162,26 @@ class BigFractionSpec : DescribeSpec({
           }
         }
 
-        it("rejects division by zero") {
-          expect { BigIntegers.ZERO.toBigFraction() / BigIntegers.ZERO.toBigFraction() }.toThrow<ArithmeticException>().and.message.toEqual(
-            "Division by zero: attempted to divide 0 by 0."
-          )
-          expect {
-            42.toBigInteger().toBigFraction() / BigIntegers.ZERO.toBigFraction()
-          }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide 42 by 0.")
-          expect {
-            bigFractionOf(4.toBigInteger(), (-6).toBigInteger()) / BigFractions.ZERO
-          }.toThrow<ArithmeticException>().and.message.toEqual("Division by zero: attempted to divide -2/3 by 0.")
-          checkAll(Arb.ratio()) { dividend ->
-            val value = dividend.value
-            val numerator = value.numeratorAsBigInteger
-            val denominator = value.denominatorAsBigInteger
-            val dividendText = if (denominator == BigIntegers.ONE) "$numerator" else "$numerator/$denominator"
+        describe("rejects division by zero") {
+          withIts(listOf(
+            (0 to 1) to "0",
+            (0 to -7) to "0",
+            (42 to 1) to "42",
+            (-42 to 1) to "-42",
+            (6 to 3) to "2",
+            (1 to 2) to "1/2",
+            (-1 to 2) to "-1/2",
+            (7 to 3) to "7/3",
+            (-7 to 3) to "-7/3",
+            (4 to -6) to "-2/3",
+            (-4 to -6) to "2/3",
+            (14 to 6) to "7/3",
+          ).map { (input, dividendText) ->
+            (input.first.toBigInteger() to input.second.toBigInteger()) to dividendText
+          } + listOf(
+            (twoToThe(100) + BigIntegers.ONE to -twoToThe(64)) to "-1267650600228229401496703205377/18446744073709551616",
+          )) { (input, dividendText) ->
+            val value = bigFractionOf(input.first, input.second)
             expect { value / BigFractions.ZERO }.toThrow<ArithmeticException>().and.message.toEqual(
               "Division by zero: attempted to divide $dividendText by 0."
             )
@@ -214,10 +216,16 @@ class BigFractionSpec : DescribeSpec({
           }
         }
 
-        it("returns one for exponent zero, including zero to the zeroth power") {
-          expect(BigFractions.ZERO.toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
-          checkAll(Arb.ratio()) { ratio ->
-            expect(ratio.value.toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
+        describe("returns one for exponent zero, including zero to the zeroth power") {
+          withIts(listOf(
+            0 to 1, 1 to 1, -1 to 1, 42 to 1, -42 to 1,
+            1 to 2, -1 to 2, 7 to 3, -7 to 3, 4 to -6, -4 to -6,
+          )) { (numerator, denominator) ->
+            expect(bigFractionOf(numerator.toBigInteger(), denominator.toBigInteger()).toThePowerOf(0))
+              .toEqualNumerically(BigFractions.ONE)
+          }
+          it("supports values beyond Long") {
+            expect(bigFractionOf(twoToThe(100) + BigIntegers.ONE, -twoToThe(64)).toThePowerOf(0)).toEqualNumerically(BigFractions.ONE)
           }
         }
 
@@ -228,7 +236,7 @@ class BigFractionSpec : DescribeSpec({
         }
 
         describe("preserves a negative base's sign only for odd exponents") {
-          withData(
+          withIts(
             mapOf(
               "positive odd exponent" to (3 to bigFractionOf((-8).toBigInteger(), 27.toBigInteger())),
               "positive even exponent" to (2 to bigFractionOf(4.toBigInteger(), 9.toBigInteger())),
@@ -242,20 +250,14 @@ class BigFractionSpec : DescribeSpec({
           }
         }
 
-        it("raises zero to positive powers") {
-          checkAll(Arb.int(1..Int.MAX_VALUE)) { exponent ->
+        describe("raises zero to positive powers") {
+          withIts(1, 2, 3, 7, 8, 9, 31, 32, 33, 63, 64, 65, Int.MAX_VALUE - 1, Int.MAX_VALUE) { exponent ->
             expect(BigFractions.ZERO.toThePowerOf(exponent)).toEqualNumerically(BigFractions.ZERO)
           }
         }
 
-        it("rejects negative powers of zero") {
-          expect { BigFractions.ZERO.toThePowerOf(-1) }.toThrow<ArithmeticException>().and.message.toEqual(
-            "Division by zero: cannot raise 0 to the negative exponent -1."
-          )
-          expect { BigFractions.ZERO.toThePowerOf(Int.MIN_VALUE) }.toThrow<ArithmeticException>().and.message.toEqual(
-            "Division by zero: cannot raise 0 to the negative exponent -2147483648."
-          )
-          checkAll(Arb.int(Int.MIN_VALUE..-1)) { exponent ->
+        describe("rejects negative powers of zero") {
+          withIts(Int.MIN_VALUE, Int.MIN_VALUE + 1, -2, -1) { exponent ->
             expect { BigFractions.ZERO.toThePowerOf(exponent) }.toThrow<ArithmeticException>().and.message.toEqual(
               "Division by zero: cannot raise 0 to the negative exponent $exponent."
             )
@@ -272,7 +274,7 @@ class BigFractionSpec : DescribeSpec({
 
         // Unit bases keep the result small even at the Int limits, including MIN_VALUE whose negation overflows.
         describe("supports extreme exponents for unit bases") {
-          withData(Int.MIN_VALUE, Int.MIN_VALUE + 1, Int.MAX_VALUE - 1, Int.MAX_VALUE) { exponent ->
+          withIts(Int.MIN_VALUE, Int.MIN_VALUE + 1, Int.MAX_VALUE - 1, Int.MAX_VALUE) { exponent ->
             expect(BigFractions.ONE.toThePowerOf(exponent)).toEqualNumerically(BigFractions.ONE)
             expect((-BigFractions.ONE).toThePowerOf(exponent)).toEqualNumerically(
               if (exponent % 2 == 0) BigFractions.ONE else -BigFractions.ONE

@@ -2,7 +2,7 @@ package software.consistent.data.type
 
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.datatest.withData
+import io.kotest.datatest.withDescribes
 import software.consistent.data.value.Number
 
 class NumberBoundarySpec : DescribeSpec({
@@ -24,7 +24,7 @@ class NumberBoundarySpec : DescribeSpec({
     }
 
     describe("union") {
-      withData(nameFn = { (left, right) -> "${left.type} | ${right.type}" }, cases) { (left, right) ->
+      withDescribes(nameFn = { (left, right) -> "${left.type} | ${right.type}" }, cases) { (left, right) ->
         val union = left.type or right.type
 
         it("contains the expected values") {
@@ -39,7 +39,7 @@ class NumberBoundarySpec : DescribeSpec({
     }
 
     describe("intersection") {
-      withData(nameFn = { (left, right) -> "${left.type} & ${right.type}" }, cases) { (left, right) ->
+      withDescribes(nameFn = { (left, right) -> "${left.type} & ${right.type}" }, cases) { (left, right) ->
         val intersection = left.type and right.type
 
         it("contains the expected values") {
