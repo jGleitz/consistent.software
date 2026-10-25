@@ -63,7 +63,7 @@ jobs:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
       - name: Build
-        run: ./gradlew build --scan
+        run: ./gradlew build --continue --scan
         env:
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
           GITHUB_TOKEN: ${{ github.token }}
