@@ -15,6 +15,8 @@ KMP installs `@puppeteer/browsers` as a test devDependency; the browser itself i
 Installations are shared across modules and checkouts in `$XDG_CACHE_HOME/consistent.software/browsers` (defaulting to `~/.cache/consistent.software/browsers`); `CONSISTENT_BROWSER_CACHE` can select another location.
 Parallel builds serialise installation of the same version, then run their tests concurrently.
 The managed browser takes precedence over an inherited `CHROME_BIN`.
+On Linux systems restricting unprivileged user namespaces (including Ubuntu 24.04), the managed Chrome needs an AppArmor profile permitting `userns` for its installation path.
+The Linux CI job installs such a profile while retaining Chrome's sandbox; see `.github/workflows/build.yml`.
 
 KGP 2.4.21 fingerprints several JS test inputs with absolute paths, so a different checkout path still prevents reuse of both Node and browser test results.
 The browser installation itself is reusable across checkouts; its location is not a test input.

@@ -45,11 +45,14 @@ tasks.withType<AbstractTestTask>().configureEach {
   // With ignoreFailures, a task with failing tests succeeds. KGP’s allTests notices the failures only through test events, which
   // a result restored from the build cache does not replay, so caching such a result would turn the failure into a pass.
   outputs.doNotCacheIf("Failing tests would be cached as passing") { ignoreFailures }
+  // A local UP-TO-DATE result would suppress the failure events, too.
+  outputs.upToDateWhen { !ignoreFailures }
 }
 
 tasks.withType<KotlinTest>().configureEach {
   inputs.property("ignoreRunFailures", provider { ignoreRunFailures })
   outputs.doNotCacheIf("Test runner failures would be cached as passing") { ignoreRunFailures }
+  outputs.upToDateWhen { !ignoreRunFailures }
 }
 
 val managedChromeBootstrap =

@@ -75,4 +75,5 @@ val checkLinks =
 
 tasks.check {
   dependsOn(checkLinks)
+  dependsOn(gradle.includedBuild("build-logic").task(":multiplatform:check"))
 }
