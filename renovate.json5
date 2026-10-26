@@ -12,6 +12,11 @@
   extends: ["github>jGleitz/renovate-config:default.json5"],
   packageRules: [
     {
+      // Google's Stable-version endpoint has no release timestamp.
+      matchDatasources: ["custom.chrome-for-testing"],
+      minimumReleaseAge: null,
+    },
+    {
       // VitePress 2.0.0-alpha.20 requires markdown-it-mathjax3@^4.
       // Recheck VitePress's peerDependencies when upgrading VitePress and
       // update or remove this restriction once newer plugin versions are supported.
@@ -20,7 +25,30 @@
       allowedVersions: "^4",
     },
   ],
+  customDatasources: {
+    "chrome-for-testing": {
+      defaultRegistryUrlTemplate: "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE",
+      format: "plain",
+    },
+  },
   customManagers: [
+    {
+      customType: "regex",
+      managerFilePatterns: ["gradle.properties"],
+      matchStrings: ["chromeVersion\\s*=\\s*(?<currentValue>[\\d.]+)"],
+      datasourceTemplate: "custom.chrome-for-testing",
+      depNameTemplate: "chrome-for-testing",
+      versioningTemplate: "loose",
+    },
+    {
+      customType: "regex",
+      managerFilePatterns: [
+        "build-logic/multiplatform/src/main/kotlin/multiplatform-tests.gradle.kts",
+      ],
+      matchStrings: ['devNpm\\("(?<depName>[^"]+)",\\s*"(?<currentValue>[^"]+)"\\)'],
+      datasourceTemplate: "npm",
+      depTypeTemplate: "devDependencies",
+    },
     // ktlint("1.8.0") inside a spotless {} block
     {
       customType: "regex",

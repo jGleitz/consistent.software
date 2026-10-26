@@ -9,8 +9,15 @@ The build enables Kotlin’s `kotlin.tests.individualTaskReports` option so that
 Without `--continue`, Gradle stops scheduling new tasks after a failure.
 Individual HTML and JUnit XML reports remain available under each module’s `build/reports/tests/` and `build/test-results/`; the aggregate `allTests` HTML report may not be generated when a dependency fails.
 
-JavaScript test results are cached, including the version of the Node executable selected by mise.
-Browser test caching additionally requires `CHROME_BIN` to identify the Chrome executable and track its version; without it, browser tests remain uncacheable.
+JavaScript test results are cached, including the version, operating system and architecture of the Node executable selected by mise.
+Browser tests use the exact Chrome for Testing version in `gradle.properties`, updated by Renovate independently of the downloader.
+KMP installs `@puppeteer/browsers` as a test devDependency; the browser itself is installed only when a browser test actually runs, after Gradle's cache checks.
+Installations are shared across modules and checkouts in `$XDG_CACHE_HOME/consistent.software/browsers` (defaulting to `~/.cache/consistent.software/browsers`); `CONSISTENT_BROWSER_CACHE` can select another location.
+Parallel builds serialise installation of the same version, then run their tests concurrently.
+The managed browser takes precedence over an inherited `CHROME_BIN`.
+
+KGP 2.4.21 fingerprints several JS test inputs with absolute paths, so a different checkout path still prevents reuse of both Node and browser test results.
+The browser installation itself is reusable across checkouts; its location is not a test input.
 Unchanged tests restored from the cache do not explore new random inputs in property tests.
 Use `--rerun-tasks` when you want fresh test execution.
 
