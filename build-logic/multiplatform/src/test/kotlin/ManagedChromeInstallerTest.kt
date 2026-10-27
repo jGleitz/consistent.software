@@ -16,7 +16,7 @@ class ManagedChromeInstallerTest {
 
   @Test(timeout = 60_000)
   fun `concurrent processes share one revision and incomplete installations are rebuilt`() {
-    val cache = temporaryFolder.newFolder("shared browser cache")
+    val cache = temporaryFolder.newFolder("shared browser cache").canonicalFile
     val version = "156.0.8078.47"
     val java = File(System.getProperty("java.home"), "bin/java").path
     val classpath = listOf(javaClass, ManagedChromeInstaller::class.java, Unit::class.java)
