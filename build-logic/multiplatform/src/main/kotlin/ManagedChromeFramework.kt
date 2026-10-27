@@ -45,15 +45,17 @@ abstract class ManagedChromeFramework @Inject constructor(
   ): TestExecutionSpec {
     val downloadOutput = ByteArrayOutputStream()
     task.withStatus("Preparing Chrome $browserVersion") {
-      execOperations.exec {
-        commandLine(
-          "mise", "exec", "--",
-          "npm", "exec", "--no", "--",
-          "@puppeteer/browsers", "install", "chrome@$browserVersion", "--path", cacheDirectory, "--format", "{{path}}"
-        )
-        workingDir(rootPackageDirectory.get())
-        environment(launchOpts.environment.get())
-        standardOutput = downloadOutput
+      BrowserInstallationLock.withLock(cacheDirectory) {
+        execOperations.exec {
+          commandLine(
+            "mise", "exec", "--",
+            "npm", "exec", "--no", "--",
+            "@puppeteer/browsers", "install", "chrome@$browserVersion", "--path", cacheDirectory, "--format", "{{path}}"
+          )
+          workingDir(rootPackageDirectory.get())
+          environment(launchOpts.environment.get())
+          standardOutput = downloadOutput
+        }
       }
     }
     val browser = File(downloadOutput.toString(UTF_8).trim())

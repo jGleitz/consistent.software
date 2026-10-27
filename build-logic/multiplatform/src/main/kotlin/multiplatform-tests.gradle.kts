@@ -52,15 +52,20 @@ tasks.withType<KotlinTest>().configureEach {
 tasks.withType<KotlinJsTest>().configureEach {
   val testTask = this
 
-  inputs.property("nodeJsVersion", rootProject.the<NodeJsExtension>().nodeVersion)
-  inputs.property("operatingSystem", project.providers.systemProperty("os.name"))
-  inputs.property("architecture", providers.systemProperty("os.arch"))
+  val runtimeProviders = project.providers
   inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(RELATIVE)
 
   outputs.cacheIf { true }
 
   onTestFrameworkSet {
     if (this is ManagedChromeFramework) return@onTestFrameworkSet
+    // Probe the same executable KotlinJsTest launches, including architecture under emulation and framework overrides.
+    val nodeRuntime = executable.flatMap { node ->
+      runtimeProviders.exec {
+        commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
+      }.standardOutput.asText.map { it.trim() }
+    }
+    testTask.inputs.property("nodeJsRuntimeIdentity", nodeRuntime)
     if (this is KotlinKarma) {
       val project = testTask.project
       val providers = project.providers
