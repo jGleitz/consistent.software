@@ -60,11 +60,14 @@ tasks.withType<KotlinJsTest>().configureEach {
   onTestFrameworkSet {
     if (this is ManagedChromeFramework) return@onTestFrameworkSet
     // Probe the same executable KotlinJsTest launches, including architecture under emulation and framework overrides.
-    val nodeRuntime = executable.flatMap { node ->
-      runtimeProviders.exec {
-        commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
-      }.standardOutput.asText.map { it.trim() }
-    }
+    val nodeRuntime =
+      executable.flatMap { node ->
+        runtimeProviders
+          .exec {
+            commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
+          }.standardOutput.asText
+          .map { it.trim() }
+      }
     testTask.inputs.property("nodeJsRuntimeIdentity", nodeRuntime)
     if (this is KotlinKarma) {
       val project = testTask.project
