@@ -34,20 +34,11 @@
   customManagers: [
     {
       customType: "regex",
-      managerFilePatterns: ["gradle.properties"],
-      matchStrings: ["chromeVersion\\s*=\\s*(?<currentValue>[\\d.]+)"],
+      managerFilePatterns: ["gradle/buildLibs.versions.toml"],
+      matchStrings: ['chrome\\s*=\\s*"(?<currentValue>[\\d.]+)"'],
       datasourceTemplate: "custom.chrome-for-testing",
       depNameTemplate: "chrome-for-testing",
       versioningTemplate: "loose",
-    },
-    {
-      customType: "regex",
-      managerFilePatterns: [
-        "build-logic/multiplatform/src/main/kotlin/multiplatform-tests.gradle.kts",
-      ],
-      matchStrings: ['devNpm\\("(?<depName>[^"]+)",\\s*"(?<currentValue>[^"]+)"\\)'],
-      datasourceTemplate: "npm",
-      depTypeTemplate: "devDependencies",
     },
     // ktlint("1.8.0") inside a spotless {} block
     {

@@ -61,12 +61,12 @@ jobs:
       - name: Allow Chrome's Sandbox on Linux
         if: runner.os == 'Linux'
         # Ubuntu's AppArmor restrictions otherwise reject user namespaces for browsers downloaded into the user cache.
-        # CI uses the bootstrap's default ~/.cache location.
+        # CI uses the installer's default ~/.cache location.
         run: |
           sudo tee /etc/apparmor.d/consistent-software-chrome > /dev/null <<'EOF'
           abi <abi/4.0>,
           include <tunables/global>
-          profile consistent-software-chrome @{HOME}/.cache/consistent.software/browsers/chrome/**/chrome flags=(unconfined) {
+          profile consistent-software-chrome @{HOME}/.cache/consistent.software/browsers/*/*/chrome/**/chrome flags=(unconfined) {
             userns,
           }
           EOF

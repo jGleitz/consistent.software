@@ -1,7 +1,8 @@
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.js.testing.karma.KotlinKarma
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
-import java.util.Base64
+import java.io.File
 
 plugins {
   id("com.google.devtools.ksp")
@@ -26,10 +27,9 @@ kotlin {
 
     named { it == "jsTest" }.configureEach {
       dependencies {
-        implementation(devNpm("@puppeteer/browsers", "3.2.6"))
-        implementation(devNpm("proper-lockfile", "4.1.2"))
+        implementation(devNpm(buildLibs["npm-puppeteer-browsers"]))
         // Puppeteer's optional peer makes browser downloads honour HTTP(S)_PROXY.
-        implementation(devNpm("proxy-agent", "8.0.2"))
+        implementation(devNpm(buildLibs["npm-proxy-agent"]))
       }
     }
   }
@@ -55,17 +55,13 @@ tasks.withType<KotlinTest>().configureEach {
   outputs.upToDateWhen { !ignoreRunFailures }
 }
 
-val managedChromeBootstrap =
-  "data:text/javascript;base64,${Base64.getEncoder().encodeToString(
-    checkNotNull(javaClass.getResource("/managed-chrome.mjs")).readBytes(),
-  )}"
-
 // KGP disables caching for JS tests without giving a reason (see KT-78586). We enable it and declare the inputs that KGP leaves
 // out. Node modules are covered: the tasks already track the installed package-lock.json.
 tasks.withType<KotlinJsTest>().configureEach {
   outputs.cacheIf { true }
   val providers = project.providers
-  val chromeBootstrap = managedChromeBootstrap
+  val objects = project.objects
+  val testTask = this
   val nodeRuntime =
     rootProject.the<NodeJsExtension>().nodeExecutable.flatMap { node ->
       providers
@@ -75,12 +71,32 @@ tasks.withType<KotlinJsTest>().configureEach {
     }
   inputs.property("nodeJsRuntime", nodeRuntime)
   inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(PathSensitivity.RELATIVE)
+  val version =
+    project.buildLibs
+      .findVersion("chrome")
+      .get()
+      .requiredVersion
+  val npmDirectory = rootProject.the<NodeJsRootExtension>().rootPackageDirectory
+  val cacheDirectory =
+    providers.environmentVariable("CONSISTENT_BROWSER_CACHE").map(::File).orElse(
+      providers
+        .environmentVariable("XDG_CACHE_HOME")
+        .orElse(providers.systemProperty("user.home").map { "$it/.cache" })
+        .map { File(it, "consistent.software/browsers") },
+    )
   onTestFrameworkSet {
     if (this is KotlinKarma) {
-      environment("CONSISTENT_CHROME_VERSION", providers.gradleProperty("chromeVersion").get())
-      // Node starts only on a cache miss. A data URL keeps the bootstrap's location out of the task inputs.
-      // Set CHROME_BIN inside that process, rather than fingerprinting its machine-specific path in environment.
-      nodeJsArgs += listOf("--import", chromeBootstrap)
+      testTask.dependsOn(":kotlinNpmInstall")
+      testTask.inputs.property("chromeVersion", version)
+      testTask.testFramework =
+        objects.newInstance(
+          ManagedChromeFramework::class.java,
+          this,
+          version,
+          cacheDirectory.get(),
+          npmDirectory,
+          nodeRuntime,
+        )
     }
   }
 }

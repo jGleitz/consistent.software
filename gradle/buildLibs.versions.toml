@@ -1,10 +1,15 @@
 # Don’t use the [versions] block to ensure dependencies use the same version. Instead, ensure that Renovate is set up to group their
 # updates. Renovate already has rules for many monorepos per default.
+[versions]
+chrome = "156.0.8078.47"
+
 [plugins]
 kotlin-multiplatform = "org.jetbrains.kotlin.multiplatform:2.4.21"
 
 [libraries]
 test-junit = "junit:junit:4.13.2"
+npm-puppeteer-browsers = "npm:@puppeteer/browsers:3.2.6"
+npm-proxy-agent = "npm:proxy-agent:8.0.2"
 plugin-kotlin-multiplatform = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin:2.4.21"
 plugin-spotless = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.10.4"
 plugin-kotest = "io.kotest:io.kotest.gradle.plugin:6.2.6"
