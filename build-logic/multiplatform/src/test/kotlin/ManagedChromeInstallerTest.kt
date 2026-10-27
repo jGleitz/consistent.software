@@ -8,6 +8,7 @@ import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit.SECONDS
+import java.nio.file.Files
 
 class ManagedChromeInstallerTest {
   @get:Rule
@@ -53,5 +54,10 @@ class ManagedChromeInstallerTest {
     assertTrue(repaired.parentFile.resolve("runtime-file").isFile)
     assertEquals(repaired, ManagedChromeInstaller.executable(cache, "test-platform", nextVersion) { error("Completed revision was downloaded again") })
     ManagedChromeInstaller.executable(cache, "test-platform", version) { error("Switching back to the old revision must reuse it") }
+
+    val relocatedCache = File(cache.parentFile, "relocated browser cache")
+    Files.move(cache.toPath(), relocatedCache.toPath())
+    val relocatedBrowser = ManagedChromeInstaller.executable(relocatedCache, "test-platform", nextVersion) { error("Relocating the cache must reuse completed revisions") }
+    assertEquals(repaired.relativeTo(cache).path, relocatedBrowser.relativeTo(relocatedCache).path)
   }
 }
