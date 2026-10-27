@@ -75,5 +75,6 @@ val checkLinks =
 
 tasks.check {
   dependsOn(checkLinks)
+  // Task selectors such as `check` do not cross included-build boundaries.
   dependsOn(gradle.includedBuild("build-logic").task(":multiplatform:check"))
 }

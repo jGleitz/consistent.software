@@ -46,6 +46,12 @@ kotlin.js {
   }
 }
 
+// KGP has a separate environment per target project; configuring only the root leaves tests using its downloaded default Node.
+the<NodeJsEnvSpec>().apply {
+  download.set(false)
+  command.set(rootProject.the<NodeJsExtension>().nodeExecutable)
+}
+
 rootProject.plugins.withType<NodeJsRootPlugin> {
   val installedNode = rootProject.the<NodeJsExtension>()
   rootProject.the<NodeJsEnvSpec>().apply {

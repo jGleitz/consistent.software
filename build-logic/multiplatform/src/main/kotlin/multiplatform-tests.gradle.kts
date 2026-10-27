@@ -62,14 +62,6 @@ tasks.withType<KotlinJsTest>().configureEach {
   val providers = project.providers
   val objects = project.objects
   val testTask = this
-  val nodeRuntime =
-    rootProject.the<NodeJsExtension>().nodeExecutable.flatMap { node ->
-      providers
-        .exec { commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})") }
-        .standardOutput.asText
-        .map { it.trim() }
-    }
-  inputs.property("nodeJsRuntime", nodeRuntime)
   inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(PathSensitivity.RELATIVE)
   val version =
     project.buildLibs
@@ -85,6 +77,17 @@ tasks.withType<KotlinJsTest>().configureEach {
         .map { File(it, "consistent.software/browsers") },
     )
   onTestFrameworkSet {
+    if (this is ManagedChromeFramework) return@onTestFrameworkSet
+    // Probe the same provider KotlinJsTest uses for ProcessLaunchOptions.executable, including framework overrides.
+    val nodeRuntime =
+      executable.flatMap { node ->
+        providers
+          .exec {
+            commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
+          }.standardOutput.asText
+          .map { it.trim() }
+      }
+    testTask.inputs.property("nodeJsRuntimeIdentity", nodeRuntime)
     if (this is KotlinKarma) {
       testTask.dependsOn(":kotlinNpmInstall")
       testTask.inputs.property("chromeVersion", version)
