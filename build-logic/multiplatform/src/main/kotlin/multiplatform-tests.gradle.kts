@@ -53,7 +53,6 @@ tasks.withType<KotlinJsTest>().configureEach {
   val testTask = this
 
   val runtimeProviders = project.providers
-  inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(RELATIVE)
 
   outputs.cacheIf { true }
 
@@ -91,6 +90,15 @@ tasks.withType<KotlinJsTest>().configureEach {
           providers.systemProperty("user.home").map { File(it, ".cache/puppeteer") },
         )
 
+      // Only Karma reads these. Separate properties keep a file's directory, and so the tool that reads it, in the fingerprint.
+      testTask.inputs
+        .files("karma.config.d")
+        .withPropertyName("karmaConfigDirectory")
+        .withPathSensitivity(RELATIVE)
+      testTask.inputs
+        .files("webpack.config.d")
+        .withPropertyName("webpackConfigDirectory")
+        .withPathSensitivity(RELATIVE)
       testTask.dependsOn(":kotlinNpmInstall")
       testTask.inputs.property("chromeVersion", chromeVersion)
       testTask.testFramework =
