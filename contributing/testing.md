@@ -2,27 +2,6 @@
 
 This document sets out how we test the code in this repository.
 
-## Running Tests
-
-Run `mise exec -- ./gradlew allTests --continue` to test all targets, or use a target task such as `jvmTest` or `jsNodeTest`.
-The build enables Kotlin’s `kotlin.tests.individualTaskReports` option so that failing tests fail their own task and cannot be cached as successful runs.
-Without `--continue`, Gradle stops scheduling new tasks after a failure.
-Individual HTML and JUnit XML reports remain available under each module’s `build/reports/tests/` and `build/test-results/`; the aggregate `allTests` HTML report may not be generated when a dependency fails.
-
-JavaScript test results are cached, including the version, operating system and architecture of the Node executable selected by mise.
-Browser tests use the exact Chrome for Testing version in `gradle/buildLibs.versions.toml`, updated by Renovate independently of the downloader.
-KMP installs `@puppeteer/browsers` as a test devDependency; its CLI installs the browser only when a browser test actually runs, after Gradle's cache checks.
-Installations are shared across modules and checkouts in `$XDG_CACHE_HOME/consistent.software/browsers` (defaulting to `~/.cache/consistent.software/browsers`); `CONSISTENT_BROWSER_CACHE` can select another location.
-Parallel builds serialise installation of the same version, then run their tests concurrently.
-The managed browser takes precedence over an inherited `CHROME_BIN`.
-If Chrome fails with `No usable sandbox` and the kernel log reports an AppArmor `userns` denial, the local policy needs to permit user namespaces for the managed browser.
-The Linux CI job installs a narrowly scoped profile while retaining Chrome's sandbox; see `.github/workflows/build.yml`.
-
-KGP 2.4.21 fingerprints several JS test inputs with absolute paths, so a different checkout path still prevents reuse of both Node and browser test results.
-The browser installation itself is reusable across checkouts; its location is not a test input.
-Unchanged tests restored from the cache do not explore new random inputs in property tests.
-Use `--rerun-tasks` when you want fresh test execution.
-
 ## Test Against the Public API
 
 As far as possible, we test each module only against its _public_ API.

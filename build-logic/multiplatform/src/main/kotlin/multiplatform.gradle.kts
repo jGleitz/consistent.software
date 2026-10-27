@@ -18,6 +18,9 @@ kotlin {
   compilerOptions {
     explicitApi()
 
+    languageVersion = kotlinReleaseVersion
+    apiVersion = kotlinReleaseVersion
+
     freeCompilerArgs.add("-Xcontext-sensitive-resolution")
     freeCompilerArgs.add("-Xcollection-literals")
     freeCompilerArgs.add("-Xreturn-value-checker=full")

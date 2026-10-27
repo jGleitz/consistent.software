@@ -1,9 +1,12 @@
-import groovy.json.JsonSlurper
+import org.gradle.api.Task
 import org.gradle.api.file.Directory
+import org.gradle.api.internal.tasks.testing.TestExecutionSpec
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
-import org.gradle.api.provider.Provider
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.process.ExecOperations
+import org.jetbrains.kotlin.gradle.targets.js.RequiredKotlinJsDependency
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTestFramework
 import org.jetbrains.kotlin.gradle.utils.processes.ProcessLaunchOptions
@@ -17,11 +20,18 @@ abstract class ManagedChromeFramework @Inject constructor(
   private val karma: KotlinJsTestFramework,
   private val browserVersion: String,
   private val cacheDirectory: File,
-  private val npmDirectory: Provider<Directory>,
-  private val nodeRuntime: Provider<String>,
+  private val rootPackageDirectory: Provider<Directory>,
+  private val browserDependencies: Set<RequiredKotlinJsDependency>,
 ) : KotlinJsTestFramework by karma {
   @get:Inject
   protected abstract val execOperations: ExecOperations
+
+  // Gradle exposes transient rich-console status only through its internal progress API.
+  @get:Inject
+  protected abstract val progressLoggerFactory: ProgressLoggerFactory
+
+  override val requiredNpmDependencies: Set<RequiredKotlinJsDependency>
+    get() = karma.requiredNpmDependencies + browserDependencies
 
   // The nested type also fingerprints this convention plugin's implementation, including the installer.
   override val frameworkTaskInputs: Any
@@ -32,31 +42,34 @@ abstract class ManagedChromeFramework @Inject constructor(
     launchOpts: ProcessLaunchOptions,
     nodeJsArgs: MutableList<String>,
     debug: Boolean,
-  ) = run {
-    val runtime = JsonSlurper().parseText(nodeRuntime.get()) as Map<*, *>
-    val platform = "${runtime["platform"]}-${runtime["arch"]}"
-    val nodeExecutable = executable.get()
-    val testWorkingDirectory = workingDir.get()
-    val packageDirectory = npmDirectory.get().asFile.resolve("node_modules/@puppeteer/browsers")
-    val metadata = JsonSlurper().parse(packageDirectory.resolve("package.json")) as Map<*, *>
-    val bin = when (val entry = metadata["bin"]) {
-      is String -> entry
-      is Map<*, *> -> entry["browsers"] as String
-      else -> error("@puppeteer/browsers has no CLI entry point")
-    }
-    val browser = ManagedChromeInstaller.executable(cacheDirectory, platform, browserVersion) { directory ->
-      val output = ByteArrayOutputStream()
+  ): TestExecutionSpec {
+    val downloadOutput = ByteArrayOutputStream()
+    task.withStatus("Preparing Chrome $browserVersion") {
       execOperations.exec {
-        commandLine(nodeExecutable, packageDirectory.resolve(bin), "install", "chrome@$browserVersion", "--path", directory, "--format", "{{path}}")
-        workingDir(testWorkingDirectory)
+        commandLine(
+          "mise", "exec", "--",
+          "npm", "exec", "--no", "--",
+          "@puppeteer/browsers", "install", "chrome@$browserVersion", "--path", cacheDirectory, "--format", "{{path}}"
+        )
+        workingDir(rootPackageDirectory.get())
         environment(launchOpts.environment.get())
-        standardOutput = output
+        standardOutput = downloadOutput
       }
-      File(output.toString(UTF_8).trim())
     }
+    val browser = File(downloadOutput.toString(UTF_8).trim())
     // Launch-only state: never put the machine-specific path into KotlinJsTest.environment's @Input map.
     launchOpts.environment.put("CHROME_BIN", browser.path)
-    karma.createTestExecutionSpec(task, launchOpts, nodeJsArgs, debug)
+    return karma.createTestExecutionSpec(task, launchOpts, nodeJsArgs, debug)
+  }
+
+  private inline fun Task.withStatus(status: String, block: () -> Unit) {
+    logger.info(status)
+    val progress = progressLoggerFactory.newOperation(ManagedChromeFramework::class.java).start(status, status)
+    try {
+      block()
+    } finally {
+      progress.completed()
+    }
   }
 }
 

@@ -2,8 +2,6 @@
 
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
-import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
 
 plugins {
   kotlin("multiplatform")
@@ -46,18 +44,7 @@ kotlin.js {
   }
 }
 
-// KGP has a separate environment per target project; configuring only the root leaves tests using its downloaded default Node.
-the<NodeJsEnvSpec>().apply {
-  download.set(false)
-  command.set(rootProject.the<NodeJsExtension>().nodeExecutable)
-}
-
-rootProject.plugins.withType<NodeJsRootPlugin> {
-  val installedNode = rootProject.the<NodeJsExtension>()
-  rootProject.the<NodeJsEnvSpec>().apply {
-    download.set(false)
-    command.set(installedNode.nodeExecutable)
-  }
-  rootProject.the<NpmExtension>().command.set(installedNode.npmExecutable)
-  rootProject.the<NpmExtension>().lockFileDirectory.set(rootProject.layout.projectDirectory.dir("gradle/kotlin-js-store"))
+configure<NodeJsEnvSpec> {
+  download = false
+  command = rootProject.the<NodeJsExtension>().nodeExecutable
 }

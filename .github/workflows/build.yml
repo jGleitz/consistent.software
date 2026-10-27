@@ -66,7 +66,7 @@ jobs:
           sudo tee /etc/apparmor.d/consistent-software-chrome > /dev/null <<'EOF'
           abi <abi/4.0>,
           include <tunables/global>
-          profile consistent-software-chrome @{HOME}/.cache/consistent.software/browsers/*/*/chrome/**/chrome flags=(unconfined) {
+          profile consistent-software-chrome @{HOME}/.cache/puppeteer/chrome/**/chrome flags=(unconfined) {
             userns,
           }
           EOF
