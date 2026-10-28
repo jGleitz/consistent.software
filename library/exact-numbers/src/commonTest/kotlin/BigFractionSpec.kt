@@ -6,7 +6,6 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.test.Enabled.Companion.disabled
 import io.kotest.datatest.withIts
 import io.kotest.property.Arb
-import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.filter
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.long
@@ -48,7 +47,7 @@ class BigFractionSpec : DescribeSpec({
         for (integer in fractionBoundaryIntegers) {
           expect(integer.toBigFraction()).toEqualNumerically(bigFractionOf(integer, BigIntegers.ONE))
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.bigInteger()) { integer ->
+        checkAll(iterations = 100, Arb.bigInteger()) { integer ->
           expect(integer.toBigFraction()).toEqualNumerically(bigFractionOf(integer, BigIntegers.ONE))
         }
       }
@@ -118,7 +117,7 @@ class BigFractionSpec : DescribeSpec({
           for (ratio in boundaryRatios) {
             expect(-ratio.value).toEqualNumerically(bigFractionOf(-ratio.numerator, ratio.denominator))
           }
-          checkAll(PropTestConfig(iterations = 100), Arb.ratio()) { ratio ->
+          checkAll(iterations = 100, Arb.ratio()) { ratio ->
             expect(-ratio.value).toEqualNumerically(bigFractionOf(-ratio.numerator, ratio.denominator))
           }
         }
@@ -200,7 +199,7 @@ class BigFractionSpec : DescribeSpec({
         // Repeated integer multiplication gives an independent oracle without using either backend's pow.
         // Bound the exponents so generated large numerators and denominators remain cheap to raise to a power.
         it("raises the numerator and denominator to positive powers") {
-          checkAll(PropTestConfig(iterations = 200), Arb.ratio(), Arb.int(1..10)) { ratio, exponent ->
+          checkAll(iterations = 200, Arb.ratio(), Arb.int(1..10)) { ratio, exponent ->
             var numerator = BigIntegers.ONE
             var denominator = BigIntegers.ONE
             repeat(exponent) {
@@ -212,7 +211,7 @@ class BigFractionSpec : DescribeSpec({
         }
 
         it("raises the reciprocal to negative powers") {
-          checkAll(PropTestConfig(iterations = 200), Arb.ratio().filter { it.numerator.compareTo(BigIntegers.ZERO) != 0 }, Arb.int(1..10)) { ratio, exponent ->
+          checkAll(iterations = 200, Arb.ratio().filter { it.numerator.compareTo(BigIntegers.ZERO) != 0 }, Arb.int(1..10)) { ratio, exponent ->
             var numerator = BigIntegers.ONE
             var denominator = BigIntegers.ONE
             repeat(exponent) {
@@ -240,7 +239,7 @@ class BigFractionSpec : DescribeSpec({
           for (ratio in boundaryRatios) {
             expect(ratio.value.toThePowerOf(1)).toEqualNumerically(ratio.value)
           }
-          checkAll(PropTestConfig(iterations = 100), Arb.ratio()) { ratio ->
+          checkAll(iterations = 100, Arb.ratio()) { ratio ->
             expect(ratio.value.toThePowerOf(1)).toEqualNumerically(ratio.value)
           }
         }
@@ -307,7 +306,7 @@ class BigFractionSpec : DescribeSpec({
 
       // Random pairs of fractions are practically never equal, so equal values need their own test.
       it("considers differently represented equal values equal") {
-        checkAll(PropTestConfig(iterations = 200), Arb.ratio(), Arb.nonZeroBigInteger()) { ratio, factor ->
+        checkAll(iterations = 200, Arb.ratio(), Arb.nonZeroBigInteger()) { ratio, factor ->
           val expanded = bigFractionOf(ratio.numerator * factor, ratio.denominator * factor)
           expect(expanded.compareTo(ratio.value)).toEqual(0)
         }
@@ -315,7 +314,7 @@ class BigFractionSpec : DescribeSpec({
 
       // Random pairs of fractions are practically never this close, so tiny differences need their own test.
       it("distinguishes values that differ by far less than double precision") {
-        checkAll(PropTestConfig(iterations = 200), Arb.ratio(), Arb.nonZeroBigInteger()) { ratio, integer ->
+        checkAll(iterations = 200, Arb.ratio(), Arb.nonZeroBigInteger()) { ratio, integer ->
           val tinyPositive = bigFractionOf(BigIntegers.ONE, integer * integer * twoToThe(1100))
           expect(ratio.value.compareTo(ratio.value + tinyPositive).sign).toEqual(-1)
         }
@@ -348,7 +347,7 @@ class BigFractionSpec : DescribeSpec({
 
     describe("equals & hashCode") {
       it("considers differently represented equal values equal") {
-        checkAll(PropTestConfig(iterations = 200), Arb.ratio(), Arb.nonZeroBigInteger()) { ratio, factor ->
+        checkAll(iterations = 200, Arb.ratio(), Arb.nonZeroBigInteger()) { ratio, factor ->
           expect(bigFractionOf(ratio.numerator * factor, ratio.denominator * factor)).toEqual(ratio.value)
         }
       }
@@ -370,7 +369,7 @@ class BigFractionSpec : DescribeSpec({
             expect(left.value == right.value).toEqual(left.value.compareTo(right.value) == 0)
           }
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.ratio(), Arb.ratio()) { left, right ->
+        checkAll(iterations = 100, Arb.ratio(), Arb.ratio()) { left, right ->
           expect(left.value == right.value).toEqual(left.value.compareTo(right.value) == 0)
         }
       }
