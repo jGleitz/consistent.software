@@ -18,7 +18,8 @@ abstract class NodeJsService
       val npmExecutable: Property<String>
     }
 
-    private val runtimes = ConcurrentHashMap<String, String>()
+    // The probe runs in a Lazy, so that it blocks only callers for the same executable and not the map.
+    private val runtimes = ConcurrentHashMap<String, Lazy<String>>()
 
     // Node reports what actually runs, including the architecture under emulation, which the JVM's system properties may not.
     fun runtimeOf(executable: String): String {
@@ -26,12 +27,14 @@ abstract class NodeJsService
       // the runtime that the task launches.
       require(File(executable).isAbsolute) { "Expected an absolute path to the Node.js executable, got '$executable'" }
       return runtimes.computeIfAbsent(executable) {
-        val output = ByteArrayOutputStream()
-        execOperations.exec {
-          commandLine(executable, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
-          standardOutput = output
+        lazy {
+          val output = ByteArrayOutputStream()
+          execOperations.exec {
+            commandLine(executable, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
+            standardOutput = output
+          }
+          output.toString().trim()
         }
-        output.toString().trim()
-      }
+      }.value
     }
   }

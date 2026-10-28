@@ -9,7 +9,7 @@ open class NodeJsExtension(
   val npmExecutable: Provider<String> = service.flatMap { it.parameters.npmExecutable }
 
   /** Makes the runtime of the Node [executable] that [task] launches an input of [task]. */
-  fun runtimeInput(
+  fun declareAsInput(
     task: Task,
     executable: Provider<String>,
   ) {

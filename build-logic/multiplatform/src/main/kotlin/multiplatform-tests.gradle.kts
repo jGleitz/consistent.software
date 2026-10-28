@@ -54,10 +54,11 @@ tasks.withType<KotlinTest>().configureEach {
 // out. Node modules are covered: the tasks already track the installed package-lock.json, which also pins Playwright and so the
 // browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
+  val testTask = this
   // KotlinJsTest stores this action, so it must not capture the project through the `nodeJs` accessor.
   val nodeJs = nodeJs
   // The test framework determines which Node executable the test launches.
-  onTestFrameworkSet { nodeJs.runtimeInput(this@configureEach, executable) }
+  onTestFrameworkSet { nodeJs.declareAsInput(testTask, executable) }
 
   outputs.cacheIf { true }
 }
@@ -69,6 +70,7 @@ kotlin {
 
       // KGP declares only the test entry file as the bundle's input. Without the modules it imports, the bundle would stay
       // up to date after a change to the code under test, and the browser tests would run against the old code.
+      // KGP bundles only the default test run, and that run's input file is the entry file of the bundle.
       val testModules =
         testRuns
           .named("test")
@@ -77,7 +79,7 @@ kotlin {
           .map { it.asFile.parentFile }
       tasks.named("prepareWebpackBundleForKotlinJsTests") {
         inputs.files(testModules).withPropertyName("testModules")
-        nodeJs.runtimeInput(this, project.kotlinNodeJsEnvSpec.executable)
+        nodeJs.declareAsInput(this, project.kotlinNodeJsEnvSpec.executable)
       }
 
       // KGP declares the host-wide Playwright browser directory as an input of the browser tests, while each project's install
