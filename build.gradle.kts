@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin.Companion.kotlinNodeJsEnvSpec
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
+import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
+
 plugins {
   id("nodejs")
   id("format")
@@ -8,6 +12,18 @@ tasks.wrapper {
   distributionType = Wrapper.DistributionType.ALL
 
   finalizedBy(tasks.spotlessPropertiesApply)
+}
+
+plugins.withType<NodeJsRootPlugin> {
+  kotlinNodeJsEnvSpec.apply {
+    download = false
+    command = nodeJs.nodeExecutable
+  }
+
+  configure<NpmExtension> {
+    command = nodeJs.npmExecutable
+    lockFileDirectory = layout.projectDirectory.dir("gradle/kotlin-js-store")
+  }
 }
 
 tasks.spotlessProperties {

@@ -1,10 +1,16 @@
+@file:OptIn(ExperimentalJsTestDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalJsTestDsl
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
+import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin.Companion.kotlinNodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
-import org.jetbrains.kotlin.gradle.targets.js.testing.karma.KotlinKarma
+import org.jetbrains.kotlin.gradle.targets.js.testing.mocha.KotlinMocha
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
 plugins {
   id("com.google.devtools.ksp")
   id("io.kotest")
+  id("nodejs")
 }
 
 kotlin {
@@ -35,39 +41,60 @@ tasks.withType<AbstractTestTask>().configureEach {
   // With ignoreFailures, a task with failing tests succeeds. KGP’s allTests notices the failures only through test events, which
   // a result restored from the build cache does not replay, so caching such a result would turn the failure into a pass.
   outputs.doNotCacheIf("Failing tests would be cached as passing") { ignoreFailures }
+  // A local UP-TO-DATE result would suppress the failure events, too.
+  outputs.upToDateWhen { !ignoreFailures }
 }
 
 tasks.withType<KotlinTest>().configureEach {
   inputs.property("ignoreRunFailures", provider { ignoreRunFailures })
   outputs.doNotCacheIf("Test runner failures would be cached as passing") { ignoreRunFailures }
+  outputs.upToDateWhen { !ignoreRunFailures }
 }
 
 // KGP disables caching for JS tests without giving a reason (see KT-78586). We enable it and declare the inputs that KGP leaves
-// out. Node modules are covered: the tasks already track the installed package-lock.json.
+// out. Node modules are covered: the tasks already track the installed package-lock.json, which also pins Playwright and so the
+// browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
+  val testTask = this
+  // A build script can still replace the test framework, so the inputs read the one that the task will use.
+  val testFramework = providers.provider { testTask.testFramework }
+  // The test framework determines which Node executable the test launches.
+  nodeJs.declareAsInput(testTask, testFramework.flatMap { it.executable })
+  // A shorter timeout can make passing tests fail.
+  inputs.property("mochaTimeout", testFramework.map { (it as? KotlinMocha)?.timeout }).optional(true)
+
   outputs.cacheIf { true }
-  val providers = project.providers
-  val nodeVersion =
-    rootProject.the<NodeJsExtension>().nodeExecutable.flatMap { node ->
-      providers
-        .exec { commandLine(node, "--version") }
-        .standardOutput.asText
-        .map { it.trim() }
-    }
-  inputs.property("nodeJsVersion", nodeVersion)
-  inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(PathSensitivity.RELATIVE)
-  onTestFrameworkSet {
-    if (this is KotlinKarma) {
-      // Karma’s Chrome launcher prefers $CHROME_BIN. Without it we cannot identify the browser, so keep caching disabled.
-      val chromeVersion =
-        providers.environmentVariable("CHROME_BIN").flatMap { chrome ->
-          providers
-            .exec { commandLine(chrome, "--version") }
-            .standardOutput.asText
-            .map { it.trim() }
+}
+
+kotlin {
+  targets.withType<KotlinJsIrTarget>().configureEach {
+    whenBrowserConfigured {
+      test { chromium() }
+
+      // KGP declares only the test entry file as the bundle's input. Without the modules it imports, the bundle would stay
+      // up to date after a change to the code under test, and the browser tests would run against the old code.
+      // KGP bundles only the default test run, and that run's input file is the entry file of the bundle.
+      // TODO Remove this workaround once we use a Kotlin version that fixes KT-89797 (2.5.20 or later).
+      val testModules =
+        testRuns
+          .named("test")
+          .flatMap { it.executionTask }
+          .flatMap { it.inputFileProperty }
+          .map { it.asFile.parentFile }
+      tasks.named("prepareWebpackBundleForKotlinJsTests") {
+        inputs.files(testModules).withPropertyName("testModules")
+        nodeJs.declareAsInput(this, project.kotlinNodeJsEnvSpec.executable)
+      }
+
+      // KGP declares the host-wide Playwright browser directory as an input of the browser tests, while each project's install
+      // task writes to it under a lock (see KT-90386). On Windows, a test cannot fingerprint the locked file while another
+      // project installs. So that the fingerprint is stable, browser tests run only after every installation.
+      // TODO Remove this workaround once KT-90386 is fixed.
+      testRuns.named("test") {
+        executionTask.configure {
+          mustRunAfter(rootProject.allprojects.map { it.tasks.named { it == "kotlinInstallPlaywrightBrowsers" } })
         }
-      inputs.property("chromeVersion", chromeVersion).optional(true)
-      outputs.doNotCacheIf("Chrome version is unknown; set CHROME_BIN to enable browser test caching") { !chromeVersion.isPresent }
+      }
     }
   }
 }

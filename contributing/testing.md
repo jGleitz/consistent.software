@@ -2,18 +2,6 @@
 
 This document sets out how we test the code in this repository.
 
-## Running Tests
-
-Run `mise exec -- ./gradlew allTests --continue` to test all targets, or use a target task such as `jvmTest` or `jsNodeTest`.
-The build enables Kotlin’s `kotlin.tests.individualTaskReports` option so that failing tests fail their own task and cannot be cached as successful runs.
-Without `--continue`, Gradle stops scheduling new tasks after a failure.
-Individual HTML and JUnit XML reports remain available under each module’s `build/reports/tests/` and `build/test-results/`; the aggregate `allTests` HTML report may not be generated when a dependency fails.
-
-JavaScript test results are cached, including the version of the Node executable selected by mise.
-Browser test caching additionally requires `CHROME_BIN` to identify the Chrome executable and track its version; without it, browser tests remain uncacheable.
-Unchanged tests restored from the cache do not explore new random inputs in property tests.
-Use `--rerun-tasks` when you want fresh test execution.
-
 ## Test Against the Public API
 
 As far as possible, we test each module only against its _public_ API.
