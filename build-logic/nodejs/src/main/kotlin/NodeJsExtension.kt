@@ -2,12 +2,14 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 
 open class NodeJsExtension(project: Project) {
+  private val providers = project.providers
+
   val nodeExecutable: Provider<String> = project.mise("which", "node")
 
   // Node reports what actually runs, including the architecture under emulation, which the JVM's system properties may not.
-  val nodeRuntime: Provider<String> =
-    nodeExecutable.flatMap { node ->
-      project.providers
+  fun runtimeOf(executable: Provider<String>): Provider<String> =
+    executable.flatMap { node ->
+      providers
         .exec {
           commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
         }.standardOutput.asText
