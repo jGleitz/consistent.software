@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalJsTestDsl
 import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin.Companion.kotlinNodeJsEnvSpec
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
+import org.jetbrains.kotlin.gradle.targets.js.testing.mocha.KotlinMocha
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
 plugins {
@@ -55,10 +56,16 @@ tasks.withType<KotlinTest>().configureEach {
 // browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
   val testTask = this
-  // KotlinJsTest stores this action, so it must not capture the project through the `nodeJs` accessor.
+  // KotlinJsTest stores this action, so it must not capture the project through the `nodeJs` or `providers` accessors.
   val nodeJs = nodeJs
-  // The test framework determines which Node executable the test launches.
-  onTestFrameworkSet { nodeJs.declareAsInput(testTask, executable) }
+  val providers = providers
+  onTestFrameworkSet {
+    // The test framework determines which Node executable the test launches.
+    nodeJs.declareAsInput(testTask, executable)
+    // A shorter timeout can make passing tests fail.
+    val framework = this
+    if (framework is KotlinMocha) testTask.inputs.property("mochaTimeout", providers.provider { framework.timeout })
+  }
 
   outputs.cacheIf { true }
 }
