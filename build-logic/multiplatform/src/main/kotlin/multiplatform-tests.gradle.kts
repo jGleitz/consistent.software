@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 plugins {
   id("com.google.devtools.ksp")
   id("io.kotest")
+  id("nodejs")
 }
 
 kotlin {
@@ -53,9 +54,10 @@ tasks.withType<KotlinTest>().configureEach {
 // out. Node modules are covered: the tasks already track the installed package-lock.json, which also pins Playwright and so the
 // browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
-  val nodeJs = rootProject.the<NodeJsExtension>()
+  // KotlinJsTest stores this action, so it must not capture the project through the `nodeJs` accessor.
+  val nodeJs = nodeJs
   // The test framework determines which Node executable the test launches.
-  onTestFrameworkSet { this@configureEach.inputs.property("nodeJsRuntime", nodeJs.runtimeOf(executable)) }
+  onTestFrameworkSet { nodeJs.runtimeInput(this@configureEach, executable) }
 
   outputs.cacheIf { true }
 }
@@ -75,7 +77,7 @@ kotlin {
           .map { it.asFile.parentFile }
       tasks.named("prepareWebpackBundleForKotlinJsTests") {
         inputs.files(testModules).withPropertyName("testModules")
-        inputs.property("nodeJsRuntime", rootProject.the<NodeJsExtension>().runtimeOf(project.kotlinNodeJsEnvSpec.executable))
+        nodeJs.runtimeInput(this, project.kotlinNodeJsEnvSpec.executable)
       }
 
       // KGP declares the host-wide Playwright browser directory as an input of the browser tests, while each project's install

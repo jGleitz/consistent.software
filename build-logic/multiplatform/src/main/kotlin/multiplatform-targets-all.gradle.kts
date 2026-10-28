@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsEnvSpec
 
 plugins {
   kotlin("multiplatform")
+  id("nodejs")
 }
 
 /* Ideally, we would define the targets in the subprojects. This gives the subprojects more freedom and reduces configuration magic.
@@ -46,5 +47,5 @@ kotlin.js {
 
 configure<NodeJsEnvSpec> {
   download = false
-  command = rootProject.the<NodeJsExtension>().nodeExecutable
+  command = nodeJs.nodeExecutable
 }
