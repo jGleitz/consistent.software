@@ -74,6 +74,7 @@ kotlin {
       // KGP declares only the test entry file as the bundle's input. Without the modules it imports, the bundle would stay
       // up to date after a change to the code under test, and the browser tests would run against the old code.
       // KGP bundles only the default test run, and that run's input file is the entry file of the bundle.
+      // TODO Remove this workaround once we use a Kotlin version that fixes KT-89797 (2.5.20 or later).
       val testModules =
         testRuns
           .named("test")
