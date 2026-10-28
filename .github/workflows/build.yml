@@ -58,20 +58,6 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
-      - name: Allow Chrome's Sandbox on Linux
-        if: runner.os == 'Linux'
-        # Ubuntu's AppArmor restrictions otherwise reject user namespaces for browsers downloaded into the user cache.
-        # CI uses the installer's default ~/.cache location.
-        run: |
-          sudo tee /etc/apparmor.d/consistent-software-chrome > /dev/null <<'EOF'
-          abi <abi/4.0>,
-          include <tunables/global>
-          profile consistent-software-chrome @{HOME}/.cache/puppeteer/chrome/**/chrome flags=(unconfined) {
-            userns,
-          }
-          EOF
-          sudo apparmor_parser -r /etc/apparmor.d/consistent-software-chrome
-
       - name: Build
         run: ./gradlew build --continue --scan
         env:

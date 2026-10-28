@@ -1,7 +1,8 @@
-import org.gradle.api.tasks.PathSensitivity.RELATIVE
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
+@file:OptIn(ExperimentalJsTestDsl::class)
+
+import org.jetbrains.kotlin.gradle.ExperimentalJsTestDsl
+import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
-import org.jetbrains.kotlin.gradle.targets.js.testing.karma.KotlinKarma
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
 plugins {
@@ -48,52 +49,33 @@ tasks.withType<KotlinTest>().configureEach {
 }
 
 // KGP disables caching for JS tests without giving a reason (see KT-78586). We enable it and declare the inputs that KGP leaves
-// out. Node modules are covered: the tasks already track the installed package-lock.json.
+// out. Node modules are covered: the tasks already track the installed package-lock.json, which also pins Playwright and so the
+// browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
-  val testTask = this
-
   inputs.property("nodeJsVersion", rootProject.the<NodeJsExtension>().nodeVersion)
   inputs.property("operatingSystem", project.providers.systemProperty("os.name"))
   inputs.property("architecture", providers.systemProperty("os.arch"))
-  inputs.files("karma.config.d", "webpack.config.d").withPropertyName("jsConfigDirectories").withPathSensitivity(RELATIVE)
 
   outputs.cacheIf { true }
+}
 
-  onTestFrameworkSet {
-    if (this is ManagedChromeFramework) return@onTestFrameworkSet
-    if (this is KotlinKarma) {
-      val project = testTask.project
-      val providers = project.providers
-      val objects = project.objects
+kotlin {
+  targets.withType<KotlinJsIrTarget>().configureEach {
+    whenBrowserConfigured {
+      test { chromium() }
 
-      val chromeVersion =
-        project.buildLibs
-          .findVersion("chrome")
-          .get()
-          .requiredVersion
-      val rootPackageDirectory = project.rootProject.the<NodeJsRootExtension>().rootPackageDirectory
-      val browserDependencies =
-        setOf(
-          project.buildLibs.npmPackage("npm-puppeteer-browsers"),
-          // Puppeteer's optional peer makes browser downloads honour HTTP(S)_PROXY.
-          project.buildLibs.npmPackage("npm-proxy-agent"),
-        )
-      val cacheDirectory =
-        providers.environmentVariable("PUPPETEER_CACHE_DIR").map(::File).orElse(
-          providers.systemProperty("user.home").map { File(it, ".cache/puppeteer") },
-        )
-
-      testTask.dependsOn(":kotlinNpmInstall")
-      testTask.inputs.property("chromeVersion", chromeVersion)
-      testTask.testFramework =
-        objects.newInstance(
-          ManagedChromeFramework::class.java,
-          this,
-          chromeVersion,
-          cacheDirectory.get(),
-          rootPackageDirectory,
-          browserDependencies,
-        )
+      // KGP declares only the test entry file as the bundle's input. Without the modules it imports, the bundle would stay
+      // up to date after a change to the code under test, and the browser tests would run against the old code.
+      val testModules =
+        testRuns
+          .named("test")
+          .flatMap { it.executionTask }
+          .flatMap { it.inputFileProperty }
+          .map { it.asFile.parentFile }
+      tasks.named("prepareWebpackBundleForKotlinJsTests") {
+        inputs.files(testModules).withPropertyName("testModules")
+        inputs.property("nodeJsVersion", rootProject.the<NodeJsExtension>().nodeVersion)
+      }
     }
   }
 }
