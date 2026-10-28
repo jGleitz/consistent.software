@@ -52,9 +52,7 @@ tasks.withType<KotlinTest>().configureEach {
 // out. Node modules are covered: the tasks already track the installed package-lock.json, which also pins Playwright and so the
 // browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
-  inputs.property("nodeJsVersion", rootProject.the<NodeJsExtension>().nodeVersion)
-  inputs.property("operatingSystem", project.providers.systemProperty("os.name"))
-  inputs.property("architecture", providers.systemProperty("os.arch"))
+  inputs.property("nodeJsRuntime", rootProject.the<NodeJsExtension>().nodeRuntime)
 
   outputs.cacheIf { true }
 }
@@ -74,7 +72,16 @@ kotlin {
           .map { it.asFile.parentFile }
       tasks.named("prepareWebpackBundleForKotlinJsTests") {
         inputs.files(testModules).withPropertyName("testModules")
-        inputs.property("nodeJsVersion", rootProject.the<NodeJsExtension>().nodeVersion)
+        inputs.property("nodeJsRuntime", rootProject.the<NodeJsExtension>().nodeRuntime)
+      }
+
+      // KGP declares the host-wide Playwright browser directory as an input of the browser tests, while each project's install
+      // task writes to it under a lock (see KT-87599). On Windows, a test cannot fingerprint the locked file while another
+      // project installs. So that the fingerprint is stable, browser tests run only after every installation.
+      testRuns.named("test") {
+        executionTask.configure {
+          mustRunAfter(rootProject.allprojects.map { it.tasks.named { it == "kotlinInstallPlaywrightBrowsers" } })
+        }
       }
     }
   }

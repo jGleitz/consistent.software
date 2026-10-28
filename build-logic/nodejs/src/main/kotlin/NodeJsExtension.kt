@@ -2,9 +2,17 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 
 open class NodeJsExtension(project: Project) {
-  val nodeVersion: Provider<String> = project.mise("current", "node")
-
   val nodeExecutable: Provider<String> = project.mise("which", "node")
+
+  // Node reports what actually runs, including the architecture under emulation, which the JVM's system properties may not.
+  val nodeRuntime: Provider<String> =
+    nodeExecutable.flatMap { node ->
+      project.providers
+        .exec {
+          commandLine(node, "-p", "JSON.stringify({version:process.version,platform:process.platform,arch:process.arch})")
+        }.standardOutput.asText
+        .map { it.trim() }
+    }
 
   // On Windows, `mise which npm` names the shell script for POSIX shells, which Java cannot start. Node.js ships npm.cmd next to it.
   val npmExecutable: Provider<String> =
