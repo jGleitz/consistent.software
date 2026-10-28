@@ -56,16 +56,12 @@ tasks.withType<KotlinTest>().configureEach {
 // browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
   val testTask = this
-  // KotlinJsTest stores this action, so it must not capture the project through the `nodeJs` or `providers` accessors.
-  val nodeJs = nodeJs
-  val providers = providers
-  onTestFrameworkSet {
-    // The test framework determines which Node executable the test launches.
-    nodeJs.declareAsInput(testTask, executable)
-    // A shorter timeout can make passing tests fail.
-    val framework = this
-    if (framework is KotlinMocha) testTask.inputs.property("mochaTimeout", providers.provider { framework.timeout })
-  }
+  // A build script can still replace the test framework, so the inputs read the one that the task will use.
+  val testFramework = providers.provider { testTask.testFramework }
+  // The test framework determines which Node executable the test launches.
+  nodeJs.declareAsInput(testTask, testFramework.flatMap { it.executable })
+  // A shorter timeout can make passing tests fail.
+  inputs.property("mochaTimeout", testFramework.map { (it as? KotlinMocha)?.timeout }).optional(true)
 
   outputs.cacheIf { true }
 }
