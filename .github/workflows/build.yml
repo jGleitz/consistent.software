@@ -79,7 +79,6 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: Analyse with SonarQube Cloud
-        # Analysing the code once is enough. Building the code again would not change the result.
         if: ${{ runner.os == 'Linux' }}
         run: |
           # GitHub doesn't pass secrets to pull requests from forks
