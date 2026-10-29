@@ -352,25 +352,22 @@ class BigFractionSpec : DescribeSpec({
       }
     }
 
-    describe("numeratorAsBigInteger & denominatorAsBigInteger") {
-      describe("keep the sign in the numerator and the denominator positive, also after division by a negative number") {
-        withIts(
-          mapOf(
-            "4 ÷ -2" to (fraction(4, 1) / fraction(-2, 1) to (-2 to 1)),
-            "3/2 ÷ -3/4" to (fraction(3, 2) / fraction(-3, 4) to (-2 to 1)),
-            "1 ÷ -1/2" to (fraction(1, 1) / fraction(-1, 2) to (-2 to 1)),
-            "1/2 ÷ -3" to (fraction(1, 2) / fraction(-3, 1) to (-1 to 6)),
-            "-1/2 ÷ -3" to (fraction(-1, 2) / fraction(-3, 1) to (1 to 6)),
-          )
-        ) { (value, expected) ->
-          expect(value) {
-            feature(BigFraction::numeratorAsBigInteger).toEqual(expected.first.toBigInteger())
-            feature(BigFraction::denominatorAsBigInteger).toEqual(expected.second.toBigInteger())
-          }
+    describe("numeratorAsBigInteger") {
+      describe("carries the sign, also after division by a negative number") {
+        withIts(quotientsWithNegativeDivisors) { (value, expected) ->
+          expect(value.numeratorAsBigInteger).toEqual(expected.first.toBigInteger())
+        }
+      }
+    }
+
+    describe("denominatorAsBigInteger") {
+      describe("is positive, also after division by a negative number") {
+        withIts(quotientsWithNegativeDivisors) { (value, expected) ->
+          expect(value.denominatorAsBigInteger).toEqual(expected.second.toBigInteger())
         }
       }
 
-      it("keep the denominator positive for any quotient") {
+      it("is positive for any quotient") {
         checkAll(Arb.ratio(), Arb.ratio().filter { it.numerator.compareTo(BigIntegers.ZERO) != 0 }) { dividend, divisor ->
           expect((dividend.value / divisor.value).denominatorAsBigInteger.compareTo(BigIntegers.ZERO)).toEqual(1)
         }
@@ -479,5 +476,14 @@ private val boundaryRatios =
       Ratio(Long.MIN_VALUE.toBigInteger(), Long.MAX_VALUE.toBigInteger()),
       Ratio(twoToThe(100) + BigIntegers.ONE, -twoToThe(100)),
     )
+
+/** Quotients with negative divisors and their expected numerator and denominator. */
+private val quotientsWithNegativeDivisors = mapOf(
+  "4 ÷ -2" to (fraction(4, 1) / fraction(-2, 1) to (-2 to 1)),
+  "3/2 ÷ -3/4" to (fraction(3, 2) / fraction(-3, 4) to (-2 to 1)),
+  "1 ÷ -1/2" to (fraction(1, 1) / fraction(-1, 2) to (-2 to 1)),
+  "1/2 ÷ -3" to (fraction(1, 2) / fraction(-3, 1) to (-1 to 6)),
+  "-1/2 ÷ -3" to (fraction(-1, 2) / fraction(-3, 1) to (1 to 6)),
+)
 
 private fun fraction(numerator: Int, denominator: Int) = bigFractionOf(numerator.toBigInteger(), denominator.toBigInteger())

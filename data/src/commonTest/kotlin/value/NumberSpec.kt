@@ -203,71 +203,81 @@ class NumberSpec : DescribeSpec({
     // separately for every combination of the two, so all combinations are checked against exact BigFraction arithmetic.
     // The checks also assert that each result is held as an Integer exactly if it is integral.
     describe("arithmetic") {
-      describe("unaryMinus negates") {
-        withIts(OperandKind.entries) { kind ->
-          for (operand in kind.boundaries) {
-            expect(-Number(operand)).toEqualExactResult(-operand)
-          }
-          checkAll(PropTestConfig(iterations = 100), kind.samples) { operand ->
-            expect(-Number(operand)).toEqualExactResult(-operand)
-          }
-        }
-      }
-
-      describe("plus adds") {
-        withIts(operandKindPairs) { kinds ->
-          kinds.checkBoundariesAndSamples { left, right ->
-            expect(Number(left) + Number(right)).toEqualExactResult(left + right)
-          }
-        }
-      }
-
-      describe("minus subtracts") {
-        withIts(operandKindPairs) { kinds ->
-          kinds.checkBoundariesAndSamples { left, right ->
-            expect(Number(left) - Number(right)).toEqualExactResult(left - right)
-          }
-        }
-      }
-
-      describe("times multiplies") {
-        withIts(operandKindPairs) { kinds ->
-          kinds.checkBoundariesAndSamples { left, right ->
-            expect(Number(left) * Number(right)).toEqualExactResult(left * right)
-          }
-        }
-      }
-
-      describe("div divides") {
-        withIts(operandKindPairs) { kinds ->
-          kinds.checkBoundariesAndSamples { left, right ->
-            if (right.signum() != 0) {
-              expect(Number(left) / Number(right)).toEqualExactResult(left / right)
+      describe("unaryMinus") {
+        describe("negates exactly") {
+          withIts(OperandKind.entries) { kind ->
+            for (operand in kind.boundaries) {
+              expect(-Number(operand)).toEqualExactResult(-operand)
+            }
+            checkAll(PropTestConfig(iterations = 100), kind.samples) { operand ->
+              expect(-Number(operand)).toEqualExactResult(-operand)
             }
           }
         }
       }
 
-      describe("div divides by an Int like by the corresponding Number") {
-        withIts(OperandKind.entries) { kind ->
-          for (dividend in kind.boundaries) {
-            for (divisor in intBoundaries.filter { it != 0 }) {
+      describe("plus") {
+        describe("adds exactly") {
+          withIts(operandKindPairs) { kinds ->
+            kinds.checkBoundariesAndSamples { left, right ->
+              expect(Number(left) + Number(right)).toEqualExactResult(left + right)
+            }
+          }
+        }
+      }
+
+      describe("minus") {
+        describe("subtracts exactly") {
+          withIts(operandKindPairs) { kinds ->
+            kinds.checkBoundariesAndSamples { left, right ->
+              expect(Number(left) - Number(right)).toEqualExactResult(left - right)
+            }
+          }
+        }
+      }
+
+      describe("times") {
+        describe("multiplies exactly") {
+          withIts(operandKindPairs) { kinds ->
+            kinds.checkBoundariesAndSamples { left, right ->
+              expect(Number(left) * Number(right)).toEqualExactResult(left * right)
+            }
+          }
+        }
+      }
+
+      describe("div") {
+        describe("divides exactly") {
+          withIts(operandKindPairs) { kinds ->
+            kinds.checkBoundariesAndSamples { left, right ->
+              if (right.signum() != 0) {
+                expect(Number(left) / Number(right)).toEqualExactResult(left / right)
+              }
+            }
+          }
+        }
+
+        describe("divides by an Int like by the corresponding Number") {
+          withIts(OperandKind.entries) { kind ->
+            for (dividend in kind.boundaries) {
+              for (divisor in intBoundaries.filter { it != 0 }) {
+                expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
+              }
+            }
+            checkAll(PropTestConfig(iterations = 100), kind.samples, Arb.int().filter { it != 0 }) { dividend, divisor ->
               expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
             }
           }
-          checkAll(PropTestConfig(iterations = 100), kind.samples, Arb.int().filter { it != 0 }) { dividend, divisor ->
-            expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
-          }
         }
-      }
 
-      // The divisor zero is always an Integer. The Integer boundaries include the dividend zero because 0/0 has been
-      // mishandled by the JVM backend of exact-numbers.
-      describe("div rejects division by zero") {
-        withIts(OperandKind.entries) { kind ->
-          for (dividend in kind.boundaries) {
-            expect { Number(dividend) / Number(0) }.toThrow<ArithmeticException>()
-            expect { Number(dividend) / 0 }.toThrow<ArithmeticException>()
+        // The divisor zero is always an Integer. The Integer boundaries include the dividend zero because 0/0 has been
+        // mishandled by the JVM backend of exact-numbers.
+        describe("rejects division by zero") {
+          withIts(OperandKind.entries) { kind ->
+            for (dividend in kind.boundaries) {
+              expect { Number(dividend) / Number(0) }.toThrow<ArithmeticException>()
+              expect { Number(dividend) / 0 }.toThrow<ArithmeticException>()
+            }
           }
         }
       }
