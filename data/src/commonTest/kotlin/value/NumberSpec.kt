@@ -685,8 +685,8 @@ private val nonIntegerDoubles = Arb.choice(
   Arb.bind(Arb.boolean(), Arb.int(0..1074), Arb.long(0L..0x000fffffffffffff)) { isNegative, exponentField, fractionField ->
     Double.fromBits((if (isNegative) Long.MIN_VALUE else 0L) or (exponentField.toLong() shl 52) or fractionField)
   },
-  Arb.double(-1_000_000.0..1_000_000.0, includeNonFiniteEdgeCases = false),
-).filter { it % 1.0 != 0.0 }
+  Arb.double(-1_000_000.0..1_000_000.0, includeNaNs = false),
+).filter { it.isFinite() && it % 1.0 != 0.0 }
 
 /**
  * The two ways in which a number is held. Each operation is implemented separately for every combination of them.
