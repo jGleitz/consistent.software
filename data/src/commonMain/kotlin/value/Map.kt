@@ -5,8 +5,11 @@ import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import kotlin.jvm.JvmName
 
 public sealed interface Map : Value {
+  public val size: Int
   public val keys: Set<Value>
+  public val values: Collection<Value>
   public val entries: Set<Map.Entry<Value, Value>>
+  public fun isEmpty(): Boolean
   public fun hasKey(key: Value): Boolean
   public operator fun get(key: Value): Value?
 
@@ -23,8 +26,11 @@ public sealed interface Map : Value {
 }
 
 private data class KotlinBasedMap(val data: kotlin.collections.Map<Value, Value>) : Map, WithMonospaceLayout {
+  override val size get() = data.size
   override val keys get() = data.keys
+  override val values get() = data.values
   override val entries get() = data.entries
+  override fun isEmpty() = data.isEmpty()
   override fun hasKey(key: Value) = data.containsKey(key)
   override fun get(key: Value) = data[key]
 

@@ -402,6 +402,18 @@ class NumberSpec : DescribeSpec({
           }
         }
       }
+
+      describe("considers numbers unequal to other values") {
+        withIts(
+          mapOf(
+            "a number and the symbol that spells it" to (Number(1) to Symbol("1")),
+            "zero and the empty map" to (Number(0) to Map()),
+          )
+        ) { (number, other) ->
+          expect<Value>(number).notToEqual(other)
+          expect(other).notToEqual(number)
+        }
+      }
     }
 
     // Integers are printed by the creation tests above.
