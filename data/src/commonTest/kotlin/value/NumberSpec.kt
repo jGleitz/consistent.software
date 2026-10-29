@@ -241,7 +241,7 @@ class NumberSpec : DescribeSpec({
       describe("div divides") {
         withIts(operandKindPairs) { kinds ->
           kinds.checkBoundariesAndSamples { left, right ->
-            if (right.signum() != 0) {
+            if (right.numeratorAsBigInteger != BigIntegers.ZERO) {
               expect(Number(left) / Number(right)).toEqualExactResult(left / right)
             }
           }
@@ -280,6 +280,7 @@ class NumberSpec : DescribeSpec({
             "Integer / Integer: 4 / 2" to (Number(4) / Number(2) to 2),
             "Integer * Fraction: 2 * 1/2" to (Number(2) * half to 1),
             "Integer / Fraction: 1 / 1/2" to (Number(1) / half to 2),
+            "Integer / Fraction: 1 / -1/2" to (Number(1) / -half to -2),
             "Fraction * Integer: 1/2 * 2" to (half * Number(2) to 1),
             "Fraction + Fraction: 1/2 + 1/2" to (half + half to 1),
             "Fraction + Fraction: 1/2 + -1/2" to (half + -half to 0),
@@ -287,6 +288,7 @@ class NumberSpec : DescribeSpec({
             "Fraction - Fraction: 1/2 - 1/2" to (half - half to 0),
             "Fraction * Fraction: 3/2 * 2/3" to (Number(3) / Number(2) * (Number(2) / Number(3)) to 1),
             "Fraction / Fraction: 3/2 / 3/4" to (Number(3) / Number(2) / (Number(3) / Number(4)) to 2),
+            "Fraction / Fraction: 3/2 / -3/4" to (Number(3) / Number(2) / (Number(-3) / Number(4)) to -2),
           )
         ) { (result, expected) ->
           expect(result) {
@@ -782,7 +784,9 @@ private val numbers = Arb.choice(
  */
 private fun Expect<Number>.toEqualExactResult(expected: BigFraction) = apply {
   _logic.createAndAppend("to equal numerically", Number(expected)) { it.compareTo(Number(expected)) == 0 }
-  feature(Number::isInteger).toEqual(expected.isInteger())
+  // On the JVM, results of BigFraction division can carry the sign in the denominator, which BigFraction.isInteger()
+  // does not expect.
+  feature(Number::isInteger).toEqual(expected.denominatorAsBigInteger.absoluteValue == BigIntegers.ONE)
 }
 
 /** Asserts that the number is the exact value of [double]. */
