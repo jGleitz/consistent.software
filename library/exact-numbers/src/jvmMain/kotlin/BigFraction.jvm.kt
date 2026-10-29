@@ -2,8 +2,10 @@ package software.consistent.exactnumbers
 
 public actual typealias BigFraction = org.apache.commons.numbers.fraction.BigFraction
 
-public actual val BigFraction.numeratorAsBigInteger: BigInteger get() = numerator
-public actual val BigFraction.denominatorAsBigInteger: BigInteger get() = denominator
+// Commons Numbers keeps the sign wherever an operation leaves it (e.g. 4 ÷ -2 = 2/-1), so normalise it on access.
+public actual val BigFraction.numeratorAsBigInteger: BigInteger
+  get() = if (denominator.signum() < 0) numerator.negate() else numerator
+public actual val BigFraction.denominatorAsBigInteger: BigInteger get() = denominator.abs()
 
 public actual fun bigFractionOf(numerator: BigInteger, denominator: BigInteger): BigFraction {
   if (denominator.signum() == 0) throw divisionByZero(numerator)

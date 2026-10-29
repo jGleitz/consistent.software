@@ -343,6 +343,61 @@ class BigFractionSpec : DescribeSpec({
           expect((ratio.value * ratio.denominator.toBigFraction()).isInteger()).toEqual(true)
         }
       }
+
+      // Division by a negative number must not leave the sign in the denominator.
+      it("recognises integers resulting from division") {
+        checkAll(Arb.bigInteger(), Arb.ratio().filter { it.numerator.compareTo(BigIntegers.ZERO) != 0 }) { quotient, divisor ->
+          expect((quotient.toBigFraction() * divisor.value / divisor.value).isInteger()).toEqual(true)
+        }
+      }
+    }
+
+    describe("numeratorAsBigInteger") {
+      describe("carries the sign, also after division by a negative number") {
+        withIts(quotientsWithNegativeDivisors) { (value, expected) ->
+          expect(value.numeratorAsBigInteger).toEqual(expected.first.toBigInteger())
+        }
+      }
+    }
+
+    describe("denominatorAsBigInteger") {
+      describe("is positive, also after division by a negative number") {
+        withIts(quotientsWithNegativeDivisors) { (value, expected) ->
+          expect(value.denominatorAsBigInteger).toEqual(expected.second.toBigInteger())
+        }
+      }
+
+      it("is positive for any quotient") {
+        checkAll(Arb.ratio(), Arb.ratio().filter { it.numerator.compareTo(BigIntegers.ZERO) != 0 }) { dividend, divisor ->
+          expect((dividend.value / divisor.value).denominatorAsBigInteger.compareTo(BigIntegers.ZERO)).toEqual(1)
+        }
+      }
+    }
+
+    describe("signum") {
+      describe("returns the sign, and 0 for zero however it was created") {
+        withIts(
+          mapOf(
+            "zero" to (BigFractions.ZERO to 0),
+            "zero over a negative denominator" to (fraction(0, -7) to 0),
+            "the double -0.0" to ((-0.0).toBigFraction() to 0),
+            "the difference of equal fractions" to (fraction(1, 2) - fraction(1, 2) to 0),
+            "a positive fraction" to (fraction(1, 2) to 1),
+            "a negative fraction" to (fraction(1, -2) to -1),
+            "a fraction of two negative numbers" to (fraction(-1, -2) to 1),
+            "a quotient of a positive and a negative number" to (fraction(4, 1) / fraction(-2, 1) to -1),
+            "a quotient of two negative numbers" to (fraction(-4, 1) / fraction(-2, 1) to 1),
+          )
+        ) { (value, expected) ->
+          expect(value.signum()).toEqual(expected)
+        }
+      }
+
+      it("agrees with compareTo against zero") {
+        checkAll(Arb.ratio()) { ratio ->
+          expect(ratio.value.signum()).toEqual(ratio.value.compareTo(BigFractions.ZERO).sign)
+        }
+      }
     }
 
     describe("equals & hashCode") {
@@ -421,3 +476,14 @@ private val boundaryRatios =
       Ratio(Long.MIN_VALUE.toBigInteger(), Long.MAX_VALUE.toBigInteger()),
       Ratio(twoToThe(100) + BigIntegers.ONE, -twoToThe(100)),
     )
+
+/** Quotients with negative divisors and their expected numerator and denominator. */
+private val quotientsWithNegativeDivisors = mapOf(
+  "4 ÷ -2" to (fraction(4, 1) / fraction(-2, 1) to (-2 to 1)),
+  "3/2 ÷ -3/4" to (fraction(3, 2) / fraction(-3, 4) to (-2 to 1)),
+  "1 ÷ -1/2" to (fraction(1, 1) / fraction(-1, 2) to (-2 to 1)),
+  "1/2 ÷ -3" to (fraction(1, 2) / fraction(-3, 1) to (-1 to 6)),
+  "-1/2 ÷ -3" to (fraction(-1, 2) / fraction(-3, 1) to (1 to 6)),
+)
+
+private fun fraction(numerator: Int, denominator: Int) = bigFractionOf(numerator.toBigInteger(), denominator.toBigInteger())
