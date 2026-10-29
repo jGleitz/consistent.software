@@ -4,6 +4,7 @@ import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
 import ch.tutteli.atrium.creating.Expect
 import ch.tutteli.atrium.logic._logic
+import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withIts
 import io.kotest.property.Arb
@@ -18,7 +19,7 @@ import kotlin.math.nextDown
 import kotlin.math.nextUp
 import kotlin.math.sign
 
-@OptIn(ExperimentalWithOptions::class)
+@OptIn(ExperimentalWithOptions::class, ExperimentalKotest::class)
 class NumberSpec : DescribeSpec({
   describe("Number") {
     describe("creation from exact numbers") {
@@ -753,6 +754,7 @@ private data class OperandKinds(val left: OperandKind, val right: OperandKind) {
   override fun toString() = "$left with $right"
 
   /** Runs [check] for all pairs of boundaries and for random samples of the two kinds. */
+  @OptIn(ExperimentalKotest::class)
   suspend fun checkBoundariesAndSamples(check: (left: BigFraction, right: BigFraction) -> Unit) {
     for (leftOperand in left.boundaries) {
       for (rightOperand in right.boundaries) {
