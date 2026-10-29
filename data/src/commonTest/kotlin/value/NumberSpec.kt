@@ -12,10 +12,10 @@ import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
-import io.kotest.property.exhaustive.enum
-import io.kotest.property.exhaustive.ints
 import software.consistent.data.generators.uBytes
 import software.consistent.exactnumbers.*
+import kotlin.math.nextDown
+import kotlin.math.nextUp
 import kotlin.math.sign
 
 @OptIn(ExperimentalWithOptions::class)
@@ -159,108 +159,180 @@ class NumberSpec : DescribeSpec({
         }
       }
 
-      it("can be created from floats (except NaN)") {
+      it("creates the exact value of finite floats") {
+        expect(Number(2.5f)).toEqual(Number(5) / Number(2))
         for (float in listOf(
           0.0f, -0.0f, 1.0f, -1.0f, Float.MIN_VALUE, -Float.MIN_VALUE, Float.MAX_VALUE, -Float.MAX_VALUE,
           Float.fromBits(2), Float.fromBits(0x007fffff), Float.fromBits(0x00800000), Float.fromBits(0x00800001),
           Float.fromBits(1.0f.toBits() - 1), Float.fromBits(1.0f.toBits() + 1), Float.fromBits(Float.MAX_VALUE.toBits() - 1),
         )) {
-          expect { Number(float) }.withRepresentation("Number($float)").notToThrow()
+          expect(Number(float)).toEqualExactly(float.toDouble())
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.float(includeNaNs = false)) { float ->
-          expect { Number(float) }.withRepresentation("Number($float)").notToThrow()
+        checkAll(PropTestConfig(iterations = 100), finiteFloats) { float ->
+          expect(Number(float)).toEqualExactly(float.toDouble())
         }
-        expect(Number(2.5f)).toEqualNumerically(Number(5) / Number(2))
       }
 
-      it("can be created from doubles (except NaN)") {
+      it("creates the exact value of finite doubles") {
+        expect(Number(2.5)).toEqual(Number(5) / Number(2))
         for (double in doubleBoundaries) {
-          expect { Number(double) }.withRepresentation("Number($double)").notToThrow()
+          expect(Number(double)).toEqualExactly(double)
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.double(includeNaNs = false)) { double ->
-          expect { Number(double) }.withRepresentation("Number($double)").notToThrow()
+        checkAll(PropTestConfig(iterations = 100), finiteDoubles) { double ->
+          expect(Number(double)).toEqualExactly(double)
         }
-        expect(Number(2.5)).toEqualNumerically(Number(5) / Number(2))
+      }
+
+      describe("rejects non-finite floats and doubles") {
+        withIts(
+          mapOf(
+            "the float NaN" to { Number(Float.NaN) },
+            "the float ∞" to { Number(Float.POSITIVE_INFINITY) },
+            "the float -∞" to { Number(Float.NEGATIVE_INFINITY) },
+            "the double NaN" to { Number(Double.NaN) },
+            "the double ∞" to { Number(Double.POSITIVE_INFINITY) },
+            "the double -∞" to { Number(Double.NEGATIVE_INFINITY) },
+          )
+        ) { create ->
+          expect { create() }.toThrow<IllegalArgumentException>()
+        }
       }
     }
 
-    // Integers are held either as Integer or, e.g. after a division, as Fraction. Each operation is implemented separately
-    // for every combination of the two, so all combinations are checked against Long arithmetic on Int operands.
+    // A number is held either as an Integer or, if it is not integral, as a Fraction. Each operation is implemented
+    // separately for every combination of the two, so all combinations are checked against exact BigFraction arithmetic.
+    // The checks also assert that each result is held as an Integer exactly if it is integral.
     describe("arithmetic") {
       describe("unaryMinus negates") {
-        withIts(Representation.entries) { representation ->
-          for (int in intBoundaries) {
-            expect(-representation.of(int)).toEqualNumerically(Number(-int.toLong()))
+        withIts(OperandKind.entries) { kind ->
+          for (operand in kind.boundaries) {
+            expect(-Number(operand)).toEqualExactResult(-operand)
           }
-          checkAll(PropTestConfig(iterations = 100), Arb.int()) { int ->
-            expect(-representation.of(int)).toEqualNumerically(Number(-int.toLong()))
-          }
-        }
-      }
-
-      describe("plus") {
-        withIts(representationPairs) { (left, right) ->
-          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
-            expect(left.of(a) + right.of(b)).toEqualNumerically(Number(a.toLong() + b))
+          checkAll(PropTestConfig(iterations = 100), kind.samples) { operand ->
+            expect(-Number(operand)).toEqualExactResult(-operand)
           }
         }
       }
 
-      describe("minus") {
-        withIts(representationPairs) { (left, right) ->
-          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
-            expect(left.of(a) - right.of(b)).toEqualNumerically(Number(a.toLong() - b))
+      describe("plus adds") {
+        withIts(operandKindPairs) { kinds ->
+          kinds.checkBoundariesAndSamples { left, right ->
+            expect(Number(left) + Number(right)).toEqualExactResult(left + right)
           }
         }
       }
 
-      describe("times") {
-        withIts(representationPairs) { (left, right) ->
-          checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int()) { a, b ->
-            expect(left.of(a) * right.of(b)).toEqualNumerically(Number(a.toLong() * b))
+      describe("minus subtracts") {
+        withIts(operandKindPairs) { kinds ->
+          kinds.checkBoundariesAndSamples { left, right ->
+            expect(Number(left) - Number(right)).toEqualExactResult(left - right)
           }
         }
       }
 
-      describe("div") {
-        describe("divides") {
-          withIts(representationPairs) { (left, right) ->
-            checkAll(PropTestConfig(iterations = 200), Arb.int(), Arb.int().filter { it != 0 }) { a, b ->
-              expect((left.of(a) / right.of(b)) * Number(b)).toEqualNumerically(Number(a))
+      describe("times multiplies") {
+        withIts(operandKindPairs) { kinds ->
+          kinds.checkBoundariesAndSamples { left, right ->
+            expect(Number(left) * Number(right)).toEqualExactResult(left * right)
+          }
+        }
+      }
+
+      describe("div divides") {
+        withIts(operandKindPairs) { kinds ->
+          kinds.checkBoundariesAndSamples { left, right ->
+            if (right.signum() != 0) {
+              expect(Number(left) / Number(right)).toEqualExactResult(left / right)
             }
           }
         }
+      }
 
-        // Zero dividends are included because 0/0 has been mishandled by the JVM backend of exact-numbers.
-        describe("rejects division by zero") {
-          withIts(representationPairs) { (left, right) ->
-            for (dividend in listOf(0, 1)) {
-              expect { left.of(dividend) / right.of(0) }.toThrow<ArithmeticException>()
+      describe("div divides by an Int like by the corresponding Number") {
+        withIts(OperandKind.entries) { kind ->
+          for (dividend in kind.boundaries) {
+            for (divisor in intBoundaries.filter { it != 0 }) {
+              expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
             }
+          }
+          checkAll(PropTestConfig(iterations = 100), kind.samples, Arb.int().filter { it != 0 }) { dividend, divisor ->
+            expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
+          }
+        }
+      }
+
+      // The divisor zero is always an Integer. The Integer boundaries include the dividend zero because 0/0 has been
+      // mishandled by the JVM backend of exact-numbers.
+      describe("div rejects division by zero") {
+        withIts(OperandKind.entries) { kind ->
+          for (dividend in kind.boundaries) {
+            expect { Number(dividend) / Number(0) }.toThrow<ArithmeticException>()
+            expect { Number(dividend) / 0 }.toThrow<ArithmeticException>()
+          }
+        }
+      }
+
+      // Integer ± Fraction, Fraction ± Integer and Fraction / Integer can never be integral.
+      describe("returns integral results as the canonical integer") {
+        val half = Number(1) / Number(2)
+        withIts(
+          mapOf(
+            "Integer / Integer: 4 / 2" to (Number(4) / Number(2) to 2),
+            "Integer * Fraction: 2 * 1/2" to (Number(2) * half to 1),
+            "Integer / Fraction: 1 / 1/2" to (Number(1) / half to 2),
+            "Fraction * Integer: 1/2 * 2" to (half * Number(2) to 1),
+            "Fraction + Fraction: 1/2 + 1/2" to (half + half to 1),
+            "Fraction + Fraction: 1/2 + -1/2" to (half + -half to 0),
+            "Fraction - Fraction: 3/2 - 1/2" to (Number(3) / Number(2) - half to 1),
+            "Fraction - Fraction: 1/2 - 1/2" to (half - half to 0),
+            "Fraction * Fraction: 3/2 * 2/3" to (Number(3) / Number(2) * (Number(2) / Number(3)) to 1),
+            "Fraction / Fraction: 3/2 / 3/4" to (Number(3) / Number(2) / (Number(3) / Number(4)) to 2),
+          )
+        ) { (result, expected) ->
+          expect(result) {
+            toEqual(Number(expected))
+            feature(Number::hashCode).toEqual(Number(expected).hashCode())
+            feature(Number::isInteger).toEqual(true)
+            feature(Number::toString).toEqual(expected.toString())
           }
         }
       }
     }
 
     describe("compareTo") {
-      // A small range makes equal operands frequent.
       describe("orders by value") {
-        withIts(representationPairs) { (left, right) ->
-          checkAll(Exhaustive.ints(-3..3), Exhaustive.ints(-3..3)) { a, b ->
-            expect(left.of(a).compareTo(right.of(b)).sign).toEqual(a.compareTo(b).sign)
+        withIts(operandKindPairs) { kinds ->
+          kinds.checkBoundariesAndSamples { left, right ->
+            expect(Number(left).compareTo(Number(right)).sign).toEqual(left.compareTo(right).sign)
           }
         }
       }
 
-      it("orders non-integers like the doubles they were created from (excluding -0.0, NaN, -∞, ∞") {
-        var eligibleDoubles = Arb.double(includeNaNs = false).filter { it != -0.0 }
-        for (left in doubleBoundaries.filter { it != 0.0 }) {
-          for (right in doubleBoundaries.filter { it != 0.0 }) {
-            expect(Number(left).compareTo(Number(right)).sign).toEqual(left.compareTo(right).sign)
+      // Small values make equal operands frequent. Comparing their sixths does not rely on exact-numbers.
+      describe("orders small values, including equal ones") {
+        withIts(operandKindPairs) { (leftKind, rightKind) ->
+          for (left in leftKind.smallValuesInSixths) {
+            for (right in rightKind.smallValuesInSixths) {
+              expect(sixths(left).compareTo(sixths(right)).sign).toEqual(left.compareTo(right).sign)
+            }
           }
         }
-        checkAll(PropTestConfig(iterations = 200), eligibleDoubles, eligibleDoubles) { left, right ->
+      }
+
+      it("orders non-integers like the doubles they were created from, down to adjacent doubles") {
+        fun checkOrder(left: Double, right: Double) =
           expect(Number(left).compareTo(Number(right)).sign).toEqual(left.compareTo(right).sign)
+        for (left in nonIntegerDoubleBoundaries) {
+          checkOrder(left.nextDown(), left)
+          checkOrder(left, left.nextUp())
+          for (right in nonIntegerDoubleBoundaries) {
+            checkOrder(left, right)
+          }
+        }
+        checkAll(PropTestConfig(iterations = 200), nonIntegerDoubles, nonIntegerDoubles) { left, right ->
+          checkOrder(left.nextDown(), left)
+          checkOrder(left, left.nextUp())
+          checkOrder(left, right)
         }
       }
     }
@@ -268,50 +340,31 @@ class NumberSpec : DescribeSpec({
     describe("isInteger") {
       withIts(
         mapOf(
-          "recognises an Integer" to (Number(5) to true),
-          "recognises an integer-valued Fraction" to (Number(10) / Number(2) to true),
-          "rejects a non-integer Fraction" to (Number(1) / Number(2) to false),
+          "recognises an integer" to (Number(5) to true),
+          "recognises an integral quotient of integers" to (Number(10) / Number(2) to true),
+          "recognises an integral sum of fractions" to (Number(1) / Number(2) + Number(1) / Number(2) to true),
+          "recognises an integral double" to (Number(2.0) to true),
+          "rejects a fraction" to (Number(1) / Number(2) to false),
+          "rejects a non-integral double" to (Number(0.5) to false),
         )
       ) { (number, isInteger) ->
         expect(number.isInteger()).toEqual(isInteger)
       }
     }
 
-    // Numbers are values (e.g. map keys), so equality must depend on the value alone, not on the representation.
+    // Numbers are values (e.g. map keys), so equality must depend on the value alone, not on how it was created.
     describe("equals & hashCode") {
-      it("considers an integer and the integer-valued fraction with the same value equal") {
-        for (long in longBoundaries) {
-          val integer = Number(long)
-          val fraction = Number(long) / Number(1)
-          expect(integer).toEqual(fraction)
-          expect(fraction).toEqual(integer)
-          expect(integer.hashCode()).toEqual(fraction.hashCode())
-        }
-        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
-          val integer = Number(long)
-          val fraction = Number(long) / Number(1)
-          expect(integer) {
-            toEqual(fraction)
-            feature(Number::hashCode).toEqual(fraction.hashCode())
+      // Small values make equal operands frequent. Comparing their sixths does not rely on exact-numbers.
+      describe("considers numbers equal exactly if their values are equal and gives equal numbers the same hash code") {
+        withIts(operandKindPairs) { (leftKind, rightKind) ->
+          for (left in leftKind.smallValuesInSixths) {
+            for (right in rightKind.smallValuesInSixths) {
+              expect(sixths(left) == sixths(right)).toEqual(left == right)
+              if (left == right) {
+                expect(sixths(left).hashCode()).toEqual(sixths(right).hashCode())
+              }
+            }
           }
-          expect(fraction) {
-            toEqual(integer)
-            feature(Number::hashCode).toEqual(integer.hashCode())
-          }
-        }
-      }
-
-      // A small range makes equal operands frequent.
-      it("agrees with compareTo, regardless of representation") {
-        checkAll(
-          Exhaustive.ints(-3..3),
-          Exhaustive.ints(-3..3),
-          Exhaustive.enum<Representation>(),
-          Exhaustive.enum<Representation>()
-        ) { a, b, leftRepresentation, rightRepresentation ->
-          val left = leftRepresentation.of(a)
-          val right = rightRepresentation.of(b)
-          expect(left == right).toEqual(left.compareTo(right) == 0)
         }
       }
 
@@ -320,7 +373,11 @@ class NumberSpec : DescribeSpec({
           mapOf(
             "2 and 2.0" to (Number(2) to Number(2.0)),
             "0 and -0.0" to (Number(0) to Number(-0.0)),
+            "2 and 1/2 + 3/2" to (Number(2) to Number(1) / Number(2) + Number(3) / Number(2)),
             "1/2 and 0.5" to (Number(1) / Number(2) to Number(0.5)),
+            "1/2 and the unreduced BigFraction 2/4" to
+              (Number(1) / Number(2) to Number(bigFractionOf(2.toBigInteger(), 4.toBigInteger()))),
+            "-1/2 and 1/-2" to (Number(-1) / Number(2) to Number(1) / Number(-2)),
           )
         ) { (left, right) ->
           expect(left) {
@@ -337,12 +394,14 @@ class NumberSpec : DescribeSpec({
 
     // Integers are printed by the creation tests above.
     describe("toString") {
-      it("prints integer-valued fractions like integers") {
+      // (n + 1/2) is a Fraction, and subtracting 1/2 from it takes the Fraction - Fraction path.
+      it("prints integral results of fraction arithmetic like integers") {
+        val half = Number(1) / Number(2)
         for (long in longBoundaries) {
-          expect((Number(long) / Number(1)).toString()).toEqual(long.toString())
+          expect((Number(long) + half - half).toString()).toEqual(long.toString())
         }
         checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
-          expect((Number(long) / Number(1)).toString()).toEqual(long.toString())
+          expect((Number(long) + half - half).toString()).toEqual(long.toString())
         }
       }
 
@@ -593,20 +652,6 @@ class NumberSpec : DescribeSpec({
           )
       }
     }
-    describe("arithmetic at explicit Int boundaries") {
-      withIts(representationPairs) { (left, right) ->
-        for (a in intBoundaries) {
-          for (b in intBoundaries) {
-            expect(left.of(a) + right.of(b)).toEqualNumerically(Number(a.toLong() + b))
-            expect(left.of(a) - right.of(b)).toEqualNumerically(Number(a.toLong() - b))
-            expect(left.of(a) * right.of(b)).toEqualNumerically(Number(a.toLong() * b))
-            if (b != 0) {
-              expect((left.of(a) / right.of(b)) * Number(b)).toEqualNumerically(Number(a))
-            }
-          }
-        }
-      }
-    }
   }
 })
 
@@ -622,23 +667,99 @@ private val doubleBoundaries = listOf(
   Double.fromBits(1.0.toBits() - 1), Double.fromBits(1.0.toBits() + 1), Double.fromBits(Double.MAX_VALUE.toBits() - 1),
 )
 
-private enum class Representation {
-  Integer {
-    override fun of(int: Int) = Number(int)
+private val nonIntegerDoubleBoundaries = listOf(
+  Double.MIN_VALUE, -Double.MIN_VALUE, Double.fromBits(2), Double.fromBits(0x000fffffffffffff), Double.fromBits(0x0010000000000000),
+  0.1, 0.5, -0.5, 1.0.nextDown(), 1.0.nextUp(), -(1.0.nextUp()),
+  // The non-integers of largest magnitude: from 2^52 onwards, every double is an integer.
+  (1L shl 52).toDouble() - 0.5, -(1L shl 52).toDouble() + 0.5,
+)
+
+private val finiteFloats = Arb.int().map { Float.fromBits(it) }.filter { it.isFinite() }
+
+// Arb.double draws mostly huge, and therefore integral, values. Uniformly random bit patterns cover all magnitudes.
+private val finiteDoubles = Arb.long().map { Double.fromBits(it) }.filter { it.isFinite() }
+
+// Every double of magnitude 2^52 or more is an integer. Bit patterns with a lower exponent cover all smaller magnitudes,
+// down to subnormal values; the bounded range adds values that have both an integral and a fractional part.
+private val nonIntegerDoubles = Arb.choice(
+  Arb.bind(Arb.boolean(), Arb.int(0..1074), Arb.long(0L..0x000fffffffffffff)) { isNegative, exponentField, fractionField ->
+    Double.fromBits((if (isNegative) Long.MIN_VALUE else 0L) or (exponentField.toLong() shl 52) or fractionField)
   },
-  IntegerValuedFraction {
-    override fun of(int: Int) = Number(int) / Number(1)
-  };
+  Arb.double(-1_000_000.0..1_000_000.0, includeNonFiniteEdgeCases = false),
+).filter { it % 1.0 != 0.0 }
 
-  abstract fun of(int: Int): Number
+/**
+ * The two ways in which a number is held. Each operation is implemented separately for every combination of them.
+ * Operands are given as their exact [BigFraction] value; `Number(operand)` creates the number to test.
+ */
+private enum class OperandKind(
+  val boundaries: List<BigFraction>,
+  val samples: Arb<BigFraction>,
+  /** Values around zero, in sixths. Their narrow range makes equal values frequent. */
+  val smallValuesInSixths: List<Int>,
+) {
+  Integer(
+    boundaries = listOf(
+      Long.MIN_VALUE, Long.MIN_VALUE + 1, -2L, -1L, 0L, 1L, 2L, Long.MAX_VALUE - 1, Long.MAX_VALUE,
+    ).map { it.toBigFraction() } + listOf(BigIntegers.ONE shl 100, -(BigIntegers.ONE shl 100)).map { it.toBigFraction() },
+    samples = Arb.choice(Arb.long(-10L..10L), Arb.long()).map { it.toBigFraction() },
+    smallValuesInSixths = (-3..3).map { it * 6 },
+  ),
+  Fraction(
+    boundaries = listOf(
+      fraction(1, 2), fraction(-1, 2), fraction(2, 3), fraction(-1, 3), fraction(7, 2),
+      fraction(1, Long.MAX_VALUE), fraction(-1, Long.MAX_VALUE),
+      Long.MAX_VALUE.toBigFraction() + fraction(1, 2), Long.MIN_VALUE.toBigFraction() - fraction(1, 2),
+      bigFractionOf(BigIntegers.ONE, BigIntegers.ONE shl 100),
+      bigFractionOf((BigIntegers.ONE shl 100) + BigIntegers.ONE, BigIntegers.ONE shl 100),
+    ),
+    // A whole part plus a proper fraction is never an integer.
+    samples = Arb.bind(
+      Arb.choice(Arb.long(-10L..10L), Arb.long()),
+      Arb.choice(Arb.long(2L..10L), Arb.long(2L..Long.MAX_VALUE)),
+      Arb.long(),
+    ) { whole, denominator, numeratorSeed ->
+      whole.toBigFraction() + fraction(1 + numeratorSeed.mod(denominator - 1), denominator)
+    },
+    smallValuesInSixths = (-21..21).filter { it % 6 != 0 },
+  );
 }
 
-private data class RepresentationPair(val left: Representation, val right: Representation) {
+private data class OperandKinds(val left: OperandKind, val right: OperandKind) {
   override fun toString() = "$left with $right"
+
+  /** Runs [check] for all pairs of boundaries and for random samples of the two kinds. */
+  suspend fun checkBoundariesAndSamples(check: (left: BigFraction, right: BigFraction) -> Unit) {
+    for (leftOperand in left.boundaries) {
+      for (rightOperand in right.boundaries) {
+        check(leftOperand, rightOperand)
+      }
+    }
+    checkAll(PropTestConfig(iterations = 200), left.samples, right.samples) { leftOperand, rightOperand ->
+      check(leftOperand, rightOperand)
+    }
+  }
 }
 
-private val representationPairs =
-  Representation.entries.flatMap { left -> Representation.entries.map { right -> RepresentationPair(left, right) } }
+private val operandKindPairs =
+  OperandKind.entries.flatMap { left -> OperandKind.entries.map { right -> OperandKinds(left, right) } }
+
+private fun fraction(numerator: Long, denominator: Long) = bigFractionOf(numerator.toBigInteger(), denominator.toBigInteger())
+
+private fun sixths(numerator: Int) = Number(fraction(numerator.toLong(), 6))
+
+/** The exact value of [double], computed from its IEEE 754 bits independently of `Double.toBigFraction()`. */
+private fun exactValueOf(double: Double): BigFraction {
+  val bits = double.toRawBits()
+  val exponentField = ((bits ushr 52) and 0x7ff).toInt()
+  val fractionField = bits and 0x000fffffffffffff
+  val significand = (if (exponentField == 0) fractionField else fractionField or (1L shl 52)).toBigInteger()
+  val exponent = maxOf(exponentField, 1) - 1075
+  val magnitude =
+    if (exponent >= 0) (significand shl exponent).toBigFraction()
+    else bigFractionOf(significand, BigIntegers.ONE shl -exponent)
+  return if (bits < 0) -magnitude else magnitude
+}
 
 private val canonicalIntegerStrings =
   Arb.bind(Arb.boolean(), Arb.int(1..9), Arb.list(Arb.int(0..9), 0..60)) { isNegative, firstDigit, otherDigits ->
@@ -648,13 +769,25 @@ private val canonicalIntegerStrings =
 private val numbers = Arb.choice(
   Arb.long().map { Number(it) },
   canonicalIntegerStrings.map { Number(it) },
-  Arb.float(includeNaNs = false).map { Number(it) },
-  Arb.double(includeNaNs = false).map { Number(it) },
+  finiteFloats.map { Number(it) },
+  finiteDoubles.map { Number(it) },
   Arb.bind(canonicalIntegerStrings, canonicalIntegerStrings) { numerator, denominator ->
     Number(numerator) / Number(denominator)
   },
 )
 
-/** Asserts equality by [compareTo], so arithmetic tests do not depend on [equals] (which is tested separately). */
-private fun Expect<Number>.toEqualNumerically(expected: Number) =
-  _logic.createAndAppend("to equal numerically", expected) { it.compareTo(expected) == 0 }
+/**
+ * Asserts that the number has the [expected] value, by [compareTo] so that arithmetic tests do not depend on [equals]
+ * (which is tested separately), and that it is held as an integer exactly if the value is integral.
+ */
+private fun Expect<Number>.toEqualExactResult(expected: BigFraction) = apply {
+  _logic.createAndAppend("to equal numerically", Number(expected)) { it.compareTo(Number(expected)) == 0 }
+  feature(Number::isInteger).toEqual(expected.isInteger())
+}
+
+/** Asserts that the number is the exact value of [double]. */
+private fun Expect<Number>.toEqualExactly(double: Double) = apply {
+  val exact = exactValueOf(double)
+  toEqual(Number(exact))
+  feature(Number::isInteger).toEqual(exact.isInteger())
+}
