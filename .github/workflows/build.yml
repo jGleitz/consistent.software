@@ -70,7 +70,7 @@ jobs:
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Cache SonarQube Cloud Analysers
+      - name: Cache SonarQube Analysers
         if: ${{ runner.os == 'Linux' }}
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
@@ -78,7 +78,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-      - name: Analyse with SonarQube Cloud
+      - name: Analyse with SonarQube
         if: ${{ runner.os == 'Linux' }}
         run: |
           # GitHub doesn't pass secrets to pull requests from forks
