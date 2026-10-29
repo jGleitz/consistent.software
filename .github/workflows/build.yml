@@ -40,6 +40,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # SonarQube Cloud needs the full history to attribute issues to new code via blame
+          fetch-depth: ${{ runner.os == 'Linux' && 0 || 1 }}
 
       - name: Set Up Development Tools
         uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
@@ -65,6 +68,27 @@ jobs:
           ORG_GRADLE_PROJECT_checkExternalLinks: ${{ runner.os == 'Linux' }}
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Cache SonarQube Cloud Analysers
+        if: ${{ runner.os == 'Linux' }}
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Analyse with SonarQube Cloud
+        # Analysing the code once is enough. Building the code again would not change the result.
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          # GitHub doesn't pass secrets to pull requests from forks
+          if [[ -z "$SONAR_TOKEN" ]]; then
+            echo "::notice::Not analysing with SonarQube Cloud, because SONAR_TOKEN is not available"
+            exit 0
+          fi
+          ./gradlew sonar
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Upload Documentation
         if: ${{ !cancelled() && runner.os == 'Linux' }}

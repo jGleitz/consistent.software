@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 plugins {
   id("com.google.devtools.ksp")
   id("io.kotest")
+  // Measures the coverage of the JVM tests, which SonarQube Cloud reports. Kover can't measure JS tests.
+  id("org.jetbrains.kotlinx.kover")
   id("nodejs")
 }
 

@@ -56,6 +56,14 @@ val assemble =
     dependsOn(buildVitepressSite)
   }
 
+// The scanner only finds the sources of JVM and Kotlin projects by itself. SonarQube's TypeScript analysis skips hidden
+// directories, so it doesn't analyse the files in .vitepress.
+sonar {
+  properties {
+    property("sonar.sources", listOf(file(".vitepress"), file("src")))
+  }
+}
+
 tasks.named("build") {
   dependsOn(assemble)
 }

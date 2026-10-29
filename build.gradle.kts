@@ -6,6 +6,41 @@ plugins {
   id("nodejs")
   id("format")
   alias(buildLibs.plugins.kotlin.multiplatform) apply false
+  alias(buildLibs.plugins.kover)
+  alias(buildLibs.plugins.sonarqube)
+}
+
+dependencies {
+  // Merges the coverage of these projects into the report that SonarQube Cloud imports
+  kover(project(":data"))
+  kover(project(":library:exact-numbers"))
+  kover(project(":library:monospace-layout"))
+}
+
+sonar {
+  properties {
+    property("sonar.projectKey", "jGleitz_consistent.software")
+    property("sonar.organization", "jgleitz")
+    // An aggregate report: as a module report, every module would try to match all of its files and warn that none match
+    property(
+      "sonar.coverage.jacoco.aggregateXmlReportPaths",
+      layout.buildDirectory
+        .file("reports/kover/report.xml")
+        .get()
+        .asFile,
+    )
+
+    // The scanner only finds the projects of this build, but not those of the included build-logic build
+    val buildLogicSources =
+      fileTree("build-logic") {
+        include("*.gradle.kts", "*/build.gradle.kts", "*/src/main/kotlin/**")
+      }
+    properties["sonar.sources"] = (properties["sonar.sources"] as Collection<*>) + buildLogicSources.files
+  }
+}
+
+tasks.sonar {
+  dependsOn(tasks.koverXmlReport)
 }
 
 tasks.wrapper {
