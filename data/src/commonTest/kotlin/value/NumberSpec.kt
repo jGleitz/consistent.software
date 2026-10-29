@@ -8,7 +8,6 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withIts
 import io.kotest.property.Arb
 import io.kotest.property.Exhaustive
-import io.kotest.property.PropTestConfig
 import io.kotest.property.arbitrary.*
 import io.kotest.property.checkAll
 import io.kotest.property.exhaustive.bytes
@@ -40,7 +39,7 @@ class NumberSpec : DescribeSpec({
         for (long in longBoundaries) {
           expect(Number(long.toBigInteger())).toEqual(Number(long))
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
+        checkAll(iterations = 200, Arb.long()) { long ->
           expect(Number(long.toBigInteger())).toEqual(Number(long))
         }
       }
@@ -109,7 +108,7 @@ class NumberSpec : DescribeSpec({
         for (short in listOf(Short.MIN_VALUE, (Short.MIN_VALUE + 1).toShort(), (-1).toShort(), 0.toShort(), 1.toShort(), (Short.MAX_VALUE - 1).toShort(), Short.MAX_VALUE)) {
           expect(Number(short)).feature(Number::toString).toEqual(short.toString())
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.short()) { short ->
+        checkAll(iterations = 100, Arb.short()) { short ->
           expect(Number(short)).feature(Number::toString).toEqual(short.toString())
         }
       }
@@ -118,7 +117,7 @@ class NumberSpec : DescribeSpec({
         for (uShort in listOf(0u, 1u, 32767u, 32768u, 32769u, 65534u, 65535u).map { it.toUShort() }) {
           expect(Number(uShort)).feature(Number::toString).toEqual(uShort.toString())
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.uShort()) { uShort ->
+        checkAll(iterations = 100, Arb.uShort()) { uShort ->
           expect(Number(uShort)).feature(Number::toString).toEqual(uShort.toString())
         }
       }
@@ -127,7 +126,7 @@ class NumberSpec : DescribeSpec({
         for (int in intBoundaries) {
           expect(Number(int)).feature(Number::toString).toEqual(int.toString())
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.int()) { int ->
+        checkAll(iterations = 200, Arb.int()) { int ->
           expect(Number(int)).feature(Number::toString).toEqual(int.toString())
         }
       }
@@ -136,7 +135,7 @@ class NumberSpec : DescribeSpec({
         for (uInt in listOf(0u, 1u, Int.MAX_VALUE.toUInt(), Int.MAX_VALUE.toUInt() + 1u, Int.MAX_VALUE.toUInt() + 2u, UInt.MAX_VALUE - 1u, UInt.MAX_VALUE)) {
           expect(Number(uInt)).feature(Number::toString).toEqual(uInt.toString())
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.uInt()) { uInt ->
+        checkAll(iterations = 200, Arb.uInt()) { uInt ->
           expect(Number(uInt)).feature(Number::toString).toEqual(uInt.toString())
         }
       }
@@ -145,7 +144,7 @@ class NumberSpec : DescribeSpec({
         for (long in longBoundaries) {
           expect(Number(long)).feature(Number::toString).toEqual(long.toString())
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
+        checkAll(iterations = 200, Arb.long()) { long ->
           expect(Number(long)).feature(Number::toString).toEqual(long.toString())
         }
       }
@@ -154,7 +153,7 @@ class NumberSpec : DescribeSpec({
         for (uLong in listOf(0uL, 1uL, Long.MAX_VALUE.toULong(), Long.MAX_VALUE.toULong() + 1uL, Long.MAX_VALUE.toULong() + 2uL, ULong.MAX_VALUE - 1uL, ULong.MAX_VALUE)) {
           expect(Number(uLong)).feature(Number::toString).toEqual(uLong.toString())
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.uLong()) { uLong ->
+        checkAll(iterations = 200, Arb.uLong()) { uLong ->
           expect(Number(uLong)).feature(Number::toString).toEqual(uLong.toString())
         }
       }
@@ -168,7 +167,7 @@ class NumberSpec : DescribeSpec({
         )) {
           expect(Number(float)).toEqualExactly(float.toDouble())
         }
-        checkAll(PropTestConfig(iterations = 100), finiteFloats) { float ->
+        checkAll(iterations = 100, finiteFloats) { float ->
           expect(Number(float)).toEqualExactly(float.toDouble())
         }
       }
@@ -178,7 +177,7 @@ class NumberSpec : DescribeSpec({
         for (double in doubleBoundaries) {
           expect(Number(double)).toEqualExactly(double)
         }
-        checkAll(PropTestConfig(iterations = 100), finiteDoubles) { double ->
+        checkAll(iterations = 100, finiteDoubles) { double ->
           expect(Number(double)).toEqualExactly(double)
         }
       }
@@ -209,7 +208,7 @@ class NumberSpec : DescribeSpec({
             for (operand in kind.boundaries) {
               expect(-Number(operand)).toEqualExactResult(-operand)
             }
-            checkAll(PropTestConfig(iterations = 100), kind.samples) { operand ->
+            checkAll(iterations = 100, kind.samples) { operand ->
               expect(-Number(operand)).toEqualExactResult(-operand)
             }
           }
@@ -264,7 +263,7 @@ class NumberSpec : DescribeSpec({
                 expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
               }
             }
-            checkAll(PropTestConfig(iterations = 100), kind.samples, Arb.int().filter { it != 0 }) { dividend, divisor ->
+            checkAll(iterations = 100, kind.samples, Arb.int().filter { it != 0 }) { dividend, divisor ->
               expect(Number(dividend) / divisor).toEqualExactResult(dividend / divisor.toBigFraction())
             }
           }
@@ -341,7 +340,7 @@ class NumberSpec : DescribeSpec({
             checkOrder(left, right)
           }
         }
-        checkAll(PropTestConfig(iterations = 200), nonIntegerDoubles, nonIntegerDoubles) { left, right ->
+        checkAll(iterations = 200, nonIntegerDoubles, nonIntegerDoubles) { left, right ->
           checkOrder(left.nextDown(), left)
           checkOrder(left, left.nextUp())
           checkOrder(left, right)
@@ -402,6 +401,18 @@ class NumberSpec : DescribeSpec({
           }
         }
       }
+
+      describe("considers numbers unequal to other values") {
+        withIts(
+          mapOf(
+            "a number and the symbol that spells it" to (Number(1) to Symbol("1")),
+            "zero and the empty map" to (Number(0) to Map()),
+          )
+        ) { (number, other) ->
+          expect<Value>(number).notToEqual(other)
+          expect(other).notToEqual(number)
+        }
+      }
     }
 
     // Integers are printed by the creation tests above.
@@ -412,7 +423,7 @@ class NumberSpec : DescribeSpec({
         for (long in longBoundaries) {
           expect((Number(long) + half - half).toString()).toEqual(long.toString())
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
+        checkAll(iterations = 200, Arb.long()) { long ->
           expect((Number(long) + half - half).toString()).toEqual(long.toString())
         }
       }
@@ -477,7 +488,7 @@ class NumberSpec : DescribeSpec({
         for (number in listOf(Number(0), Number(1), Number(-1), Number(Long.MIN_VALUE), Number(Long.MAX_VALUE), Number(1) / Number(2), Number(-7) / Number(3), Number("1267650600228229401496703205376") / Number(3))) {
           checkNotation(number)
         }
-        checkAll(PropTestConfig(iterations = 200), numbers) { number -> checkNotation(number) }
+        checkAll(iterations = 200, numbers) { number -> checkNotation(number) }
       }
 
       it("resolves the last digit group as whole-part digits or numerator digits when the input ends or a slash arrives") {
@@ -494,7 +505,7 @@ class NumberSpec : DescribeSpec({
             checkGroups(digits, digits, digits, denominator)
           }
         }
-        checkAll(PropTestConfig(iterations = 100), Arb.int(0..999), Arb.int(0..999), Arb.int(0..999), Arb.int(1..999)) { first, middle, last, denominator ->
+        checkAll(iterations = 100, Arb.int(0..999), Arb.int(0..999), Arb.int(0..999), Arb.int(1..999)) { first, middle, last, denominator ->
           checkGroups(first, middle, last, denominator)
         }
       }
@@ -537,7 +548,7 @@ class NumberSpec : DescribeSpec({
         for (long in longBoundaries) {
           expect(Number(long.toString())).toEqual(Number(long))
         }
-        checkAll(PropTestConfig(iterations = 200), Arb.long()) { long ->
+        checkAll(iterations = 200, Arb.long()) { long ->
           expect(Number(long.toString())).toEqual(Number(long))
         }
       }
@@ -747,7 +758,7 @@ private data class OperandKinds(val left: OperandKind, val right: OperandKind) {
         check(leftOperand, rightOperand)
       }
     }
-    checkAll(PropTestConfig(iterations = 200), left.samples, right.samples) { leftOperand, rightOperand ->
+    checkAll(iterations = 200, left.samples, right.samples) { leftOperand, rightOperand ->
       check(leftOperand, rightOperand)
     }
   }
