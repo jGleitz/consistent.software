@@ -15,13 +15,13 @@ public sealed interface Map : Value {
 
   public companion object {
     @JvmName("of")
-    public operator fun invoke(data: kotlin.collections.Map<Value, Value>): Map = KotlinBasedMap(data)
+    public operator fun invoke(data: kotlin.collections.Map<Value, Value>): Map = KotlinBasedMap(data.toMap())
 
     @JvmName("of")
-    public operator fun invoke(vararg data: Pair<Value, Value>): Map = Map(mapOf(*data))
+    public operator fun invoke(vararg data: Pair<Value, Value>): Map = KotlinBasedMap(data.toMap())
 
     @JvmName("of")
-    public operator fun invoke(data: List<Pair<Value, Value>>): Map = Map(data.toMap())
+    public operator fun invoke(data: List<Pair<Value, Value>>): Map = KotlinBasedMap(data.toMap())
   }
 }
 

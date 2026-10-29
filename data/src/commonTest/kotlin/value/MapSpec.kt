@@ -36,6 +36,33 @@ class MapSpec : DescribeSpec({
         }
       }
 
+      describe("copies its source, so that later changes to the source don’t affect the map") {
+        withIts(
+          mapOf<String, () -> Map>(
+            "a Kotlin map" to {
+              val source = mutableMapOf<Value, Value>(a to one)
+              Map(source).also {
+                source[a] = two
+                source[b] = two
+              }
+            },
+            "a list of pairs" to {
+              val source = mutableListOf<Pair<Value, Value>>(a to one)
+              Map(source).also {
+                source[0] = a to two
+                source += b to two
+              }
+            },
+            "an array of pairs" to {
+              val source = arrayOf<Pair<Value, Value>>(a to one)
+              Map(*source).also { source[0] = a to two }
+            },
+          )
+        ) { createAndChangeSource ->
+          expect(createAndChangeSource().entryPairs()).toContain.inAnyOrder.only.values(a to one)
+        }
+      }
+
       it("keeps distinct symbols with the same identifier as distinct keys") {
         val otherA = Symbol("a")
         expect(Map(a to one, otherA to two).entryPairs()).toContain.inAnyOrder.only.values(a to one, otherA to two)
