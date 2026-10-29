@@ -63,6 +63,36 @@ class MapSpec : DescribeSpec({
         }
       }
 
+      describe("can’t be changed through the collections that its accessors return, even if they are cast to mutable types") {
+        withIts(
+          mapOf<String, (Map) -> Unit>(
+            "clearing the keys" to { (it.keys as MutableSet<*>).clear() },
+            "removing a key through an iterator" to { (it.keys.iterator() as MutableIterator<*>).apply { next() }.remove() },
+            "clearing the values" to { (it.values as MutableCollection<*>).clear() },
+            "removing a value through an iterator" to { (it.values.iterator() as MutableIterator<*>).apply { next() }.remove() },
+            "clearing the entries" to { (it.entries as MutableSet<*>).clear() },
+            "removing an entry through an iterator" to { (it.entries.iterator() as MutableIterator<*>).apply { next() }.remove() },
+            "setting the value of an entry" to {
+              @Suppress("UNCHECKED_CAST")
+              (it.entries.first() as MutableMap.MutableEntry<Value, Value>).setValue(two)
+            },
+            "setting the value of an entry from an iterator" to {
+              @Suppress("UNCHECKED_CAST")
+              (it.entries.iterator().next() as MutableMap.MutableEntry<Value, Value>).setValue(two)
+            },
+          )
+        ) { change ->
+          val map = Map(a to one, b to half)
+          val hashCode = map.hashCode()
+          // Either the cast or the change may fail; what matters is that the map stays unchanged.
+          runCatching { change(map) }
+          expect(map) {
+            feature(Map::entryPairs).toContain.inAnyOrder.only.values(a to one, b to half)
+            feature(Map::hashCode).toEqual(hashCode)
+          }
+        }
+      }
+
       it("keeps distinct symbols with the same identifier as distinct keys") {
         val otherA = Symbol("a")
         expect(Map(a to one, otherA to two).entryPairs()).toContain.inAnyOrder.only.values(a to one, otherA to two)
