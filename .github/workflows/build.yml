@@ -41,8 +41,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # SonarQube Cloud needs the full history to attribute issues to new code via blame
-          fetch-depth: ${{ runner.os == 'Linux' && 0 || 1 }}
+          # SonarQube Cloud needs the full history for blame, and the base branch to find the changes of a pull request
+          fetch-depth: 0
 
       - name: Set Up Development Tools
         uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5
