@@ -2,7 +2,6 @@ package software.consistent.exactnumbers
 
 import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
-import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withIts
 import io.kotest.property.*
@@ -374,8 +373,8 @@ private suspend fun <T> checkConversion(
   for (extreme in extremes) {
     expect(convert(extreme).toString()).toEqual(extreme.toString())
   }
-  @OptIn(ExperimentalKotest::class)
-  checkAll(PropTestConfig(iterations = iterations), gen) { value ->
+  val property: suspend PropertyContext.(T) -> Unit = { value ->
     expect(convert(value).toString()).toEqual(value.toString())
   }
+  if (iterations == null) checkAll(gen, property) else checkAll(iterations = iterations, gen, property)
 }

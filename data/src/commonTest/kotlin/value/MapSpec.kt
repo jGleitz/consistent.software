@@ -2,15 +2,12 @@ package software.consistent.data.value
 
 import ch.tutteli.atrium.api.fluent.en_GB.*
 import ch.tutteli.atrium.api.verbs.expect
-import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withIts
 import io.kotest.property.Arb
-import io.kotest.property.PropTestConfig
 import io.kotest.property.checkAll
 import software.consistent.data.generators.value
 
-@OptIn(ExperimentalKotest::class)
 class MapSpec : DescribeSpec({
   describe("Map") {
     describe("creation") {
@@ -241,7 +238,7 @@ class MapSpec : DescribeSpec({
       }
 
       it("considers generated maps equal to their copies and gives them the same hash code") {
-        checkAll(PropTestConfig(iterations = 200), Arb.value.map(maxNesting = 3)) { map ->
+        checkAll(iterations = 200, Arb.value.map(maxNesting = 3)) { map ->
           val copy = Map(map.entryPairs().reversed())
           expect(map) {
             toEqual(map)
