@@ -241,7 +241,7 @@ class NumberSpec : DescribeSpec({
       describe("div divides") {
         withIts(operandKindPairs) { kinds ->
           kinds.checkBoundariesAndSamples { left, right ->
-            if (right.numeratorAsBigInteger != BigIntegers.ZERO) {
+            if (right.signum() != 0) {
               expect(Number(left) / Number(right)).toEqualExactResult(left / right)
             }
           }
@@ -784,9 +784,7 @@ private val numbers = Arb.choice(
  */
 private fun Expect<Number>.toEqualExactResult(expected: BigFraction) = apply {
   _logic.createAndAppend("to equal numerically", Number(expected)) { it.compareTo(Number(expected)) == 0 }
-  // On the JVM, results of BigFraction division can carry the sign in the denominator, which BigFraction.isInteger()
-  // does not expect.
-  feature(Number::isInteger).toEqual(expected.denominatorAsBigInteger.absoluteValue == BigIntegers.ONE)
+  feature(Number::isInteger).toEqual(expected.isInteger())
 }
 
 /** Asserts that the number is the exact value of [double]. */

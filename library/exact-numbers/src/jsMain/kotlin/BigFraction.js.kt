@@ -96,7 +96,8 @@ public actual infix fun BigFraction.toThePowerOf(exponent: Int): BigFraction {
 
 public actual operator fun BigFraction.compareTo(other: BigFraction): Int = compare(other)
 
-public actual fun BigFraction.signum(): Int = sign.asInt()
+// fraction.js gives zero the sign 1.
+public actual fun BigFraction.signum(): Int = if (numerator == BigIntegers.ZERO) 0 else sign.asInt()
 
 public actual object BigFractions {
   // we trust the runtime environment to apply interning if deems it necessary
