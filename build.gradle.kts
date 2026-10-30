@@ -22,7 +22,8 @@ sonar {
     property("sonar.projectKey", "jGleitz_consistent.software")
     property("sonar.organization", "jgleitz")
     // The scanner declares the test sources of each Kotlin project from its test source sets. Projects without tests,
-    // such as this one, get an empty sonar.tests, for which some analysers guess test files from their paths instead.
+    // such as this one, get an empty sonar.tests, for which some analysers would guess test files from their paths if
+    // we didn’t disable that feature here.
     property("sonar.testFileHeuristic.disabled", true)
     // An aggregate report: as a module report, every module would try to match all of its files and warn that none match
     property(
