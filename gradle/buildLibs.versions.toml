@@ -2,10 +2,13 @@
 # updates. Renovate already has rules for many monorepos per default.
 [plugins]
 kotlin-multiplatform = "org.jetbrains.kotlin.multiplatform:2.4.21"
+kover = "org.jetbrains.kotlinx.kover:0.9.11"
+sonarqube = "org.sonarqube:7.5.0.8588"
 
 [libraries]
 plugin-kotlin-multiplatform = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin:2.4.21"
 plugin-spotless = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin:8.10.4"
+plugin-kover = "org.jetbrains.kotlinx.kover:org.jetbrains.kotlinx.kover.gradle.plugin:0.9.11"
 plugin-kotest = "io.kotest:io.kotest.gradle.plugin:6.2.6"
 plugin-ksp = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.12"
 plugin-dokka = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.2.0"
