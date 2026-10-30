@@ -1,5 +1,9 @@
 rootProject.name = "build-logic"
 
+gradle.beforeProject {
+  dependencyLocking { lockAllConfigurations() }
+}
+
 dependencyResolutionManagement {
   versionCatalogs {
     create("buildLibs") {

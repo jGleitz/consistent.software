@@ -1,5 +1,9 @@
 rootProject.name = "consistent.software"
 
+gradle.beforeProject {
+  dependencyLocking { lockAllConfigurations() }
+}
+
 pluginManagement {
   includeBuild("build-logic")
 }
