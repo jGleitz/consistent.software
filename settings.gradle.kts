@@ -1,6 +1,6 @@
 rootProject.name = "consistent.software"
 
-gradle.beforeProject {
+gradle.lifecycle.beforeProject {
   dependencyLocking { lockAllConfigurations() }
 }
 

@@ -1,6 +1,6 @@
 rootProject.name = "build-logic"
 
-gradle.beforeProject {
+gradle.lifecycle.beforeProject {
   dependencyLocking { lockAllConfigurations() }
 }
 
