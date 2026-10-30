@@ -1,0 +1,47 @@
+# This is a Gradle generated file for dependency locking.
+# Manual edits can break the build and are not advised.
+# This file is expected to be part of source control.
+# To regenerate this file, run: ./gradlew :build-logic:codedoc:dependencies --write-locks
+com.fasterxml.jackson.core:jackson-annotations:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.core:jackson-core:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.core:jackson-databind:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson:jackson-bom:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.woodstox:woodstox-core:6.5.1=precompiledScriptPluginAccessorsGenerationClasspath
+org.codehaus.woodstox:stax2-api:4.2.1=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.dokka:dokka-core:2.2.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.dokka:dokka-gradle-plugin:2.2.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.2.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlin:kotlin-assignment-compiler-plugin-embeddable:2.4.10=kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-build-tools-api:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-build-tools-compat:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-build-tools-cri-impl:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-build-tools-impl:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-compiler-embeddable:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-compiler-runner:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-daemon-client:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-daemon-embeddable:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-reflect:1.6.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlin:kotlin-reflect:2.4.10=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin-embeddable:2.4.10=kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-script-runtime:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinBuildToolsApiClasspath,kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-scripting-common:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain
+org.jetbrains.kotlin:kotlin-stdlib-common:2.4.10=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlin:kotlin-stdlib:2.4.10=compileClasspath,compilePluginsBlocksPluginClasspathElements,kotlinBuildToolsApiClasspath,kotlinCompilerPluginClasspathMain,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlin:kotlin-tooling-core:2.4.10=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.7.3=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.8.0=kotlinBuildToolsApiClasspath
+org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-serialization-bom:1.6.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.6.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.6.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains:annotations:13.0=compileClasspath,compilePluginsBlocksPluginClasspathElements,kotlinBuildToolsApiClasspath,kotlinCompilerPluginClasspathMain
+org.jetbrains:annotations:23.0.0=precompiledScriptPluginAccessorsGenerationClasspath
+empty=kotlinScriptDefExtensions

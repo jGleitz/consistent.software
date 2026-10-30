@@ -1,5 +1,9 @@
 rootProject.name = "consistent.software"
 
+gradle.lifecycle.beforeProject {
+  dependencyLocking { lockAllConfigurations() }
+}
+
 pluginManagement {
   includeBuild("build-logic")
 }
@@ -29,5 +33,9 @@ include(
 develocity {
   buildScan {
     publishing.onlyIf { false }
+    if (providers.environmentVariable("CI").orNull == "true") {
+      termsOfUseUrl = "https://gradle.com/terms-of-service"
+      termsOfUseAgree = "yes"
+    }
   }
 }
