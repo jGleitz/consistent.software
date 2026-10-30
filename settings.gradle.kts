@@ -33,5 +33,9 @@ include(
 develocity {
   buildScan {
     publishing.onlyIf { false }
+    if (providers.environmentVariable("CI").orNull == "true") {
+      termsOfUseUrl = "https://gradle.com/terms-of-service"
+      termsOfUseAgree = "yes"
+    }
   }
 }
