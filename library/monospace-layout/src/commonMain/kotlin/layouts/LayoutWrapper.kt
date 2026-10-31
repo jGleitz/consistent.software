@@ -7,7 +7,7 @@ import software.consistent.data.formatting.monospacelayout.layouts.InternalMonos
 internal class LayoutWrapper private constructor(
   val inner: InternalMonospaceLayout,
   val prefix: CharSequenceWithWidth,
-  val postfix: CharSequenceWithWidth
+  val postfix: CharSequenceWithWidth,
 ) : InternalMonospaceLayout {
   init {
     require(!prefix.contains(NEWLINE_PATTERN)) { "${::prefix.name} must not contain newlines!" }
@@ -17,14 +17,18 @@ internal class LayoutWrapper private constructor(
   internal constructor(layout: MonospaceLayout, prefix: CharSequence, postfix: CharSequence) : this(
     intern(layout),
     CharSequenceWithCachedWidth(prefix),
-    CharSequenceWithCachedWidth(postfix)
+    CharSequenceWithCachedWidth(postfix),
   )
 
   // we don’t see ourselves as a proper container, just a decorator
   override val isContainer: Boolean get() = inner.isContainer
 
   context(layout: LayoutContext)
-  override fun singleLinePrintWidth(): PrintWidthIfSupported = inner.singleLinePrintWidth().map { it + prefix.printWidth + postfix.printWidth }
+  override fun singleLinePrintWidth(): PrintWidthIfSupported =
+    inner.singleLinePrintWidth().map {
+      it + prefix.printWidth +
+        postfix.printWidth
+    }
 
   context(layout: LayoutContext)
   override fun renderInSingleLineTo(target: LayoutTarget) {
@@ -43,6 +47,5 @@ internal class LayoutWrapper private constructor(
   override fun withPrefix(prefix: CharSequence): MonospaceLayout =
     LayoutWrapper(inner, CharSequenceWithCachedWidth(prefix) + this.prefix, this.postfix)
 
-  override fun withPostfix(postfix: CharSequence): MonospaceLayout =
-    LayoutWrapper(inner, this.prefix, this.postfix + postfix)
+  override fun withPostfix(postfix: CharSequence): MonospaceLayout = LayoutWrapper(inner, this.prefix, this.postfix + postfix)
 }

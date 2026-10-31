@@ -2,7 +2,9 @@ package software.consistent.data.formatting.monospacelayout.layouts
 
 import software.consistent.data.formatting.monospacelayout.*
 
-internal sealed interface InternalMonospaceLayout : MonospaceLayout, Renderable {
+internal sealed interface InternalMonospaceLayout :
+  MonospaceLayout,
+  Renderable {
   /**
    * Approximates how wide the layout would be if rendered in a single line. [PrintWidthIfSupported.NOT_SUPPORTED] indicates that this
    * layout should not be printed in a single line. Otherwise, the result contains the number of columns the layout will take up.
@@ -44,8 +46,10 @@ internal sealed interface InternalMonospaceLayout : MonospaceLayout, Renderable 
   companion object {
     @Suppress("UNCHECKED_CAST") // cast is safe because MonoSpaceLayout is sealed and all instances implement InternalMonoSpaceLayout
     internal fun intern(externalLayouts: List<MonospaceLayout>) = externalLayouts as List<InternalMonospaceLayout>
-    internal fun intern(externalLayout: MonospaceLayout) = when (externalLayout) {
-      is InternalMonospaceLayout -> externalLayout
-    }
+
+    internal fun intern(externalLayout: MonospaceLayout) =
+      when (externalLayout) {
+        is InternalMonospaceLayout -> externalLayout
+      }
   }
 }

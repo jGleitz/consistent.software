@@ -52,7 +52,7 @@ internal inline fun <V1, V2, V3> checkInvariant(
   target1: KProperty0<V1>,
   target2: KProperty0<V2>,
   target3: KProperty0<V3>,
-  invariant: (V1, V2, V3) -> Boolean
+  invariant: (V1, V2, V3) -> Boolean,
 ) {
   val value1 = target1()
   val value2 = target2()
@@ -66,28 +66,39 @@ internal inline fun <V1, V2, V3> checkInvariant(
  * Generating the messages shouldn’t be inlined to every call site, so it’s delegated to normal functions.
  */
 
-internal fun reportInvariantViolation(invariantName: String, violatorName: String, violatorValue: Any?) {
+internal fun reportInvariantViolation(
+  invariantName: String,
+  violatorName: String,
+  violatorValue: Any?,
+): Unit =
   throw InvariantViolation { message ->
-    message.append(violatorName).append(" violates invariant ‘").append(invariantName).append("’:")
+    message
+      .append(violatorName)
+      .append(" violates invariant ‘")
+      .append(invariantName)
+      .append("’:")
       .appendLine()
       .appendIndented(violatorValue)
   }
-}
 
 internal fun reportInvariantViolation(
   invariantName: String,
   firstViolatorName: String,
   firstViolatorValue: Any?,
   secondViolatorName: String,
-  secondViolatorValue: Any?
-) {
+  secondViolatorValue: Any?,
+): Unit =
   throw InvariantViolation { message ->
-    message.append(firstViolatorName).append(" and ").append(secondViolatorName)
-      .append(" violate invariant ‘").append(invariantName).append("’:")
+    message
+      .append(firstViolatorName)
+      .append(" and ")
+      .append(secondViolatorName)
+      .append(" violate invariant ‘")
+      .append(invariantName)
+      .append("’:")
       .appendViolator(firstViolatorName, firstViolatorValue)
       .appendViolator(secondViolatorName, secondViolatorValue)
   }
-}
 
 internal fun reportInvariantViolation(
   invariantName: String,
@@ -96,25 +107,35 @@ internal fun reportInvariantViolation(
   secondViolatorName: String,
   secondViolatorValue: Any?,
   thirdViolatorName: String,
-  thirdViolatorValue: Any?
-) {
+  thirdViolatorValue: Any?,
+): Unit =
   throw InvariantViolation { message ->
-    message.append(firstViolatorName).append(", ").append(secondViolatorName).append(", and ").append(thirdViolatorName)
-      .append(" violate invariant ‘").append(invariantName).append("’:")
+    message
+      .append(firstViolatorName)
+      .append(", ")
+      .append(secondViolatorName)
+      .append(", and ")
+      .append(thirdViolatorName)
+      .append(" violate invariant ‘")
+      .append(invariantName)
+      .append("’:")
       .appendViolator(firstViolatorName, firstViolatorValue)
       .appendViolator(secondViolatorName, secondViolatorValue)
       .appendViolator(thirdViolatorName, thirdViolatorValue)
   }
-}
 
 @IgnorableReturnValue
-private fun StringBuilder.appendViolator(name: String, value: Any?) =
-  appendLine()
-    .appendIndented(name).append(':')
-    .appendLine()
-    .appendIndented(asString(value), times = 2)
+private fun StringBuilder.appendViolator(
+  name: String,
+  value: Any?,
+) = appendLine()
+  .appendIndented(name)
+  .append(':')
+  .appendLine()
+  .appendIndented(asString(value), times = 2)
 
-private fun asString(value: Any?) = when (value) {
-  is BooleanArray -> value.joinToString(separator = ", ", prefix = "[", postfix = "]")
-  else -> value.toString()
-}
+private fun asString(value: Any?) =
+  when (value) {
+    is BooleanArray -> value.joinToString(separator = ", ", prefix = "[", postfix = "]")
+    else -> value.toString()
+  }

@@ -10,12 +10,12 @@ import software.consistent.data.value.TRUE
 import software.consistent.data.value.Value
 
 internal object SymbolArb {
-  private val instance = Choice(
-    Arb.harryPotterCharacter().map { "${it.firstName}_${it.lastName}" },
-    Arb.movieStar().map { it.name }
-  )
-    .map { Value.Symbol(it.replace(Regex("[ ']"), "_")) }
-    .plusEdgecases(listOf(TRUE, FALSE))
+  private val instance =
+    Choice(
+      Arb.harryPotterCharacter().map { "${it.firstName}_${it.lastName}" },
+      Arb.movieStar().map { it.name },
+    ).map { Value.Symbol(it.replace(Regex("[ ']"), "_")) }
+      .plusEdgecases(listOf(TRUE, FALSE))
 
   internal operator fun invoke() = instance
 }

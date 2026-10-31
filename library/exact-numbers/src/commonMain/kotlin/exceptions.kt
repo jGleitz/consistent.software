@@ -4,8 +4,10 @@ package software.consistent.exactnumbers
 internal fun divisionByZero(dividend: Any): ArithmeticException =
   ArithmeticException("Division by zero: attempted to divide $dividend by 0.")
 
-internal fun divisionByZero(numerator: BigInteger, denominator: BigInteger): ArithmeticException =
-  divisionByZero(if (denominator == BigIntegers.ONE) "$numerator" else "$numerator/$denominator")
+internal fun divisionByZero(
+  numerator: BigInteger,
+  denominator: BigInteger,
+): ArithmeticException = divisionByZero(if (denominator == BigIntegers.ONE) "$numerator" else "$numerator/$denominator")
 
 internal fun zeroToNegativePower(exponent: Int) =
   ArithmeticException("Division by zero: cannot raise 0 to the negative exponent $exponent.")

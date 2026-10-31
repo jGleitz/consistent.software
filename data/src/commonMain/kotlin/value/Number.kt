@@ -9,14 +9,21 @@ import software.consistent.data.value.number.parseNumberString
 import software.consistent.exactnumbers.*
 import kotlin.jvm.JvmName
 
-public sealed interface Number : Value, Comparable<Number> {
+public sealed interface Number :
+  Value,
+  Comparable<Number> {
   public fun isInteger(): Boolean
 
   public operator fun plus(addend: Number): Number
+
   public operator fun minus(subtrahend: Number): Number
+
   public operator fun times(factor: Number): Number
+
   public operator fun div(divisor: Number): Number
+
   public operator fun div(divisor: Int): Number = div(Number(divisor))
+
   public operator fun unaryMinus(): Number
 
   public companion object {
@@ -73,52 +80,68 @@ public sealed interface Number : Value, Comparable<Number> {
 }
 
 private fun fractionOrInteger(value: BigFraction): Number =
-  if (value.isInteger()) Integer(value.numeratorAsBigInteger)
-  else Fraction(value)
+  if (value.isInteger()) {
+    Integer(value.numeratorAsBigInteger)
+  } else {
+    Fraction(value)
+  }
 
-private class Integer(val value: BigInteger) : Number, WithMonospaceLayout {
+private class Integer(
+  val value: BigInteger,
+) : Number,
+  WithMonospaceLayout {
   override fun isInteger() = true
 
-  override fun plus(addend: Number): Number = when (addend) {
-    is Integer -> this + addend
-    is Fraction -> this + addend
-  }
+  override fun plus(addend: Number): Number =
+    when (addend) {
+      is Integer -> this + addend
+      is Fraction -> this + addend
+    }
 
   operator fun plus(addend: Integer) = Integer(this.value + addend.value)
+
   operator fun plus(addend: Fraction) = Fraction(this.value.toBigFraction() + addend.value)
 
-  override fun minus(subtrahend: Number): Number = when (subtrahend) {
-    is Integer -> this - subtrahend
-    is Fraction -> this - subtrahend
-  }
+  override fun minus(subtrahend: Number): Number =
+    when (subtrahend) {
+      is Integer -> this - subtrahend
+      is Fraction -> this - subtrahend
+    }
 
   operator fun minus(subtrahend: Integer) = Integer(this.value - subtrahend.value)
+
   operator fun minus(subtrahend: Fraction) = Fraction(this.value.toBigFraction() - subtrahend.value)
 
-  override fun times(factor: Number): Number = when (factor) {
-    is Integer -> this * factor
-    is Fraction -> this * factor
-  }
+  override fun times(factor: Number): Number =
+    when (factor) {
+      is Integer -> this * factor
+      is Fraction -> this * factor
+    }
 
   operator fun times(factor: Integer) = Integer(this.value * factor.value)
+
   operator fun times(factor: Fraction) = fractionOrInteger(this.value.toBigFraction() * factor.value)
 
-  override fun div(divisor: Number): Number = when (divisor) {
-    is Integer -> this / divisor
-    is Fraction -> this / divisor
-  }
+  override fun div(divisor: Number): Number =
+    when (divisor) {
+      is Integer -> this / divisor
+      is Fraction -> this / divisor
+    }
 
   operator fun div(divisor: Integer) = fractionOrInteger(this.value / divisor.value)
+
   operator fun div(divisor: Fraction) = fractionOrInteger(this.value.toBigFraction() / divisor.value)
 
   override fun unaryMinus() = Integer(-value)
 
-  override fun compareTo(other: Number) = when (other) {
-    is Integer -> compareTo(other)
-    is Fraction -> compareTo(other)
-  }
+  override fun compareTo(other: Number) =
+    when (other) {
+      is Integer -> compareTo(other)
+      is Fraction -> compareTo(other)
+    }
 
   operator fun compareTo(other: Integer) = this.value.compareTo(other.value)
+
   operator fun compareTo(other: Fraction) = this.value.toBigFraction().compareTo(other.value)
 
   override val monospaceLayout get() = Monospace.atom(printWholeNumber(value))
@@ -126,61 +149,76 @@ private class Integer(val value: BigInteger) : Number, WithMonospaceLayout {
   override fun toString() = monospaceLayout.renderToString()
 
   override fun equals(other: Any?) = other is Integer && value == other.value
+
   override fun hashCode() = value.hashCode()
 }
 
-private class Fraction(val value: BigFraction) : Number, WithMonospaceLayout {
+private class Fraction(
+  val value: BigFraction,
+) : Number,
+  WithMonospaceLayout {
   init {
     ::value.checkInvariant("fractions never represent integers") { !isInteger() }
   }
 
   override fun isInteger() = false
 
-  override fun plus(addend: Number): Number = when (addend) {
-    is Integer -> this + addend
-    is Fraction -> this + addend
-  }
+  override fun plus(addend: Number): Number =
+    when (addend) {
+      is Integer -> this + addend
+      is Fraction -> this + addend
+    }
 
   operator fun plus(addend: Integer) = Fraction(this.value + addend.value.toBigFraction())
+
   operator fun plus(addend: Fraction) = fractionOrInteger(this.value + addend.value)
 
-  override fun minus(subtrahend: Number): Number = when (subtrahend) {
-    is Integer -> this - subtrahend
-    is Fraction -> this - subtrahend
-  }
+  override fun minus(subtrahend: Number): Number =
+    when (subtrahend) {
+      is Integer -> this - subtrahend
+      is Fraction -> this - subtrahend
+    }
 
   operator fun minus(subtrahend: Integer) = Fraction(this.value - subtrahend.value.toBigFraction())
+
   operator fun minus(subtrahend: Fraction) = fractionOrInteger(this.value - subtrahend.value)
 
-  override fun times(factor: Number): Number = when (factor) {
-    is Integer -> this * factor
-    is Fraction -> this * factor
-  }
+  override fun times(factor: Number): Number =
+    when (factor) {
+      is Integer -> this * factor
+      is Fraction -> this * factor
+    }
 
   operator fun times(factor: Integer) = fractionOrInteger(this.value * factor.value.toBigFraction())
+
   operator fun times(factor: Fraction) = fractionOrInteger(this.value * factor.value)
 
-  override fun div(divisor: Number): Number = when (divisor) {
-    is Integer -> this / divisor
-    is Fraction -> this / divisor
-  }
+  override fun div(divisor: Number): Number =
+    when (divisor) {
+      is Integer -> this / divisor
+      is Fraction -> this / divisor
+    }
 
   operator fun div(divisor: Integer) = fractionOrInteger(this.value / divisor.value.toBigFraction())
+
   operator fun div(divisor: Fraction) = fractionOrInteger(this.value / divisor.value)
 
   override fun unaryMinus() = Fraction(-value)
 
-  override fun compareTo(other: Number): Int = when (other) {
-    is Integer -> compareTo(other)
-    is Fraction -> compareTo(other)
-  }
+  override fun compareTo(other: Number): Int =
+    when (other) {
+      is Integer -> compareTo(other)
+      is Fraction -> compareTo(other)
+    }
 
   operator fun compareTo(other: Integer) = this.value.compareTo(other.value.toBigFraction())
+
   operator fun compareTo(other: Fraction) = this.value.compareTo(other.value)
 
   override val monospaceLayout get() = Monospace.atom(printFractionalNumber(value))
 
   override fun toString() = monospaceLayout.renderToString()
+
   override fun equals(other: Any?) = other is Fraction && value == other.value
 
   override fun hashCode(): Int {
