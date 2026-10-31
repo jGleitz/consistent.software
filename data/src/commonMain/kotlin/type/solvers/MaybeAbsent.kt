@@ -6,34 +6,45 @@ import software.consistent.data.util.compare
 
 internal data class MaybeAbsent(
   val values: SolvableSet,
-  val includesAbsent: Boolean
-) : SetOperations<MaybeAbsent>, NormalizationComparable<MaybeAbsent>, WithMonospaceLayout {
+  val includesAbsent: Boolean,
+) : SetOperations<MaybeAbsent>,
+  NormalizationComparable<MaybeAbsent>,
+  WithMonospaceLayout {
   fun isEmpty() = !includesAbsent && values.isEmpty()
 
-  infix fun with(otherSet: MaybeAbsent) =
-    MaybeAbsent(this.values with otherSet.values, this.includesAbsent || otherSet.includesAbsent)
+  infix fun with(otherSet: MaybeAbsent) = MaybeAbsent(this.values with otherSet.values, this.includesAbsent || otherSet.includesAbsent)
 
   infix fun overlapWith(otherSet: MaybeAbsent) =
-    MaybeAbsent(this.values overlapWith otherSet.values, this.includesAbsent && otherSet.includesAbsent)
+    MaybeAbsent(
+      this.values overlapWith otherSet.values,
+      this.includesAbsent && otherSet.includesAbsent,
+    )
 
   operator fun not() = MaybeAbsent(!values, !includesAbsent)
 
   infix fun without(otherSet: MaybeAbsent) =
-    MaybeAbsent(this.values without otherSet.values, this.includesAbsent && !otherSet.includesAbsent)
+    MaybeAbsent(
+      this.values without otherSet.values,
+      this.includesAbsent && !otherSet.includesAbsent,
+    )
 
   infix fun isSubsetOf(largerSet: MaybeAbsent) =
     (!this.includesAbsent || largerSet.includesAbsent) && (this.values isSubsetOf largerSet.values)
 
-  override fun normalizationComparedTo(other: MaybeAbsent) = (this.values normalizationComparedTo other.values)
-    .ifEqual { compare(this.includesAbsent).to(other.includesAbsent).case }
+  override fun normalizationComparedTo(other: MaybeAbsent) =
+    (this.values normalizationComparedTo other.values)
+      .ifEqual { compare(this.includesAbsent).to(other.includesAbsent).case }
 
   override val monospaceLayout
-    get() = if (includesAbsent) {
-      Monospace.line("∪", 2) {
-        -values.monospaceLayout.containerWrappedIn("(", ")")
-        -Monospace.atom("Ω")
+    get() =
+      if (includesAbsent) {
+        Monospace.line("∪", 2) {
+          -values.monospaceLayout.containerWrappedIn("(", ")")
+          -Monospace.atom("Ω")
+        }
+      } else {
+        values.monospaceLayout
       }
-    } else values.monospaceLayout
 
   override fun toString(): String = monospaceLayout.renderToString()
 
@@ -43,7 +54,9 @@ internal data class MaybeAbsent(
     private val onlyAbsent = MaybeAbsent(PartitionedTypeUnion.empty(), true)
 
     internal fun empty() = empty
+
     internal fun complete() = complete
+
     internal fun onlyAbsent() = onlyAbsent
   }
 }

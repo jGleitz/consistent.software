@@ -9,8 +9,11 @@ public sealed interface Map : Value {
   public val keys: Set<Value>
   public val values: Collection<Value>
   public val entries: Set<Map.Entry<Value, Value>>
+
   public fun isEmpty(): Boolean
+
   public fun hasKey(key: Value): Boolean
+
   public operator fun get(key: Value): Value?
 
   public companion object {
@@ -29,24 +32,31 @@ public sealed interface Map : Value {
  * @param data A map built with [buildMap]: its views and their iterators and entries reject changes, so the collections this map
  * exposes cannot change it, even if they are cast to mutable types.
  */
-private data class KotlinBasedMap(val data: kotlin.collections.Map<Value, Value>) : Map, WithMonospaceLayout {
+private data class KotlinBasedMap(
+  val data: kotlin.collections.Map<Value, Value>,
+) : Map,
+  WithMonospaceLayout {
   override val size get() = data.size
   override val keys get() = data.keys
   override val values get() = data.values
   override val entries get() = data.entries
+
   override fun isEmpty() = data.isEmpty()
+
   override fun hasKey(key: Value) = data.containsKey(key)
+
   override fun get(key: Value) = data[key]
 
   override val monospaceLayout
-    get() = Monospace.list(prefix = "{", separator = ",", postfix = "}") {
-      data.entries.map { (key, value) ->
-        Monospace.line(separator = "=", size = 2) {
-          -key.monospaceLayout
-          -value.monospaceLayout
+    get() =
+      Monospace.list(prefix = "{", separator = ",", postfix = "}") {
+        data.entries.map { (key, value) ->
+          Monospace.line(separator = "=", size = 2) {
+            -key.monospaceLayout
+            -value.monospaceLayout
+          }
         }
       }
-    }
 
   override fun toString() = monospaceLayout.renderToString()
 }

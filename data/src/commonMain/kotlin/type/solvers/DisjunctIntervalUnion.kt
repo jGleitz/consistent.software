@@ -40,24 +40,30 @@ import software.consistent.data.value.monospaceLayout
  *  represents the set `(-∞,3] ∪ {5}`.
  */
 internal class DisjunctIntervalUnion<TValue>
-private constructor(
-  private val orderedBoundaries: List<TValue>,
-  private val inclusive: BooleanArray,
-  private val leftOpen: Boolean,
-  private val rightOpen: Boolean
-) : ClosedSolvableSet<TValue, DisjunctIntervalUnion<TValue>> where TValue : Value, TValue : Comparable<TValue> {
+  private constructor(
+    private val orderedBoundaries: List<TValue>,
+    private val inclusive: BooleanArray,
+    private val leftOpen: Boolean,
+    private val rightOpen: Boolean,
+  ) : ClosedSolvableSet<TValue, DisjunctIntervalUnion<TValue>> where TValue : Value, TValue : Comparable<TValue> {
   init {
     ::orderedBoundaries hasSameSizeAs ::inclusive
     ::orderedBoundaries.isNonDecreasing
     checkInvariant(
-      """consecutive equal boundaries are only allowed if:
-           * they belong to the same interval and both boundaries are inclusive, or
-           * they belong to consecutive intervals and both boundaries are exclusive
-           """.trimIndent(),
-      ::orderedBoundaries, ::inclusive, ::leftOpen
+      """
+      consecutive equal boundaries are only allowed if:
+      * they belong to the same interval and both boundaries are inclusive, or
+      * they belong to consecutive intervals and both boundaries are exclusive
+      """.trimIndent(),
+      ::orderedBoundaries,
+      ::inclusive,
+      ::leftOpen,
     ) { boundaries, inclusive, leftOpen ->
       when (boundaries.size) {
-        0, 1 -> true
+        0, 1 -> {
+          true
+        }
+
         else -> {
           var last = boundaries[0]
           for (i in 1 until boundaries.size) {
@@ -77,7 +83,9 @@ private constructor(
     }
     checkInvariant(
       "boundaries.size + leftOpen + rightOpen must be even",
-      ::orderedBoundaries, ::leftOpen, ::rightOpen
+      ::orderedBoundaries,
+      ::leftOpen,
+      ::rightOpen,
     ) { boundaries, leftOpen, rightOpen ->
       (boundaries.size + (if (leftOpen != rightOpen) 1 else 0)) % 2 == 0
     }
@@ -86,9 +94,13 @@ private constructor(
   override fun contains(value: TValue) = isInsideInterval(findPositionOf(value))
 
   private fun isClosed() = !leftOpen && !rightOpen
+
   override fun isTriviallyEmpty() = isEmpty()
+
   override fun isEmpty() = orderedBoundaries.isEmpty() && isClosed()
+
   override fun isTriviallyComplete() = isComplete()
+
   override fun isComplete() = orderedBoundaries.isEmpty() && !isClosed()
 
   override fun isFinite() = isClosed() && eachBoundary { lower, upper -> lower == upper }
@@ -105,26 +117,42 @@ private constructor(
   }
 
   override val members
-    get() = when {
-      !isClosed() -> throw mustNotRequestMembersOfInfiniteType()
-      orderedBoundaries.isEmpty() -> emptySequence()
-      else -> (0 until (orderedBoundaries.size / 2)).asSequence().map { intervalIndex ->
-        val lowerBoundary = orderedBoundaries[intervalIndex * 2]
-        if (lowerBoundary != orderedBoundaries[intervalIndex * 2 + 1]) throw mustNotRequestMembersOfInfiniteType()
-        lowerBoundary
+    get() =
+      when {
+        !isClosed() -> {
+          throw mustNotRequestMembersOfInfiniteType()
+        }
+
+        orderedBoundaries.isEmpty() -> {
+          emptySequence()
+        }
+
+        else -> {
+          (0 until (orderedBoundaries.size / 2)).asSequence().map { intervalIndex ->
+            val lowerBoundary = orderedBoundaries[intervalIndex * 2]
+            if (lowerBoundary != orderedBoundaries[intervalIndex * 2 + 1]) throw mustNotRequestMembersOfInfiniteType()
+            lowerBoundary
+          }
+        }
       }
-    }
 
   override fun anyMember(): TValue? {
     if (orderedBoundaries.isEmpty()) {
-      return if (leftOpen && rightOpen) exampleBetween(null, null)
-      else null
+      return if (leftOpen && rightOpen) {
+        exampleBetween(null, null)
+      } else {
+        null
+      }
     }
     val firstInclusiveIndex = inclusive.indexOfFirst { it }
     if (firstInclusiveIndex != -1) return orderedBoundaries[firstInclusiveIndex]
-    return if (leftOpen) exampleBetween(null, orderedBoundaries[0])
-    else if (orderedBoundaries.size == 1) exampleBetween(orderedBoundaries[0], null)
-    else exampleBetween(orderedBoundaries[0], orderedBoundaries[1])
+    return if (leftOpen) {
+      exampleBetween(null, orderedBoundaries[0])
+    } else if (orderedBoundaries.size == 1) {
+      exampleBetween(orderedBoundaries[0], null)
+    } else {
+      exampleBetween(orderedBoundaries[0], orderedBoundaries[1])
+    }
   }
 
   override fun with(otherSet: DisjunctIntervalUnion<TValue>) =
@@ -138,14 +166,26 @@ private constructor(
         val thisExhausted = thisIndex == thisBoundaryLength
         val otherExhausted = otherIndex == otherBoundaryLength
 
-        val thisBoundaryToOtherBoundary = when {
-          !thisExhausted && !otherExhausted ->
-            compare(this.orderedBoundaries[thisIndex]).to(otherSet.orderedBoundaries[otherIndex]).case
+        val thisBoundaryToOtherBoundary =
+          when {
+            !thisExhausted && !otherExhausted -> {
+              compare(this.orderedBoundaries[thisIndex]).to(otherSet.orderedBoundaries[otherIndex]).case
+            }
 
-          thisExhausted && !this.rightOpen -> isHigher // We still need to import the remaining boundaries of otherSet.
-          otherExhausted && !otherSet.rightOpen -> isLower // We still need to import the remaining boundaries of this set.
-          else -> break // one set is exhausted and rightOpen => the remaining boundaries are covered already
-        }
+            thisExhausted && !this.rightOpen -> {
+              isHigher
+            }
+
+            // We still need to import the remaining boundaries of otherSet.
+            otherExhausted && !otherSet.rightOpen -> {
+              isLower
+            }
+
+            // We still need to import the remaining boundaries of this set.
+            else -> {
+              break
+            } // one set is exhausted and rightOpen => the remaining boundaries are covered already
+          }
 
         when (thisBoundaryToOtherBoundary) {
           isLower -> {
@@ -202,14 +242,28 @@ private constructor(
         val thisExhausted = thisIndex == thisBoundaryLength
         val otherExhausted = otherIndex == otherBoundaryLength
 
-        val thisBoundaryToOtherBoundary = when {
-          !thisExhausted && !otherExhausted -> compare(this.orderedBoundaries[thisIndex])
-            .to(otherSet.orderedBoundaries[otherIndex]).case
+        val thisBoundaryToOtherBoundary =
+          when {
+            !thisExhausted && !otherExhausted -> {
+              compare(this.orderedBoundaries[thisIndex])
+                .to(otherSet.orderedBoundaries[otherIndex])
+                .case
+            }
 
-          thisExhausted && this.rightOpen -> isHigher //  We still need to import the remaining boundaries of otherSet.
-          otherExhausted && otherSet.rightOpen -> isLower // We still need to import the remaining boundaries of this set.
-          else -> break // one set is exhausted and not rightOpen, so the remaining boundaries don’t overlap => we drop them
-        }
+            thisExhausted && this.rightOpen -> {
+              isHigher
+            }
+
+            //  We still need to import the remaining boundaries of otherSet.
+            otherExhausted && otherSet.rightOpen -> {
+              isLower
+            }
+
+            // We still need to import the remaining boundaries of this set.
+            else -> {
+              break
+            } // one set is exhausted and not rightOpen, so the remaining boundaries don’t overlap => we drop them
+          }
 
         when (thisBoundaryToOtherBoundary) {
           isLower -> {
@@ -253,18 +307,19 @@ private constructor(
       result.rightOpen = this.rightOpen && otherSet.rightOpen
     }
 
-  override fun not() =
-    DisjunctIntervalUnion(orderedBoundaries, BooleanArray(inclusive.size) { !inclusive[it] }, !leftOpen, !rightOpen)
+  override fun not() = DisjunctIntervalUnion(orderedBoundaries, BooleanArray(inclusive.size) { !inclusive[it] }, !leftOpen, !rightOpen)
 
   override fun without(otherSet: DisjunctIntervalUnion<TValue>) = this overlapWith !otherSet
 
   override fun isSubsetOf(largerSet: DisjunctIntervalUnion<TValue>) = (this without largerSet).isEmpty()
 
-  override fun normalizationComparedTo(other: DisjunctIntervalUnion<TValue>) = compare(this).to(other, by = { it.leftOpen })
-    .ifEqual { compare(this).to(other, by = { it.rightOpen }) }
-    .ifEqual { compareEach(this.orderedBoundaries).toEach(other.orderedBoundaries) }
-    .ifEqual { compareEach(this.inclusive).toEach(other.inclusive) }
-    .case
+  override fun normalizationComparedTo(other: DisjunctIntervalUnion<TValue>) =
+    compare(this)
+      .to(other, by = { it.leftOpen })
+      .ifEqual { compare(this).to(other, by = { it.rightOpen }) }
+      .ifEqual { compareEach(this.orderedBoundaries).toEach(other.orderedBoundaries) }
+      .ifEqual { compareEach(this.inclusive).toEach(other.inclusive) }
+      .case
 
   companion object {
     private val empty = DisjunctIntervalUnion<Nothing>(listOf(), booleanArrayOf(), leftOpen = false, rightOpen = false)
@@ -273,12 +328,14 @@ private constructor(
     @Suppress("UNCHECKED_CAST")
     internal fun <TValue> empty(): DisjunctIntervalUnion<TValue>
       where TValue : Value,
-            TValue : Comparable<TValue> = empty as DisjunctIntervalUnion<TValue>
+            TValue : Comparable<TValue> =
+      empty as DisjunctIntervalUnion<TValue>
 
     @Suppress("UNCHECKED_CAST")
     internal fun <TValue> complete(): DisjunctIntervalUnion<TValue>
       where TValue : Value,
-            TValue : Comparable<TValue> = complete as DisjunctIntervalUnion<TValue>
+            TValue : Comparable<TValue> =
+      complete as DisjunctIntervalUnion<TValue>
 
     internal fun <TValue> just(value: TValue): DisjunctIntervalUnion<TValue>
       where TValue : Value, TValue : Comparable<TValue> =
@@ -289,7 +346,7 @@ private constructor(
 
     internal inline operator fun <TValue> invoke(
       boundaryCountEstimate: Int,
-      block: (Builder<TValue>) -> Unit
+      block: (Builder<TValue>) -> Unit,
     ): DisjunctIntervalUnion<TValue>
       where TValue : Value, TValue : Comparable<TValue> =
       Builder<TValue>(boundaryCountEstimate).apply(block).build()
@@ -297,52 +354,65 @@ private constructor(
 
   private fun findPositionOf(value: TValue) = orderedBoundaries.binarySearch(value)
 
-  private fun isInsideInterval(findResult: Int) = when {
-    findResult > orderedBoundaries.size -> rightOpen
-    findResult >= 0 ->
-      // the result represents an interval boundary
-      inclusive[findResult]
-
-    else ->
-      // the result represents  -insertionPoint - 1. If leftOpen, then the insertionPoint 0 (i.e. findResult -1) is inside, else, it’s outside.
-      findResult % 2 == -firstOpeningIndex
-  }
-
-  private val firstOpeningIndex get() = if (leftOpen) 1 else 0
-  private fun opensInterval(position: Int) = position % 2 == firstOpeningIndex
-  private fun closesInterval(position: Int) = !opensInterval(position)
-
-  override val monospaceLayout
-    get() = if (orderedBoundaries.isEmpty()) {
-      if (isClosed()) Monospace.atom("∅") else Monospace.atom("AnyNumber") // TODO this class is supposed to be agnostic! We probably need a subclass.
-    } else Monospace.line("∪", orderedBoundaries.size / 2 + if (!isClosed()) 1 else 0) {
-      var boundaryIndex = 0
-      if (leftOpen) {
-        -Monospace.atom {
-          append("(-∞, ").append(orderedBoundaries[boundaryIndex].monospaceLayout).append(boundaryChar(boundaryIndex))
-        }
-        boundaryIndex += 1
+  private fun isInsideInterval(findResult: Int) =
+    when {
+      findResult > orderedBoundaries.size -> {
+        rightOpen
       }
-      while ((boundaryIndex + 1) <= orderedBoundaries.lastIndex) {
-        -Monospace.atom {
-          append(boundaryChar(boundaryIndex)).append(orderedBoundaries[boundaryIndex].monospaceLayout).append(", ")
-          boundaryIndex += 1
-          append(orderedBoundaries[boundaryIndex].monospaceLayout).append(boundaryChar(boundaryIndex))
-          boundaryIndex += 1
-        }
+
+      findResult >= 0 -> {
+        // the result represents an interval boundary
+        inclusive[findResult]
       }
-      if (rightOpen) {
-        -Monospace.atom {
-          append(boundaryChar(boundaryIndex)).append(orderedBoundaries[boundaryIndex].monospaceLayout).append(", ∞)")
-        }
+
+      else -> {
+        // the result represents  -insertionPoint - 1. If leftOpen, then the insertionPoint 0 (i.e. findResult -1) is inside, else, it’s outside.
+        findResult % 2 == -firstOpeningIndex
       }
     }
 
-  private fun boundaryChar(index: Int) = if (opensInterval(index)) {
-    if (inclusive[index]) '[' else '('
-  } else {
-    if (inclusive[index]) ']' else ')'
-  }
+  private val firstOpeningIndex get() = if (leftOpen) 1 else 0
+
+  private fun opensInterval(position: Int) = position % 2 == firstOpeningIndex
+
+  private fun closesInterval(position: Int) = !opensInterval(position)
+
+  override val monospaceLayout
+    get() =
+      if (orderedBoundaries.isEmpty()) {
+        // TODO this class is supposed to be agnostic! We probably need a subclass.
+        if (isClosed()) Monospace.atom("∅") else Monospace.atom("AnyNumber")
+      } else {
+        Monospace.line("∪", orderedBoundaries.size / 2 + if (!isClosed()) 1 else 0) {
+          var boundaryIndex = 0
+          if (leftOpen) {
+            -Monospace.atom {
+              append("(-∞, ").append(orderedBoundaries[boundaryIndex].monospaceLayout).append(boundaryChar(boundaryIndex))
+            }
+            boundaryIndex += 1
+          }
+          while ((boundaryIndex + 1) <= orderedBoundaries.lastIndex) {
+            -Monospace.atom {
+              append(boundaryChar(boundaryIndex)).append(orderedBoundaries[boundaryIndex].monospaceLayout).append(", ")
+              boundaryIndex += 1
+              append(orderedBoundaries[boundaryIndex].monospaceLayout).append(boundaryChar(boundaryIndex))
+              boundaryIndex += 1
+            }
+          }
+          if (rightOpen) {
+            -Monospace.atom {
+              append(boundaryChar(boundaryIndex)).append(orderedBoundaries[boundaryIndex].monospaceLayout).append(", ∞)")
+            }
+          }
+        }
+      }
+
+  private fun boundaryChar(index: Int) =
+    if (opensInterval(index)) {
+      if (inclusive[index]) '[' else '('
+    } else {
+      if (inclusive[index]) ']' else ')'
+    }
 
   private inline fun eachBoundary(predicate: (lower: TValue, upper: TValue) -> Boolean): Boolean {
     forEachBoundary { lower, upper -> if (!predicate(lower, upper)) return false }
@@ -359,13 +429,18 @@ private constructor(
 
   override fun toString() = monospaceLayout.renderToString()
 
-  internal class Builder<TValue>(boundaryCountEstimate: Int) where TValue : Value, TValue : Comparable<TValue> {
+  internal class Builder<TValue>(
+    boundaryCountEstimate: Int,
+  ) where TValue : Value, TValue : Comparable<TValue> {
     internal var leftOpen: Boolean = false
     internal var rightOpen: Boolean = false
     private val boundariesBuilder = ArrayList<TValue>(boundaryCountEstimate)
     private val inclusiveBuilder = ArrayList<Boolean>(boundaryCountEstimate)
 
-    fun appendBoundary(boundary: TValue, isInclusive: Boolean) {
+    fun appendBoundary(
+      boundary: TValue,
+      isInclusive: Boolean,
+    ) {
       boundariesBuilder += boundary
       inclusiveBuilder += isInclusive
     }
@@ -374,4 +449,7 @@ private constructor(
   }
 }
 
-private fun <TValue> exampleBetween(left: TValue?, right: TValue?): TValue = TODO()
+private fun <TValue> exampleBetween(
+  left: TValue?,
+  right: TValue?,
+): TValue = TODO()

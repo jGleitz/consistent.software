@@ -28,6 +28,9 @@ internal fun printFractionalNumber(value: BigFraction): String {
   return result.toString()
 }
 
-private fun StringBuilder.appendDigits(value: BigInteger, digitCharacters: String) {
+private fun StringBuilder.appendDigits(
+  value: BigInteger,
+  digitCharacters: String,
+) {
   value.toString().forEach { digit -> append(digitCharacters[digit - '0']) }
 }

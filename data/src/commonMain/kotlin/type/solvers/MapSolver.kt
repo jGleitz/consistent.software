@@ -15,7 +15,6 @@ import kotlin.contracts.contract
 import kotlin.jvm.JvmInline
 
 internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver> {
-
   /**
    * Progressively transforms this MapSolver into [disjunctive normal form](https://en.wikipedia.org/wiki/Disjunctive_normal_form) and calls
    * the [consumer] to produce the result value from one of the conjunctions.
@@ -34,34 +33,40 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
   fun <Result : Any> searchConjunction(consumer: (Conjunction) -> SearchOutcome<Result>): SearchOutcome<Result> =
     searchConjunction(Conjunction.complete(), consumer)
 
-  fun <Result : Any> searchConjunction(accumulator: Conjunction, consumer: (Conjunction) -> SearchOutcome<Result>): SearchOutcome<Result>
+  fun <Result : Any> searchConjunction(
+    accumulator: Conjunction,
+    consumer: (Conjunction) -> SearchOutcome<Result>,
+  ): SearchOutcome<Result>
 
   private class Node(
     discriminator: MapComponent,
     ifTrue: MapSolver,
     regardless: MapSolver,
-    ifFalse: MapSolver
-  ) : LazyBdd.Node<Value.Map, MapComponent, MapSolver>(discriminator, ifTrue, regardless, ifFalse), MapSolver {
+    ifFalse: MapSolver,
+  ) : LazyBdd.Node<Value.Map, MapComponent, MapSolver>(discriminator, ifTrue, regardless, ifFalse),
+    MapSolver {
     // TODO check that we don’t have infinite required key types
 
     override fun node(
       discriminator: MapComponent,
       ifTrue: MapSolver,
       regardless: MapSolver,
-      ifFalse: MapSolver
+      ifFalse: MapSolver,
     ): MapSolver = Node(discriminator, ifTrue, regardless, ifFalse)
 
     override fun top(): MapSolver = Top
+
     override fun bottom(): MapSolver = Bottom
 
     override fun isTriviallyEmpty() = false
 
-    override fun isEmpty() = searchConjunction {
-      when {
-        it.isEmpty() -> continueSearching()
-        else -> stopAndReturn(false)
-      }
-    }.orElse { true }
+    override fun isEmpty() =
+      searchConjunction {
+        when {
+          it.isEmpty() -> continueSearching()
+          else -> stopAndReturn(false)
+        }
+      }.orElse { true }
 
     override fun isFinite() = TODO()
 
@@ -82,11 +87,15 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     // positive-only conjunctions. We could restructure the search to check those before checking any path containing ‘right’.
     override fun <Result : Any> searchConjunction(
       accumulator: Conjunction,
-      consumer: (Conjunction) -> SearchOutcome<Result>
+      consumer: (Conjunction) -> SearchOutcome<Result>,
     ): SearchOutcome<Result> {
       val withTrue = accumulator and discriminator
-      val ifTrueBranch = if (withTrue.isIrreversiblyEmpty()) continueSearching()
-      else ifTrue.searchConjunction(withTrue, consumer)
+      val ifTrueBranch =
+        if (withTrue.isIrreversiblyEmpty()) {
+          continueSearching()
+        } else {
+          ifTrue.searchConjunction(withTrue, consumer)
+        }
 
       return ifTrueBranch
         .elseTry { regardless.searchConjunction(accumulator, consumer) }
@@ -105,28 +114,45 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     override fun isSubsetOf(largerSet: MapSolver) = (this without largerSet).isEmpty()
 
     override val monospaceLayout
-      get() = Monospace.line("∪", 3) {
-        when (ifTrue) {
-          Bottom -> Unit
-          Top -> -discriminator.monospaceLayout.containerWrappedIn("(", ")")
-          else -> -Monospace.line("∩", 2) {
-            -discriminator.monospaceLayout.containerWrappedIn("(", ")")
-            -ifTrue.monospaceLayout.containerWrappedIn("(", ")")
+      get() =
+        Monospace.line("∪", 3) {
+          when (ifTrue) {
+            Bottom -> {
+              Unit
+            }
+
+            Top -> {
+              -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+            }
+
+            else -> {
+              -Monospace.line("∩", 2) {
+                -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+                -ifTrue.monospaceLayout.containerWrappedIn("(", ")")
+              }
+            }
+          }
+          when (regardless) {
+            Bottom -> Unit
+            else -> -regardless.monospaceLayout.containerWrappedIn("(", ")")
+          }
+          when (ifFalse) {
+            Bottom -> {
+              Unit
+            }
+
+            Top -> {
+              -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+            }
+
+            else -> {
+              -Monospace.line("∩", 2) {
+                -discriminator.monospaceLayout.containerWrappedIn("(", ")")
+                -ifFalse.monospaceLayout.containerWrappedIn("(", ")")
+              }
+            }
           }
         }
-        when (regardless) {
-          Bottom -> Unit
-          else -> -regardless.monospaceLayout.containerWrappedIn("(", ")")
-        }
-        when (ifFalse) {
-          Bottom -> Unit
-          Top -> -discriminator.monospaceLayout.containerWrappedIn("(", ")")
-          else -> -Monospace.line("∩", 2) {
-            -discriminator.monospaceLayout.containerWrappedIn("(", ")")
-            -ifFalse.monospaceLayout.containerWrappedIn("(", ")")
-          }
-        }
-      }
 
     override fun toString() = monospaceLayout.renderToString()
   }
@@ -138,7 +164,7 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
 
     override fun <Result : Any> searchConjunction(
       accumulator: Conjunction,
-      consumer: (Conjunction) -> SearchOutcome<Result>
+      consumer: (Conjunction) -> SearchOutcome<Result>,
     ) = consumer(accumulator)
 
     override val monospaceLayout get() = Monospace.atom("AnyMap")
@@ -153,7 +179,7 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
 
     override fun <Result : Any> searchConjunction(
       accumulator: Conjunction,
-      consumer: (Conjunction) -> SearchOutcome<Result>
+      consumer: (Conjunction) -> SearchOutcome<Result>,
     ) = continueSearching<Result>()
 
     override val monospaceLayout get() = Monospace.atom("∅")
@@ -161,11 +187,11 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     override fun toString() = monospaceLayout.renderToString()
   }
 
+  /**
+   * Semantically, these collections are sets. But the invariants of the LazyBdd and this class guarantee that there will be no duplicates.
+   * Hence, we use arrays, which are cheaper to copy.
+   */
   class Conjunction(
-    /*
-     * Semantically, these collections are sets. But the invariants of the LazyBdd and this class guarantee that there will be no duplicates.
-     * Hence, we use arrays, which are cheaper to copy.
-     */
     /**
      * The positive atoms of the conjunction, split such that each component’s key type in disjunct from the key type of any other component.
      */
@@ -177,7 +203,7 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     /**
      * The negative atoms of the conjunction. Their key types may overlap.
      */
-    val negative: List<MapComponent>
+    val negative: List<MapComponent>,
   ) {
     /*
      * trade-off: We currently split the positive components into disjunct keys while walking down the LazyBdd. This allows us to abort
@@ -192,8 +218,12 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       val lastAdded = positiveWithComponent.lastOrNull()
 
       // because positiveWithComponent is disjunct, the last added component is exactly what is new in the key type of component
-      val newUncovered = if (lastAdded != null && lastAdded != positive.lastOrNull()) uncoveredKeys without lastAdded.keys
-      else uncoveredKeys
+      val newUncovered =
+        if (lastAdded != null && lastAdded != positive.lastOrNull()) {
+          uncoveredKeys without lastAdded.keys
+        } else {
+          uncoveredKeys
+        }
 
       return Conjunction(positiveWithComponent, newUncovered, negative)
     }
@@ -209,7 +239,8 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     fun isIrreversiblyEmpty() = positive.isEmpty()
 
     fun anyMember(): Value.Map? {
-      require(!isIrreversiblyEmpty()) { "${::anyMember.name}() called on irreversibly empty conjunction!" } // TODO better method for checking
+      // TODO better method for checking.
+      require(!isIrreversiblyEmpty()) { "${::anyMember.name}() called on irreversibly empty conjunction!" }
       // A member needs to come from `⋃positive ∖ ⋃negative`. We know at this point that ⋃positive is not empty. Since its keys are disjunct,
       // this means they allow at least one member. We check the negative clauses progressively so we can abort the search as soon as we
       // discover that they cancel out each positive member.
@@ -233,7 +264,7 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     }
 
     private fun <R : Any> searchPartition(
-      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: NegativeMapComponents) -> SearchOutcome<R>
+      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: NegativeMapComponents) -> SearchOutcome<R>,
     ): SearchOutcome<R> {
       var outcome: SearchOutcome<R> = notFound()
 
@@ -253,9 +284,9 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       positiveValues: MaybeAbsent,
       negativeMapComponents: NegativeMapComponents,
       negativesIndex: Int,
-      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: NegativeMapComponents) -> SearchOutcome<R>
-    ): SearchOutcome<R> {
-      return if (negativesIndex == negative.size) {
+      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: NegativeMapComponents) -> SearchOutcome<R>,
+    ): SearchOutcome<R> =
+      if (negativesIndex == negative.size) {
         consumer(keys, positiveValues, negativeMapComponents.copy())
       } else {
         val negative = negative[negativesIndex]
@@ -263,17 +294,19 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
         if (negativeKeyOverlap.isEmpty()) {
           searchPartition(keys, positiveValues, negativeMapComponents, negativesIndex + 1, consumer)
         } else {
-          negativeMapComponents.with(negativesIndex) { withNegative ->
-            searchPartition(negativeKeyOverlap, positiveValues, withNegative, negativesIndex + 1, consumer)
-          }.elseTry {
-            val withoutNegativeKeys = keys without negative.keys
-            if (!withoutNegativeKeys.isEmpty()) {
-              searchPartition(withoutNegativeKeys, positiveValues, negativeMapComponents, negativesIndex + 1, consumer)
-            } else notFound()
-          }
+          negativeMapComponents
+            .with(negativesIndex) { withNegative ->
+              searchPartition(negativeKeyOverlap, positiveValues, withNegative, negativesIndex + 1, consumer)
+            }.elseTry {
+              val withoutNegativeKeys = keys without negative.keys
+              if (!withoutNegativeKeys.isEmpty()) {
+                searchPartition(withoutNegativeKeys, positiveValues, negativeMapComponents, negativesIndex + 1, consumer)
+              } else {
+                notFound()
+              }
+            }
         }
       }
-    }
 
     @JvmInline
     internal value class KeyDisjunctMapComponents private constructor(
@@ -283,7 +316,7 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
        *      normalized to this representation.
        *   - `components == []` represents the set containing all maps.
        */
-      private val components: List<MapComponent>
+      private val components: List<MapComponent>,
     ) : Iterable<MapComponent> by components {
       init {
         ::components.checkInvariant("contains no empty key or value types (except MapComponent.empty())") { components ->
@@ -294,40 +327,46 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       operator fun plus(component: MapComponent): KeyDisjunctMapComponents {
         if (component.values.isEmpty()) return empty()
 
-        return KeyDisjunctMapComponents(buildList {
-          var toAdd: MapComponent? = component
+        return KeyDisjunctMapComponents(
+          buildList {
+            var toAdd: MapComponent? = component
 
-          for (preExisting in components) {
-            if (toAdd == null) {
-              add(preExisting)
-              continue
+            for (preExisting in components) {
+              if (toAdd == null) {
+                add(preExisting)
+                continue
+              }
+
+              val keyOverlap = preExisting.keys overlapWith toAdd.keys
+              if (keyOverlap.isEmpty()) {
+                add(preExisting)
+                continue
+              }
+
+              val valueOverlap = preExisting.values overlapWith toAdd.values
+              if (valueOverlap.isEmpty()) {
+                // if any key is required but the effective value type is empty, the whole map type is empty
+                return@plus empty()
+              }
+              add(MapComponent(keyOverlap, valueOverlap))
+
+              val preExistingKeysWithoutOverlap = preExisting.keys without keyOverlap
+              if (!preExistingKeysWithoutOverlap.isEmpty()) {
+                add(preExisting.copy(keys = preExistingKeysWithoutOverlap))
+              }
+
+              val toAddKeysWithoutOverlap = toAdd.keys without keyOverlap
+              toAdd =
+                if (!toAddKeysWithoutOverlap.isEmpty()) {
+                  toAdd.copy(keys = toAddKeysWithoutOverlap)
+                } else {
+                  null
+                }
             }
 
-            val keyOverlap = preExisting.keys overlapWith toAdd.keys
-            if (keyOverlap.isEmpty()) {
-              add(preExisting)
-              continue
-            }
-
-            val valueOverlap = preExisting.values overlapWith toAdd.values
-            if (valueOverlap.isEmpty()) {
-              // if any key is required but the effective value type is empty, the whole map type is empty
-              return@plus empty()
-            }
-            add(MapComponent(keyOverlap, valueOverlap))
-
-            val preExistingKeysWithoutOverlap = preExisting.keys without keyOverlap
-            if (!preExistingKeysWithoutOverlap.isEmpty()) {
-              add(preExisting.copy(keys = preExistingKeysWithoutOverlap))
-            }
-
-            val toAddKeysWithoutOverlap = toAdd.keys without keyOverlap
-            toAdd = if (!toAddKeysWithoutOverlap.isEmpty()) toAdd.copy(keys = toAddKeysWithoutOverlap)
-            else null
-          }
-
-          if (toAdd != null) add(toAdd)
-        })
+            if (toAdd != null) add(toAdd)
+          },
+        )
       }
 
       fun lastOrNull() = components.lastOrNull()
@@ -336,12 +375,15 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
 
       companion object {
         internal fun empty(): KeyDisjunctMapComponents = KeyDisjunctMapComponents(listOf(MapComponent.empty()))
+
         internal fun complete(): KeyDisjunctMapComponents = KeyDisjunctMapComponents(emptyList())
       }
     }
 
-
-    private class NegativeMapComponents(private val contained: BooleanArray, private var _size: Int) {
+    private class NegativeMapComponents(
+      private val contained: BooleanArray,
+      private var _size: Int,
+    ) {
       constructor(maxIndex: Int) : this(BooleanArray(maxIndex), 0)
 
       val size: Int get() = _size
@@ -370,10 +412,14 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
 
       operator fun get(negativeIndex: Int) = contained[negativeIndex]
 
-      inline fun <R> with(negativeIndex: Int, block: (NegativeMapComponents) -> R): R {
+      inline fun <R> with(
+        negativeIndex: Int,
+        block: (NegativeMapComponents) -> R,
+      ): R {
         val previous = this[negativeIndex]
-        return if (previous) block(this)
-        else {
+        return if (previous) {
+          block(this)
+        } else {
           set(negativeIndex)
           block(this)
             .also { unset(negativeIndex) }
@@ -395,48 +441,54 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       }
 
       @IgnorableReturnValue
-      inline fun removeIndexIf(predicate: (Int) -> Boolean): /* removed any? */ Boolean {
+      // TODO clarify whether the return value indicates that an index was removed.
+      inline fun removeIndexIf(predicate: (Int) -> Boolean): Boolean {
         var index = 0
         var retained = 0
         val previousSize = _size
         while (retained < _size) {
           if (contained[index]) {
-            if (predicate(index)) unset(index)
-            else retained += 1
+            if (predicate(index)) {
+              unset(index)
+            } else {
+              retained += 1
+            }
           }
           index += 1
         }
         return previousSize != _size
       }
 
-      fun iterator(negatives: List<MapComponent>): MutableIterator<MapComponent> = object : MutableIterator<MapComponent> {
-        private var index = -1
-        private var returned = 0
+      fun iterator(negatives: List<MapComponent>): MutableIterator<MapComponent> =
+        object : MutableIterator<MapComponent> {
+          private var index = -1
+          private var returned = 0
 
-        override fun hasNext(): Boolean = returned < _size
+          override fun hasNext(): Boolean = returned < _size
 
-        override fun next(): MapComponent {
-          if (!hasNext()) throw NoSuchElementException() // todo better check
-          do {
-            index += 1
-          } while (!contained[index])
-          returned += 1
-          return negatives[index]
+          override fun next(): MapComponent {
+            if (!hasNext()) throw NoSuchElementException() // todo better check
+            do {
+              index += 1
+            } while (!contained[index])
+            returned += 1
+            return negatives[index]
+          }
+
+          override fun remove() {
+            require(index >= 0) { "Cannot remove from iterator that has not been advanced" } // todo better check
+            require(contained[index]) { "Element is already removed" }
+            unset(index)
+            returned -= 1
+          }
         }
-
-        override fun remove() {
-          require(index >= 0) { "Cannot remove from iterator that has not been advanced" } // todo better check
-          require(contained[index]) { "Element is already removed" }
-          unset(index)
-          returned -= 1
-        }
-      }
     }
 
     private operator fun NegativeMapComponents.iterator(): MutableIterator<MapComponent> = iterator(this@Conjunction.negative)
 
     @IgnorableReturnValue
-    private inline fun NegativeMapComponents.removeIf(predicate: (MapComponent) -> Boolean): /* removed any?*/ Boolean {
+    // TODO clarify whether the return value indicates a removal.
+    private inline fun NegativeMapComponents.removeIf(predicate: (MapComponent) -> Boolean): Boolean {
       val negativeIt = iterator()
       val previousSize = size
       while (negativeIt.hasNext()) {
@@ -451,11 +503,13 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       // candidatesPerNegative[index] == null iff satisfied[index] == true
       private val candidatesPerNegative: Array<MutableSet<Int>?> = Array(negative.size) { HashSet() },
       private val candidates: MutableList<Partition?> = mutableListOf(),
-      private var toSatisfy: Int = negative.size
+      private var toSatisfy: Int = negative.size,
     ) {
-
-
-      fun addCandidate(keys: SolvableSet, positiveValues: MaybeAbsent, satisfiableNegatives: NegativeMapComponents): PropagationOutcome {
+      fun addCandidate(
+        keys: SolvableSet,
+        positiveValues: MaybeAbsent,
+        satisfiableNegatives: NegativeMapComponents,
+      ): PropagationOutcome {
         satisfiableNegatives.removeIndexIf(this::isSatisfied)
         satisfiableNegatives.removeIf {
           // The negative forbids every positive value of this partition -> we will not be able to satisfy the negative in this partition
@@ -485,9 +539,14 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
         for ((negative, candidates) in candidatesPerNegative.withIndex()) {
           if (candidates == null) continue
           when (candidates.size) {
-            0 -> return false
-            1 -> satisfyUsing(negative, candidates.single())
-              .ifDecided { return it.isDefinitelySatisfiable() }
+            0 -> {
+              return false
+            }
+
+            1 -> {
+              satisfyUsing(negative, candidates.single())
+                .ifDecided { return it.isDefinitelySatisfiable() }
+            }
           }
         }
 
@@ -506,14 +565,18 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
 
         for (candidateIndex in candidates) {
           val copy = copy()
-          copy.satisfyUsing(negative, candidateIndex)
+          copy
+            .satisfyUsing(negative, candidateIndex)
             .ifDecided { if (it.isDefinitelySatisfiable()) return true else continue }
           if (copy.canSatisfyAll()) return true
         }
         return false
       }
 
-      private fun satisfyUsing(negative: Int, candidateIndex: Int): PropagationOutcome {
+      private fun satisfyUsing(
+        negative: Int,
+        candidateIndex: Int,
+      ): PropagationOutcome {
         val candidate = candidates[candidateIndex]!!
         // TODO check invariant: negative is satisfiable by candidate
         candidate.remainingKeys -= 1
@@ -538,7 +601,6 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
             candidatesPerNegative[negative]!!.add(remainderCandidateIndex)
           }
         }
-
 
         if (candidate.remainingKeys == 0) {
           // we check if any negative becomes unsatisfiable in this call, hence we must only do it after we have added the potential
@@ -595,25 +657,34 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
           // this set cannot be null because at least candidate was in it
           val otherCandidates = candidatesPerNegative[negative]!!
           when (otherCandidates.size) {
-            0 -> return definitelyUnsatisfiable()
+            0 -> {
+              return definitelyUnsatisfiable()
+            }
 
-            1 -> // this negative can only be satisfied by one candidate. So we can eagerly mark that.
+            1 -> {
+              // this negative can only be satisfied by one candidate. So we can eagerly mark that.
               satisfyUsing(negative, otherCandidates.single())
                 .ifDecided { return it }
+            }
           }
         }
         return moreToSatisfy()
       }
 
       fun copy() =
-        NegativesSatisfier(Array(this.candidatesPerNegative.size) {
-          candidatesPerNegative[it]?.let(::HashSet)
-        }, MutableList(candidates.size) { candidates[it]?.copy() }, toSatisfy)
+        NegativesSatisfier(
+          Array(this.candidatesPerNegative.size) {
+            candidatesPerNegative[it]?.let(::HashSet)
+          },
+          MutableList(candidates.size) { candidates[it]?.copy() },
+          toSatisfy,
+        )
 
       private fun isSatisfied(negativeIndex: Int) = candidatesPerNegative[negativeIndex] == null
-      fun allNegativesSatisfied() = toSatisfy == 0
-      fun anyNegativeUnsatisfiable() = candidatesPerNegative.any { it != null && it.isEmpty() }
 
+      fun allNegativesSatisfied() = toSatisfy == 0
+
+      fun anyNegativeUnsatisfiable() = candidatesPerNegative.any { it != null && it.isEmpty() }
     }
 
     private class Partition(
@@ -633,9 +704,8 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       // 0 -> undecided
       // 1 -> unsatisfiable
       // 2 -> satisfiable
-      private val state: Byte
+      private val state: Byte,
     ) {
-
       inline fun ifDecided(consumer: (outcome: PropagationOutcome) -> Unit) {
         contract {
           callsInPlace(consumer, AT_MOST_ONCE)
@@ -647,35 +717,43 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
     }
 
     private fun definitelySatisfiable() = PropagationOutcome(2)
+
     private fun definitelyUnsatisfiable() = PropagationOutcome(1)
+
     private fun moreToSatisfy() = PropagationOutcome(0)
 
     companion object {
-      private val empty = Conjunction(
-        positive = KeyDisjunctMapComponents.empty(),
-        uncoveredKeys = PartitionedTypeUnion.empty(),
-        negative = emptyList()
-      )
-      private val complete = Conjunction(
-        positive = KeyDisjunctMapComponents.complete(),
-        uncoveredKeys = PartitionedTypeUnion.complete(),
-        negative = emptyList()
-      )
+      private val empty =
+        Conjunction(
+          positive = KeyDisjunctMapComponents.empty(),
+          uncoveredKeys = PartitionedTypeUnion.empty(),
+          negative = emptyList(),
+        )
+      private val complete =
+        Conjunction(
+          positive = KeyDisjunctMapComponents.complete(),
+          uncoveredKeys = PartitionedTypeUnion.complete(),
+          negative = emptyList(),
+        )
 
       internal fun empty() = empty
+
       internal fun complete() = complete
     }
   }
 
   companion object {
     internal fun empty(): MapSolver = Bottom
+
     internal fun complete(): MapSolver = Top
-    internal fun just(component: MapComponent): MapSolver = Node(
-      discriminator = component,
-      ifTrue = Top,
-      regardless = Bottom,
-      ifFalse = Bottom
-    )
+
+    internal fun just(component: MapComponent): MapSolver =
+      Node(
+        discriminator = component,
+        ifTrue = Top,
+        regardless = Bottom,
+        ifFalse = Bottom,
+      )
 
     internal fun just(value: Value.Map): MapSolver {
       var remainingKeys = PartitionedTypeUnion.complete()
@@ -694,15 +772,22 @@ internal sealed interface MapSolver : LazyBdd<Value.Map, MapComponent, MapSolver
       components.fold(complete()) { acc, component -> acc overlapWith just(component) }
 
     private fun <T : Any> stopAndReturn(value: T): SearchOutcome<T> = SearchOutcome(value)
+
     private fun <T : Any> continueSearching(): SearchOutcome<T> = SearchOutcome(null)
+
     private fun <T : Any> notFound(): SearchOutcome<T> = SearchOutcome(null)
   }
 
   @JvmInline
-  value class SearchOutcome<T : Any>(val result: T?) {
+  value class SearchOutcome<T : Any>(
+    val result: T?,
+  ) {
     inline fun elseTry(block: () -> SearchOutcome<T>): SearchOutcome<T> = result?.let { SearchOutcome(it) } ?: block()
+
     inline fun orElse(fallback: () -> T): T = result ?: fallback()
+
     fun orElseNull(): T? = result
+
     fun isFound(): Boolean = result != null
   }
 }

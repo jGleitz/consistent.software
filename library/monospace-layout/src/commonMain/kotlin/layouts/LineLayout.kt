@@ -8,7 +8,7 @@ import software.consistent.data.formatting.monospacelayout.Separator
 
 internal class LineLayout(
   private val items: List<InternalMonospaceLayout>,
-  private val separator: Separator
+  private val separator: Separator,
 ) : InternalMonospaceLayout {
   override val isContainer get() = true
 

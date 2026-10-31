@@ -24,15 +24,6 @@ spotless {
   // during configuration, so any change to `PATH` (for example IDE versus terminal) would discard the configuration cache.
   lineEndings = LineEnding.UNIX
 
-  if (project.hasKotlin) {
-    kotlin {
-      from(projectDir.resolve("src")) {
-        include("**/*.kt")
-      }
-      ktlint(klintVersion)
-    }
-  }
-
   kotlinGradle {
     from(projectDir) {
       include("**/*.gradle.kts")
@@ -91,6 +82,17 @@ spotless {
   }
 }
 
+pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
+  spotless {
+    kotlin {
+      from(projectDir.resolve("src")) {
+        include("**/*.kt")
+      }
+      ktlint(klintVersion)
+    }
+  }
+}
+
 val format =
   tasks.register("format") {
     dependsOn("spotlessApply")
@@ -104,8 +106,6 @@ val lint =
 tasks.named("check") {
   dependsOn(lint)
 }
-
-val Project.hasKotlin: Boolean get() = plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")
 
 fun ConfigurableFileTree.excludeSubprojects(): ConfigurableFileTree =
   apply {

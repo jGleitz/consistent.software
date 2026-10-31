@@ -13,8 +13,12 @@ public sealed interface Just : Type {
   }
 }
 
-private class JustImpl(override val value: Value) : Just, WithMonospaceLayout,
+private class JustImpl(
+  override val value: Value,
+) : Just,
+  WithMonospaceLayout,
   Queryable by UsingSolver(Solvers.just(value)) {
   override val monospaceLayout get() = value.monospaceLayout
+
   override fun toString() = monospaceLayout.renderToString()
 }

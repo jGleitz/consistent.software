@@ -7,9 +7,11 @@ import io.kotest.property.arbitrary.edgecase
 
 /**
  * Implementation of [io.kotest.property.arbitrary.choice] that doesn’t discard shrinks.
+ * TODO contribute the fix upstream and remove this implementation.
  */
-// TODO contribute fix upstream and remove from here
-internal class Choice<A>(private val arbs: List<Arb<A>>) : Arb<A>() {
+internal class Choice<A>(
+  private val arbs: List<Arb<A>>,
+) : Arb<A>() {
   constructor(vararg arbs: Arb<A>) : this(arbs.toList())
 
   override fun edgecase(rs: RandomSource) = arbs.edgecase(rs)

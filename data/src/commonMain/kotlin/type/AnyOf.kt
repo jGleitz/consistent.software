@@ -14,14 +14,18 @@ public sealed interface AnyOf : Type {
   }
 }
 
-private class AnyOfImpl(override val types: List<Type>) : AnyOf, WithMonospaceLayout,
+private class AnyOfImpl(
+  override val types: List<Type>,
+) : AnyOf,
+  WithMonospaceLayout,
   Queryable by UsingSolver(types.fold(Solvers.nothing()) { solver, type -> solver with type.solver }) {
   override fun or(other: Type): Type = AnyOf(types + other)
 
   override val monospaceLayout
-    get() = Monospace.line(separator = "|") {
-      types.map { it.monospaceLayout }
-    }
+    get() =
+      Monospace.line(separator = "|") {
+        types.map { it.monospaceLayout }
+      }
 
   override fun toString() = monospaceLayout.renderToString()
 }
