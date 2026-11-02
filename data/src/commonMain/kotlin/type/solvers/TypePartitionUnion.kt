@@ -19,6 +19,7 @@ internal data class TypePartitionUnion(
 
   override fun isEmpty() = symbols.isEmpty() && numbers.isEmpty() && maps.isEmpty()
   override fun isTriviallyEmpty() = symbols.isTriviallyEmpty() && numbers.isTriviallyEmpty() && maps.isTriviallyEmpty()
+  override fun isTriviallyNotEmpty() = symbols.isTriviallyNotEmpty() || numbers.isTriviallyNotEmpty() || maps.isTriviallyNotEmpty()
   override fun isComplete() = symbols.isComplete() && numbers.isComplete() && maps.isComplete()
   override fun isTriviallyComplete() = symbols.isTriviallyComplete() && numbers.isTriviallyComplete() && maps.isTriviallyComplete()
   override fun isFinite() = symbols.isFinite() && numbers.isFinite() && maps.isFinite()

@@ -21,26 +21,34 @@ internal interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TVal
   fun isEmpty(): Boolean
 
   /**
-   * Whether the fact that this set is empty can be determined trivially by looking at its syntactic structure. If this method returns
-   * `true`, then the set is definitely empty. If it returns `false`, [isEmpty] might still return `true`.
+   * Whether this set can trivially be determined to be empty. If this method returns `true`, then [isEmpty] definitely returns `true`.
+   * If it returns `false`, the set might still be empty.
    *
    * Implementations must run in O(1).
    */
   fun isTriviallyEmpty(): Boolean
 
+  /**
+   * Whether this set can trivially be determined to contain at least one value. If this method returns `true`, then [isEmpty]
+   * definitely returns `false`. If it returns `false`, the set might still contain values.
+   *
+   * Implementations must run in O(1).
+   */
+  fun isTriviallyNotEmpty(): Boolean
+
   fun isComplete(): Boolean
 
   /**
-   * Whether the fact that this set is complete can be determined trivially by looking at its syntactic structure. If this method returns
-   * `true`, then the set is definitely complete. If it returns `false`, [isComplete] might still return `true`.
+   * Whether this set can trivially be determined to be complete. If this method returns `true`, then [isComplete] definitely returns
+   * `true`. If it returns `false`, the set might still be complete.
    *
    * Implementations must run in O(1).
    */
   fun isTriviallyComplete(): Boolean
 
   /**
-   * Whether the fact that this set equals [otherSet] can be determined trivially by looking at its syntactic structure. If this method
-   * returns `true`, then the sets are definitely equal. If it returns `false`, [equals] might still return `true`.
+   * Whether this set can trivially be determined to contain exactly the same values as [otherSet]. If this method returns `true`,
+   * then the sets definitely contain the same values. If it returns `false`, the sets might still contain the same values.
    *
    * Implementations must run in O(n), where `n` is a reasonable measure of `this`’s syntactic size.
    */

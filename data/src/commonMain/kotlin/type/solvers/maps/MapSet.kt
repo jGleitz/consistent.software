@@ -19,10 +19,12 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
    * conjunction (if any) will be materialized and [consumer] will be called again for it. Else, if the [consumer] returns [stopAndReturn],
    * this method will return it, and the remaining conjunctions (if any) will be ignored.
    *
-   * If this map type is empty, [consumer] will never be called and this method will return [notFound]. That also means that any
+   * If this map type is empty, [consumer] will never be called and this method will return
+   * [notFound][software.consistent.data.type.solvers.maps.SearchOutcome.Companion.notFound]. That also means that any
    * [MapComponentConjunction] passed to [consumer] will have at least one [MapComponentConjunction.positive] component.
    *
-   * @return the last value [consumer] returned, or [notFound] if the [consumer] was never called.
+   * @return the last value [consumer] returned, or [notFound][software.consistent.data.type.solvers.maps.SearchOutcome.Companion.notFound]
+   * if the [consumer] was never called.
    */
   fun <Result : Any> searchConjunction(consumer: (MapComponentConjunction) -> SearchOutcome<Result>): SearchOutcome<Result> =
     searchConjunction(MapComponentConjunction.complete(), consumer)
@@ -70,6 +72,7 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
     }.orElse { true }
 
     override fun isTriviallyEmpty() = false
+    override fun isTriviallyNotEmpty() = false
     override fun isFinite() = TODO()
     override fun isComplete() = (!this).isEmpty()
     override fun isTriviallyComplete() = false
@@ -193,13 +196,6 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
   companion object {
     internal fun empty(): MapSet = Bottom
     internal fun complete(): MapSet = Top
-
-    internal fun justNot(component: MapComponent): MapSet = node(
-      discriminator = component,
-      ifTrue = Bottom,
-      regardless = Bottom,
-      ifFalse = Top
-    )
 
     internal fun node(
       discriminator: MapComponent,

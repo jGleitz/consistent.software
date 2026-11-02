@@ -15,6 +15,7 @@ internal data class MaybeAbsent(
 ) : NormalizationComparable<MaybeAbsent>, WithMonospaceLayout {
   fun isEmpty() = !includesAbsent && values.isEmpty()
   fun isTriviallyEmpty() = !includesAbsent && values.isTriviallyEmpty()
+  fun isTriviallyNotEmpty() = includesAbsent || values.isTriviallyNotEmpty()
 
   fun isComplete() = includesAbsent && values.isComplete()
   fun isTriviallyComplete() = includesAbsent && values.isTriviallyComplete()

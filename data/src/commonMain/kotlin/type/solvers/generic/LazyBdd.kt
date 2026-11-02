@@ -128,6 +128,7 @@ internal sealed interface LazyBdd<TValue, Atom : ClosedSolvableSet<TValue, in At
     override fun contains(value: TValue) = true
     override fun isEmpty() = false
     override fun isTriviallyEmpty() = false
+    override fun isTriviallyNotEmpty() = true
     override fun isComplete() = true
     override fun isTriviallyComplete() = true
     override fun isFinite() = false
@@ -152,6 +153,7 @@ internal sealed interface LazyBdd<TValue, Atom : ClosedSolvableSet<TValue, in At
     override fun contains(value: TValue) = false
     override fun isEmpty() = true
     override fun isTriviallyEmpty() = true
+    override fun isTriviallyNotEmpty() = false
     override fun isComplete() = false
     override fun isTriviallyComplete() = false
     override fun isFinite() = true

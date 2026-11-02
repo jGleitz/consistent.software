@@ -88,7 +88,7 @@ private constructor(
   private fun isClosed() = !leftOpen && !rightOpen
   override fun isTriviallyEmpty() = isEmpty()
   override fun isEmpty() = orderedBoundaries.isEmpty() && isClosed()
-  fun isTriviallyNotEmpty() = orderedBoundaries.isNotEmpty() || leftOpen || rightOpen
+  override fun isTriviallyNotEmpty() = orderedBoundaries.isNotEmpty() || leftOpen || rightOpen
   override fun isTriviallyComplete() = isComplete()
   override fun isComplete() = orderedBoundaries.isEmpty() && !isClosed()
 

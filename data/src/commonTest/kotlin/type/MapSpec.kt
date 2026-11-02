@@ -123,8 +123,9 @@ class MapSpec : DescribeSpec({
         }
 
         it("ignores components with an empty key type") {
-          expect(mapType(listOf(required(noValues to noValues), optional(noValues to AnyNumber()))))
-            .toAllow(Value.Map())
+          val type = mapType(listOf(required(noValues to noValues), optional(noValues to AnyNumber())))
+          expect(type).toAllow(Value.Map()).toBeSubtypeOf(mapType(emptyList()))
+          expect(mapType(emptyList())).toBeSubtypeOf(type)
         }
 
         it("supports numbers as keys") {

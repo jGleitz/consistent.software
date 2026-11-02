@@ -20,6 +20,7 @@ internal sealed interface EnumeratedValues<TValue : Value> : ClosedSolvableSet<T
     override fun isFinite() = true
     override fun isEmpty() = orderedMembers.isEmpty()
     override fun isTriviallyEmpty() = isEmpty()
+    override fun isTriviallyNotEmpty() = orderedMembers.isNotEmpty()
     override fun isComplete() = false
     override fun isTriviallyComplete() = false
 
@@ -81,6 +82,7 @@ internal sealed interface EnumeratedValues<TValue : Value> : ClosedSolvableSet<T
     override fun contains(value: TValue) = value !in orderedMembers
     override fun isEmpty() = false
     override fun isTriviallyEmpty() = false
+    override fun isTriviallyNotEmpty() = true
     override fun isComplete() = orderedMembers.isEmpty()
     override fun isTriviallyComplete() = isComplete()
     override fun isFinite() = false

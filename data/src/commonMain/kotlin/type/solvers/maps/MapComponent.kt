@@ -91,8 +91,9 @@ internal class MapComponent(
     (this.keys normalizationComparedTo other.keys)
       .ifEqual { this.values normalizationComparedTo other.values }
 
-  override fun isEmpty() = values.isEmpty()
-  override fun isTriviallyEmpty() = values.isTriviallyEmpty()
+  override fun isEmpty() = values.isEmpty() && !keys.isEmpty()
+  override fun isTriviallyEmpty() = values.isTriviallyEmpty() && keys.isTriviallyNotEmpty()
+  override fun isTriviallyNotEmpty() = keys.isTriviallyEmpty() || values.isTriviallyNotEmpty()
   override fun isComplete() = values.isComplete() || keys.isEmpty()
   override fun isTriviallyComplete() = values.isTriviallyComplete() || keys.isTriviallyEmpty()
 
