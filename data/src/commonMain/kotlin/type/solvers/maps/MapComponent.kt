@@ -5,6 +5,7 @@ import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.type.solvers.*
 import software.consistent.data.type.solvers.Cardinality.Companion.exactly
 import software.consistent.data.type.solvers.Cardinality.Companion.moreThanIntMaxValue
+import software.consistent.data.type.solvers.generic.LazyBdd
 import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.continueSearching
 import software.consistent.data.value.Value
 

@@ -2,6 +2,7 @@ package software.consistent.data.type.solvers
 
 import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.type.solvers.generic.EnumeratedValues
 import software.consistent.data.type.solvers.maps.MapSet
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.value.Value

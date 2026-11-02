@@ -1,6 +1,7 @@
-package software.consistent.data.type.solvers
+package software.consistent.data.type.solvers.generic
 
 import software.consistent.data.formatting.monospacelayout.Monospace
+import software.consistent.data.type.solvers.*
 import software.consistent.data.type.solvers.Cardinality.Companion.exactly
 import software.consistent.data.type.solvers.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.util.ComparisonCase

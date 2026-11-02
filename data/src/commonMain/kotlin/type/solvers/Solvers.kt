@@ -1,5 +1,6 @@
 package software.consistent.data.type.solvers
 
+import software.consistent.data.type.solvers.generic.EnumeratedValues
 import software.consistent.data.type.solvers.maps.MapSet
 import software.consistent.data.value.Value
 

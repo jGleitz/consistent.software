@@ -2,6 +2,8 @@ package software.consistent.data.type.solvers.maps
 
 import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.type.solvers.*
+import software.consistent.data.type.solvers.generic.BddRepresented
+import software.consistent.data.type.solvers.generic.LazyBdd
 import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.continueSearching
 import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.stopAndReturn
 import software.consistent.data.util.ComparisonCase.*
