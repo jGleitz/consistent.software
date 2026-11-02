@@ -338,7 +338,7 @@ internal class MapComponentConjunction(
         // This unregistered set stays unchanged during the loop.
         satisfiableNegatives.forEachIndex { negative ->
           markSatisfied(negative)
-            .ifDecided { return it }
+            .ifDecided { decision -> return decision }
         }
       } else {
         addCandidate(Partition(keys, positiveValues, satisfiableNegatives, keyCardinality.exactValue))
@@ -382,7 +382,7 @@ internal class MapComponentConjunction(
     }
 
     private fun markSatisfied(negative: Int): PropagationOutcome {
-      val affectedCandidates = candidatesPerNegative[negative] ?: return moreToSatisfy()
+      val affectedCandidates: Set<Int> = candidatesPerNegative[negative] ?: return moreToSatisfy()
       candidatesPerNegative[negative] = null
       toSatisfy -= 1
       // Success is terminal: skip the remaining updates and, in satisfyUsing, potentially expensive type operations.
@@ -412,7 +412,7 @@ internal class MapComponentConjunction(
       // TODO check invariant: negative is satisfiable by candidate.
       candidate.remainingKeys -= 1
       markSatisfied(negative)
-        .ifDecided { return it }
+        .ifDecided { decision -> return decision }
 
       // The key we used to satisfy the negative might also satisfy another negative. If that is possible, we need to add
       // a candidate for this possibility, with its values restricted by the negative we have already satisfied.
@@ -433,10 +433,16 @@ internal class MapComponentConjunction(
       return moreToSatisfy()
     }
 
+    // potential optimisation: initially and every time we make a change, we can check for candidates whose positive type and whose set
+    // of satisfiable negatives are both equal. We can merge those candidates, creating a larger key type that may satisfy obligations
+    // trivially no or in the future.
+
     private fun propagateDecisions(): PropagationOutcome {
       while (candidatesToCheckForTriviallySatisfyingAll.isNotEmpty() || negativesToCheckForRemainingCandidates.isNotEmpty()) {
-        propagateCandidates().ifDecided { return it }
-        propagateNegatives().ifDecided { return it }
+        propagateCandidates()
+          .ifDecided { decision -> return decision }
+        propagateNegatives()
+          .ifDecided { decision -> return decision }
       }
       return moreToSatisfy()
     }
@@ -449,7 +455,7 @@ internal class MapComponentConjunction(
           removeCandidate(index)
           candidate.satisfiableNegatives.forEachIndex { negative ->
             markSatisfied(negative)
-              .ifDecided { return it }
+              .ifDecided { decision -> return decision }
           }
         }
       }
@@ -470,7 +476,7 @@ internal class MapComponentConjunction(
           // All partitions are known, and this negative can only be satisfied by one candidate. It must take this
           // obligation, so we can make the choice eagerly without branching.
           1 -> satisfyUsing(negative, remainingCandidates.single())
-            .ifDecided { return it }
+            .ifDecided { decision -> return decision }
         }
       }
       return moreToSatisfy()

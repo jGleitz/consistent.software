@@ -2,6 +2,8 @@ package software.consistent.data.type
 
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.datatest.withData
+import io.kotest.datatest.withDescribes
 import software.consistent.data.type.Map.Component.Companion.optional
 import software.consistent.data.type.Map.Component.Companion.required
 import software.consistent.data.value.Value
@@ -16,132 +18,174 @@ class MapSpec : DescribeSpec({
     val noValues = AnySymbol() and AnyNumber()
 
     // Components have the same meaning in open and closed maps; only uncovered keys differ.
-    val constructors: List<Pair<String, (List<Map.Component>) -> Type>> = listOf(
-      "Open" to Map.Open::invoke,
-      "Closed" to Map.Closed::invoke
-    )
 
-    for ((name, mapType) in constructors) {
-      describe(name) {
-        it("contains no scalar values") {
-          expect(mapType(emptyList())).toForbid(a).toForbid(one)
+    withDescribes(
+      mapOf<String, (List<Map.Component>) -> Type>(
+        "Open" to Map.Open::invoke,
+        "Closed" to Map.Closed::invoke
+      )
+    ) { mapType ->
+      it("contains no scalar values") {
+        expect(mapType(emptyList())).toForbid(a).toForbid(one)
+      }
+
+      describe("a required key") {
+        val type = mapType(listOf(required(Just(a) to AnyNumber())))
+
+        it("accepts a matching value") {
+          expect(type).toAllow(Value.Map(a to one))
         }
 
-        describe("a required key") {
-          val type = mapType(listOf(required(Just(a) to AnyNumber())))
+        it("rejects a missing key") {
+          expect(type).toForbid(Value.Map())
+        }
 
-          it("accepts a matching value") {
-            expect(type).toAllow(Value.Map(a to one))
+        it("rejects a value of the wrong type") {
+          expect(type).toForbid(Value.Map(a to b))
+        }
+      }
+
+      describe("an optional key") {
+        val type = mapType(listOf(optional(Just(a) to AnyNumber())))
+
+        it("accepts an absent key") {
+          expect(type).toAllow(Value.Map())
+        }
+
+        it("accepts a matching value") {
+          expect(type).toAllow(Value.Map(a to one))
+        }
+
+        it("rejects a present value of the wrong type") {
+          expect(type).toForbid(Value.Map(a to b))
+        }
+      }
+
+      it("requires every key in a union of required keys") {
+        expect(mapType(listOf(required((Just(a) or Just(b)) to AnyNumber()))))
+          .toForbid(Value.Map())
+          .toForbid(Value.Map(a to one))
+          .toForbid(Value.Map(b to two))
+          .toAllow(Value.Map(a to one, b to two))
+          .toForbid(Value.Map(a to c, b to two))
+          .toForbid(Value.Map(a to one, b to c))
+      }
+
+      it("allows any subset of a union of optional keys") {
+        expect(mapType(listOf(optional((Just(a) or Just(b)) to AnyNumber()))))
+          .toAllow(Value.Map())
+          .toAllow(Value.Map(a to one))
+          .toAllow(Value.Map(b to two))
+          .toAllow(Value.Map(a to one, b to two))
+          .toForbid(Value.Map(a to one, b to c))
+      }
+
+      it("combines independent required and optional components") {
+        expect(mapType(listOf(required(Just(a) to AnyNumber()), optional(Just(b) to AnySymbol()))))
+          .toAllow(Value.Map(a to one))
+          .toAllow(Value.Map(a to one, b to c))
+          .toForbid(Value.Map(b to c))
+          .toForbid(Value.Map(a to one, b to two))
+      }
+
+      it("intersects the value types of overlapping components") {
+        expect(mapType(listOf(optional((Just(a) or Just(b)) to AnyNumber()), required(Just(a) to Just(one)))))
+          .toAllow(Value.Map(a to one))
+          .toAllow(Value.Map(a to one, b to two))
+          .toForbid(Value.Map())
+          .toForbid(Value.Map(b to two))
+          .toForbid(Value.Map(a to two))
+          .toForbid(Value.Map(a to one, b to c))
+      }
+
+      describe("a key constrained by two components") {
+        val d = Value.Symbol("d")
+        val three = Value.Number(3)
+        // b is the only key that both components constrain.
+        val firstKeys = Just(b) or Just(c)
+        val secondKeys = Just(b) or Just(d)
+        val oneOrTwo = Just(one) or Just(two)
+        val twoOrThree = Just(two) or Just(three)
+
+        // A component for the unrelated key a must not change the result, even if it has the same value type as one of the
+        // other components.
+        withData(mapOf(
+          "without another key" to (emptyList<Map.Component>() to emptyList()),
+          "with another key of the first value type" to
+            (listOf(required(Just(a) to oneOrTwo)) to listOf(required(Just(a) to Just(two)))),
+          "with another key of the second value type" to
+            (listOf(required(Just(a) to twoOrThree)) to listOf(required(Just(a) to Just(one)))),
+        )) { (overlappingOthers, disjointOthers) ->
+          it("accepts only values that both components allow") {
+            val type = mapType(overlappingOthers + required(firstKeys to oneOrTwo) + required(secondKeys to twoOrThree))
+            val otherEntries = if (overlappingOthers.isEmpty()) emptyList() else listOf(a to two)
+
+            expect(type).toAllow(Value.Map(otherEntries + listOf(b to two, c to one, d to three)))
+            expect(type).toBeSubtypeOf(Map.Open(required(Just(b) to Just(two))))
           }
 
-          it("rejects a missing key") {
-            expect(type).toForbid(Value.Map())
-          }
-
-          it("rejects a value of the wrong type") {
-            expect(type).toForbid(Value.Map(a to b))
+          it("has no members if the components allow no common value") {
+            expect(mapType(disjointOthers + required(firstKeys to Just(two)) + required(secondKeys to Just(one)))).toBeSubtypeOf(noValues)
           }
         }
+      }
 
-        describe("an optional key") {
-          val type = mapType(listOf(optional(Just(a) to AnyNumber())))
+      describe("required keys") {
+        val components = listOf(required(Just(a) to Just(one)), required(Just(b) to Just(two)), required(Just(c) to Just(one)))
+        val type = mapType(components)
 
-          it("accepts an absent key") {
-            expect(type).toAllow(Value.Map())
-          }
-
-          it("accepts a matching value") {
-            expect(type).toAllow(Value.Map(a to one))
-          }
-
-          it("rejects a present value of the wrong type") {
-            expect(type).toForbid(Value.Map(a to b))
+        withData(components.associateBy { it.toString() }) { component ->
+          it("allows no other values at its required keys") {
+            expect(type).toBeSubtypeOf(Map.Open(optional(component.key to component.value)))
           }
         }
+      }
 
-        it("requires every key in a union of required keys") {
-          expect(mapType(listOf(required((Just(a) or Just(b)) to AnyNumber()))))
-            .toForbid(Value.Map())
-            .toForbid(Value.Map(a to one))
-            .toForbid(Value.Map(b to two))
-            .toAllow(Value.Map(a to one, b to two))
-            .toForbid(Value.Map(a to c, b to two))
-            .toForbid(Value.Map(a to one, b to c))
-        }
+      it("forbids an optional key whose value constraints are disjoint") {
+        expect(mapType(listOf(optional(Just(a) to AnyNumber()), optional(Just(a) to AnySymbol()))))
+          .toAllow(Value.Map())
+          .toForbid(Value.Map(a to one))
+          .toForbid(Value.Map(a to b))
+      }
 
-        it("allows any subset of a union of optional keys") {
-          expect(mapType(listOf(optional((Just(a) or Just(b)) to AnyNumber()))))
-            .toAllow(Value.Map())
-            .toAllow(Value.Map(a to one))
-            .toAllow(Value.Map(b to two))
-            .toAllow(Value.Map(a to one, b to two))
-            .toForbid(Value.Map(a to one, b to c))
-        }
+      it("has no members when a required key has disjoint value constraints") {
+        val type = mapType(listOf(required(Just(a) to AnyNumber()), optional(Just(a) to AnySymbol())))
+        expect(type)
+          .toForbid(Value.Map())
+          .toForbid(Value.Map(a to one))
+          .toForbid(Value.Map(a to b))
+        expect(type).toBeSubtypeOf(noValues)
+      }
 
-        it("combines independent required and optional components") {
-          expect(mapType(listOf(required(Just(a) to AnyNumber()), optional(Just(b) to AnySymbol()))))
-            .toAllow(Value.Map(a to one))
-            .toAllow(Value.Map(a to one, b to c))
-            .toForbid(Value.Map(b to c))
-            .toForbid(Value.Map(a to one, b to two))
-        }
+      it("forbids an optional key with an empty value type") {
+        expect(mapType(listOf(optional(Just(a) to noValues))))
+          .toAllow(Value.Map())
+          .toForbid(Value.Map(a to one))
+      }
 
-        it("intersects the value types of overlapping components") {
-          expect(mapType(listOf(optional((Just(a) or Just(b)) to AnyNumber()), required(Just(a) to Just(one)))))
-            .toAllow(Value.Map(a to one))
-            .toAllow(Value.Map(a to one, b to two))
-            .toForbid(Value.Map())
-            .toForbid(Value.Map(b to two))
-            .toForbid(Value.Map(a to two))
-            .toForbid(Value.Map(a to one, b to c))
-        }
+      it("has no members when a required key has an empty value type") {
+        expect(mapType(listOf(required(Just(a) to noValues)))).toBeSubtypeOf(noValues)
+      }
 
-        it("forbids an optional key whose value constraints are disjoint") {
-          expect(mapType(listOf(optional(Just(a) to AnyNumber()), optional(Just(a) to AnySymbol()))))
-            .toAllow(Value.Map())
-            .toForbid(Value.Map(a to one))
-            .toForbid(Value.Map(a to b))
-        }
+      it("ignores components with an empty key type") {
+        val type = mapType(listOf(required(noValues to noValues), optional(noValues to AnyNumber())))
+        expect(type).toAllow(Value.Map()).toBeSubtypeOf(mapType(emptyList()))
+        expect(mapType(emptyList())).toBeSubtypeOf(type)
+      }
 
-        it("has no members when a required key has disjoint value constraints") {
-          val type = mapType(listOf(required(Just(a) to AnyNumber()), optional(Just(a) to AnySymbol())))
-          expect(type)
-            .toForbid(Value.Map())
-            .toForbid(Value.Map(a to one))
-            .toForbid(Value.Map(a to b))
-          expect(type).toBeSubtypeOf(noValues)
-        }
+      it("supports numbers as keys") {
+        expect(mapType(listOf(required(Just(one) to AnySymbol()))))
+          .toAllow(Value.Map(one to a))
+          .toForbid(Value.Map())
+          .toForbid(Value.Map(one to two))
+      }
 
-        it("forbids an optional key with an empty value type") {
-          expect(mapType(listOf(optional(Just(a) to noValues))))
-            .toAllow(Value.Map())
-            .toForbid(Value.Map(a to one))
-        }
-
-        it("has no members when a required key has an empty value type") {
-          expect(mapType(listOf(required(Just(a) to noValues)))).toBeSubtypeOf(noValues)
-        }
-
-        it("ignores components with an empty key type") {
-          val type = mapType(listOf(required(noValues to noValues), optional(noValues to AnyNumber())))
-          expect(type).toAllow(Value.Map()).toBeSubtypeOf(mapType(emptyList()))
-          expect(mapType(emptyList())).toBeSubtypeOf(type)
-        }
-
-        it("supports numbers as keys") {
-          expect(mapType(listOf(required(Just(one) to AnySymbol()))))
-            .toAllow(Value.Map(one to a))
-            .toForbid(Value.Map())
-            .toForbid(Value.Map(one to two))
-        }
-
-        it("supports maps as values") {
-          expect(mapType(listOf(required(Just(a) to Map.Closed(required(Just(b) to AnyNumber()))))))
-            .toAllow(Value.Map(a to Value.Map(b to two)))
-            .toForbid(Value.Map(a to Value.Map()))
-            .toForbid(Value.Map(a to Value.Map(b to c)))
-            .toForbid(Value.Map(a to two))
-        }
+      it("supports maps as values") {
+        expect(mapType(listOf(required(Just(a) to Map.Closed(required(Just(b) to AnyNumber()))))))
+          .toAllow(Value.Map(a to Value.Map(b to two)))
+          .toForbid(Value.Map(a to Value.Map()))
+          .toForbid(Value.Map(a to Value.Map(b to c)))
+          .toForbid(Value.Map(a to two))
       }
     }
 
