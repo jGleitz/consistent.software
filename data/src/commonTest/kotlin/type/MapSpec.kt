@@ -269,6 +269,42 @@ class MapSpec : DescribeSpec({
         expect(remaining).toAllow(Value.Map(a to one, b to two)).toForbid(Value.Map(a to two, b to two))
       }
 
+      for (keysRequired in listOf(false, true)) {
+        it("agrees with exhaustive membership for competing obligations, required keys = $keysRequired") {
+          val keys = listOf(a, b, c)
+          val positive = Map.Closed(keys.map {
+            if (keysRequired) required(Just(it) to (Just(one) or Just(two)))
+            else optional(Just(it) to (Just(one) or Just(two)))
+          })
+          val exclusions = buildList {
+            for ((left, right) in listOf(a to b, b to c, c to a)) {
+              for (value in listOf(one, two)) {
+                add(Map.Open(optional((Just(left) or Just(right)) to Just(value))))
+              }
+            }
+            // Required negative components also allow absence to act as a witness.
+            add(Map.Open(required(Just(a) to Just(one))))
+            add(Map.Open(required(Just(b) to Just(two))))
+          }
+          val values = listOf(null, one, two)
+          val maps = buildList {
+            for (av in values) for (bv in values) for (cv in values) {
+              add(Value.Map(keys.zip(listOf(av, bv, cv)).mapNotNull { (key, value) -> value?.let { key to it } }))
+            }
+          }
+
+          // These 27 maps exhaust the positive type. Membership checks individual maps without invoking the
+          // inhabitation search, providing an independent oracle for all 256 subsets of the eight exclusions.
+          for (mask in 0 until (1 shl exclusions.size)) {
+            val selected = exclusions.filterIndexed { index, _ -> mask and (1 shl index) != 0 }
+            val remaining = selected.fold<Type, Type>(positive) { type, excluded -> type butNot excluded }
+            val inhabited = maps.any { positive.allows(it) && selected.none { excluded -> excluded.allows(it) } }
+            if (inhabited) expect(remaining).notToBeSubtypeOf(noValues)
+            else expect(remaining).toBeSubtypeOf(noValues)
+          }
+        }
+      }
+
       // Each edge requires both values to occur at its endpoints. Each individual negative arrow is satisfiable,
       // but no singleton partition can discharge all its incident obligations. Open negative maps ensure that
       // keys outside an edge cannot witness its negation; the positive map closes the rest of the key universe.
@@ -293,7 +329,6 @@ class MapSpec : DescribeSpec({
           .toForbid(Value.Map(a to one, b to two, c to one, d to one))
       }
 
-      // TODO fix the solver to pass this test: local feasibility does not imply a globally consistent assignment.
       it("rejects an odd cycle although every edge can be satisfied on its own") {
         val remaining = alternatingCycle(listOf(a, b, c))
 
@@ -301,7 +336,6 @@ class MapSpec : DescribeSpec({
         expect(remaining).toBeSubtypeOf(noValues)
       }
 
-      // TODO fix the solver to pass this test: absence and presence cannot serve as two witnesses at the same key.
       it("rejects incompatible absent and present witnesses at one optional key") {
         val positive = Map.Closed(optional(Just(a) to Just(one)))
         val remaining = positive butNot Map.Open(required(Just(a) to Just(one))) butNot

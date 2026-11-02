@@ -2,13 +2,14 @@ package software.consistent.data.type.solvers
 
 import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.data.type.solvers.maps.MapSet
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.value.Value
 
-internal data class PartitionedTypeUnion(
-  private val symbols: ValueUnion<Value.Symbol>,
+internal data class TypePartitionUnion(
+  private val symbols: EnumeratedValues<Value.Symbol>,
   private val numbers: DisjunctIntervalUnion<Value.Number>,
-  private val maps: MapSolver
+  private val maps: MapSet
 ) : SolvableSet, WithMonospaceLayout {
   override fun contains(value: Value) = when (value) {
     is Value.Symbol -> value in symbols
@@ -16,13 +17,13 @@ internal data class PartitionedTypeUnion(
     is Value.Map -> value in maps
   }
 
-  override fun isTriviallyEmpty() = symbols.isTriviallyEmpty() && numbers.isTriviallyEmpty() && maps.isTriviallyEmpty()
   override fun isEmpty() = symbols.isEmpty() && numbers.isEmpty() && maps.isEmpty()
-  override fun isTriviallyComplete() = symbols.isTriviallyComplete() && numbers.isTriviallyComplete() && maps.isTriviallyComplete()
+  override fun isTriviallyEmpty() = symbols.isTriviallyEmpty() && numbers.isTriviallyEmpty() && maps.isTriviallyEmpty()
   override fun isComplete() = symbols.isComplete() && numbers.isComplete() && maps.isComplete()
+  override fun isTriviallyComplete() = symbols.isTriviallyComplete() && numbers.isTriviallyComplete() && maps.isTriviallyComplete()
   override fun isFinite() = symbols.isFinite() && numbers.isFinite() && maps.isFinite()
 
-  override fun cardinality(upTo: Int): ClosedSolvableSet.Cardinality {
+  override fun cardinality(upTo: Int): Cardinality {
     var result = symbols.cardinality(upTo)
     if (result > upTo) return result
 
@@ -39,29 +40,37 @@ internal data class PartitionedTypeUnion(
 
   // https://pnwamk.github.io/sst-tutorial/#%28part._.Type_.Operations%29
   override fun with(otherSet: SolvableSet): SolvableSet = this with otherSet.asPartitionedTypeUnion()
-  infix fun with(otherSet: PartitionedTypeUnion) =
-    PartitionedTypeUnion(this.symbols with otherSet.symbols, this.numbers with otherSet.numbers, this.maps with otherSet.maps)
+  infix fun with(otherSet: TypePartitionUnion) =
+    TypePartitionUnion(this.symbols with otherSet.symbols, this.numbers with otherSet.numbers, this.maps with otherSet.maps)
 
   override fun overlapWith(otherSet: SolvableSet): SolvableSet = this overlapWith otherSet.asPartitionedTypeUnion()
-  infix fun overlapWith(otherSet: PartitionedTypeUnion) =
-    PartitionedTypeUnion(
+  infix fun overlapWith(otherSet: TypePartitionUnion) =
+    TypePartitionUnion(
       this.symbols overlapWith otherSet.symbols,
       this.numbers overlapWith otherSet.numbers,
       this.maps overlapWith otherSet.maps
     ) // TODO
 
-  override fun not() = PartitionedTypeUnion(!symbols, !numbers, !maps)
+  override fun not() = TypePartitionUnion(!symbols, !numbers, !maps)
 
   override fun without(otherSet: SolvableSet) = this without otherSet.asPartitionedTypeUnion()
-  infix fun without(otherSet: PartitionedTypeUnion) =
-    PartitionedTypeUnion(this.symbols without otherSet.symbols, this.numbers without otherSet.numbers, this.maps without otherSet.maps)
+  infix fun without(otherSet: TypePartitionUnion) =
+    TypePartitionUnion(this.symbols without otherSet.symbols, this.numbers without otherSet.numbers, this.maps without otherSet.maps)
 
   override fun isSubsetOf(largerSet: SolvableSet) = this isSubsetOf largerSet.asPartitionedTypeUnion()
-  infix fun isSubsetOf(largerSet: PartitionedTypeUnion) =
+  infix fun isSubsetOf(largerSet: TypePartitionUnion) =
     this.symbols isSubsetOf largerSet.symbols && this.numbers isSubsetOf largerSet.numbers && this.maps isSubsetOf largerSet.maps
 
+  override fun triviallyEquals(otherSet: ClosedSolvableSet<*, *>) =
+    this === otherSet || (otherSet is TypePartitionUnion && this.symbols triviallyEquals otherSet.symbols && this.numbers triviallyEquals otherSet.numbers && this.maps triviallyEquals otherSet.maps)
+
+  override fun equals(other: Any?) =
+    this === other || (other is TypePartitionUnion && this.symbols == other.symbols && this.numbers == other.numbers && this.maps == other.maps)
+
+  override fun hashCode(): Int = throw doesNotSupportHashing()
+
   override fun normalizationComparedTo(other: SolvableSet) = this normalizationComparedTo other.asPartitionedTypeUnion()
-  infix fun normalizationComparedTo(other: PartitionedTypeUnion): ComparisonCase =
+  infix fun normalizationComparedTo(other: TypePartitionUnion): ComparisonCase =
     (this.symbols normalizationComparedTo other.symbols)
       .ifEqual { this.numbers normalizationComparedTo other.numbers }
       .ifEqual { this.maps normalizationComparedTo other.maps }
@@ -86,14 +95,14 @@ internal data class PartitionedTypeUnion(
   override fun toString() = monospaceLayout.renderToString()
 
   internal companion object {
-    private val complete = PartitionedTypeUnion(ValueUnion.complete(), DisjunctIntervalUnion.complete(), MapSolver.complete())
-    private val empty = PartitionedTypeUnion(ValueUnion.empty(), DisjunctIntervalUnion.empty(), MapSolver.empty())
+    private val complete = TypePartitionUnion(EnumeratedValues.complete(), DisjunctIntervalUnion.complete(), MapSet.complete())
+    private val empty = TypePartitionUnion(EnumeratedValues.empty(), DisjunctIntervalUnion.empty(), MapSet.empty())
 
     internal fun complete() = complete
     internal fun empty() = empty
 
     private fun SolvableSet.asPartitionedTypeUnion() = when (this) {
-      is PartitionedTypeUnion -> this
+      is TypePartitionUnion -> this
     }
   }
 }

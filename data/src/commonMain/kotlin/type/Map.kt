@@ -3,10 +3,10 @@ package software.consistent.data.type
 import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.formatting.monospacelayout.layouts.MonospaceLayout
-import software.consistent.data.type.solvers.MapComponent
-import software.consistent.data.type.solvers.MapSolver
-import software.consistent.data.type.solvers.MaybeAbsent
-import software.consistent.data.type.solvers.PartitionedTypeUnion
+import software.consistent.data.type.solvers.TypePartitionUnion
+import software.consistent.data.type.solvers.maps.MapComponent
+import software.consistent.data.type.solvers.maps.MapSet
+import software.consistent.data.type.solvers.maps.MaybeAbsent
 
 public object Map {
   public sealed interface Open : Type {
@@ -77,18 +77,18 @@ private class ClosedMapImpl(override val components: List<Map.Component>) : Map.
   override fun toString() = monospaceLayout.renderToString()
 }
 
-private fun closedSolver(components: List<Map.Component>): MapSolver {
-  var solver = MapSolver.complete()
-  var remainingKeys = PartitionedTypeUnion.complete()
+private fun closedSolver(components: List<Map.Component>): MapSet {
+  var solver = MapSet.complete()
+  var remainingKeys = TypePartitionUnion.complete()
   for (component in components) {
     val keySolver = component.key.solver
     val componentSolver =
-      MapSolver.just(MapComponent(keySolver, MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired)))
+      MapComponent(keySolver, MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired))
     solver = solver overlapWith componentSolver
     remainingKeys = remainingKeys without keySolver
   }
-  if (!remainingKeys.isEmpty()) {
-    solver = solver overlapWith MapSolver.just(MapComponent(remainingKeys, MaybeAbsent.onlyAbsent()))
+  if (!remainingKeys.isTriviallyEmpty()) {
+    solver = solver overlapWith MapComponent(remainingKeys, MaybeAbsent.onlyAbsent())
   }
   return solver
 }
@@ -106,23 +106,23 @@ private class OpenMapImpl(override val components: List<Map.Component>, override
   override fun toString() = monospaceLayout.renderToString()
 }
 
-private fun openSolver(components: List<Map.Component>, remainder: Type): MapSolver {
+private fun openSolver(components: List<Map.Component>, remainder: Type): MapSet {
   val remainderSolver = remainder.solver
   if (remainderSolver.isTriviallyComplete()) {
-    return MapSolver.allOf(components.map { it.solver })
+    return MapSet.allOf(components.map { it.solver })
   }
 
-  var solver = MapSolver.complete()
-  var remainingKeys = PartitionedTypeUnion.complete()
+  var solver = MapSet.complete()
+  var remainingKeys = TypePartitionUnion.complete()
   for (component in components) {
     val keySolver = component.key.solver
     val componentSolver =
-      MapSolver.just(MapComponent(keySolver, MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired)))
+      MapComponent(keySolver, MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired))
     solver = solver overlapWith componentSolver
     remainingKeys = remainingKeys without keySolver
   }
   if (!remainingKeys.isTriviallyEmpty()) {
-    solver = solver overlapWith MapSolver.just(MapComponent(remainingKeys, MaybeAbsent(remainderSolver, includesAbsent = true)))
+    solver = solver overlapWith MapComponent(remainingKeys, MaybeAbsent(remainderSolver, includesAbsent = true))
   }
   return solver
 }

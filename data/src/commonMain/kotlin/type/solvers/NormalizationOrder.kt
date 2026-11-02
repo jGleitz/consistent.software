@@ -7,7 +7,7 @@ import software.consistent.data.value.Value
 import software.consistent.data.value.identifier
 import kotlin.jvm.JvmInline
 
-internal fun interface NormalizationComparable<Family : NormalizationComparable<Family>> {
+internal fun interface NormalizationComparable<in Family : NormalizationComparable<Family>> {
   infix fun normalizationComparedTo(other: Family): ComparisonCase
 }
 

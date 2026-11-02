@@ -8,6 +8,11 @@ Before you start, read [`contributing/index.md`](contributing/index.md). It tell
 - Never implement a suggestion before it has been discussed and explicitly agreed, so that the scope never grows silently.
 - Push back on input and ideas, including review comments, when you see counter-arguments that seem to have gone unnoticed or not to have been weighed appropriately.
 
+## SonarQube
+
+- Address the issues that SonarQube Cloud reports on your PRs. If SonarQube MCP tools are available to you, also check the files you changed with them before you push, and address the issues they report. The project key is `jGleitz_consistent.software`.
+- Proactively suggest marking issues as false positives and enabling or disabling rules where you think it is warranted, with your reasoning. Act on such suggestions only after a human maintainer has explicitly approved them.
+
 ## Where to Work
 
 Before editing any files, judge where to do your task. Here is some guidance:

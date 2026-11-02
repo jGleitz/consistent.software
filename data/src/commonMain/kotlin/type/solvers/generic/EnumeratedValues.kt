@@ -1,15 +1,15 @@
 package software.consistent.data.type.solvers
 
 import software.consistent.data.formatting.monospacelayout.Monospace
-import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.exactly
-import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.moreThanIntMaxValue
+import software.consistent.data.type.solvers.Cardinality.Companion.exactly
+import software.consistent.data.type.solvers.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.util.compareEach
 import software.consistent.data.value.Value
 import software.consistent.data.value.monospaceLayout
 
-internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue, ValueUnion<TValue>> {
-  private class Positive<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : ValueUnion<TValue> {
+internal sealed interface EnumeratedValues<TValue : Value> : ClosedSolvableSet<TValue, EnumeratedValues<TValue>> {
+  private class Positive<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : EnumeratedValues<TValue> {
     init {
       checkValueUnionInvariant(orderedMembers)
     }
@@ -18,22 +18,22 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun anyMember() = orderedMembers.first()
     override val members get() = orderedMembers.asSequence()
     override fun isFinite() = true
-    override fun isTriviallyEmpty() = isEmpty()
     override fun isEmpty() = orderedMembers.isEmpty()
-    override fun isTriviallyComplete() = false
+    override fun isTriviallyEmpty() = isEmpty()
     override fun isComplete() = false
+    override fun isTriviallyComplete() = false
 
     override fun cardinality(upTo: Int) = exactly(orderedMembers.size)
 
     // [Base DNF Operations](https://pnwamk.github.io/sst-tutorial/#%28part._.Base_.D.N.F_.Operations%29)
 
-    override fun with(otherSet: ValueUnion<TValue>) = when (otherSet) {
+    override fun with(otherSet: EnumeratedValues<TValue>) = when (otherSet) {
       this -> this
       is Positive -> Positive(orderedMembers + otherSet.orderedMembers)
       is Negative -> Negative(otherSet.orderedMembers - orderedMembers)
     }
 
-    override fun overlapWith(otherSet: ValueUnion<TValue>) = when (otherSet) {
+    override fun overlapWith(otherSet: EnumeratedValues<TValue>) = when (otherSet) {
       this -> this
       is Positive -> Positive(orderedMembers intersectedWith otherSet.orderedMembers)
       is Negative -> Positive(orderedMembers - otherSet.orderedMembers)
@@ -42,14 +42,20 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun not() = Negative(orderedMembers)
 
     // TODO implement directly
-    override fun without(otherSet: ValueUnion<TValue>) = this overlapWith !otherSet
+    override fun without(otherSet: EnumeratedValues<TValue>) = this overlapWith !otherSet
 
-    override fun isSubsetOf(largerSet: ValueUnion<TValue>) = when (largerSet) {
+    override fun isSubsetOf(largerSet: EnumeratedValues<TValue>) = when (largerSet) {
       is Positive<*> -> largerSet.orderedMembers.containsAll(this.orderedMembers)
       is Negative<*> -> this.orderedMembers.none { largerSet.orderedMembers.contains(it) }
     }
 
-    override fun normalizationComparedTo(other: ValueUnion<TValue>) = when (other) {
+    override fun triviallyEquals(otherSet: ClosedSolvableSet<*, *>) = this == otherSet
+
+    override fun equals(other: Any?) = this === other || (other is Positive<*> && orderedMembers == other.orderedMembers)
+
+    override fun hashCode(): Int = throw doesNotSupportHashing()
+
+    override fun normalizationComparedTo(other: EnumeratedValues<TValue>) = when (other) {
       is Positive<TValue> -> compareEach(this.orderedMembers).toEach(other.orderedMembers, using = ::normalizationOrder).case
 
       is Negative<*> -> ComparisonCase.isLower
@@ -67,16 +73,16 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun toString() = monospaceLayout.renderToString()
   }
 
-  private class Negative<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : ValueUnion<TValue> {
+  private class Negative<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : EnumeratedValues<TValue> {
     init {
       checkValueUnionInvariant(orderedMembers)
     }
 
     override fun contains(value: TValue) = value !in orderedMembers
-    override fun isTriviallyEmpty() = false
     override fun isEmpty() = false
-    override fun isTriviallyComplete() = isComplete()
+    override fun isTriviallyEmpty() = false
     override fun isComplete() = orderedMembers.isEmpty()
+    override fun isTriviallyComplete() = isComplete()
     override fun isFinite() = false
     override fun cardinality(upTo: Int) = moreThanIntMaxValue()
     override fun anyMember() = TODO("Not yet implemented")
@@ -85,13 +91,13 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
 
     // [Base DNF Operations](https://pnwamk.github.io/sst-tutorial/#%28part._.Base_.D.N.F_.Operations%29)
 
-    override fun with(otherSet: ValueUnion<TValue>) = when (otherSet) {
+    override fun with(otherSet: EnumeratedValues<TValue>) = when (otherSet) {
       this -> this
       is Positive -> Negative(orderedMembers - otherSet.orderedMembers)
       is Negative -> Negative(orderedMembers intersectedWith otherSet.orderedMembers)
     }
 
-    override fun overlapWith(otherSet: ValueUnion<TValue>) = when (otherSet) {
+    override fun overlapWith(otherSet: EnumeratedValues<TValue>) = when (otherSet) {
       this -> this
       is Positive -> Positive(otherSet.orderedMembers - orderedMembers)
       is Negative -> Negative(orderedMembers + otherSet.orderedMembers)
@@ -100,14 +106,20 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     override fun not() = Positive(orderedMembers)
 
     // TODO implement directly
-    override fun without(otherSet: ValueUnion<TValue>) = this overlapWith !otherSet
+    override fun without(otherSet: EnumeratedValues<TValue>) = this overlapWith !otherSet
 
-    override fun isSubsetOf(largerSet: ValueUnion<TValue>) = when (largerSet) {
+    override fun isSubsetOf(largerSet: EnumeratedValues<TValue>) = when (largerSet) {
       is Positive<*> -> false
       is Negative<*> -> this.orderedMembers.containsAll(largerSet.orderedMembers)
     }
 
-    override fun normalizationComparedTo(other: ValueUnion<TValue>) = when (other) {
+    override fun triviallyEquals(otherSet: ClosedSolvableSet<*, *>) = this == otherSet
+
+    override fun equals(other: Any?) = this === other || (other is Negative<*> && orderedMembers == other.orderedMembers)
+
+    override fun hashCode(): Int = throw doesNotSupportHashing()
+
+    override fun normalizationComparedTo(other: EnumeratedValues<TValue>) = when (other) {
       is Positive<*> -> ComparisonCase.isHigher
       is Negative<TValue> -> compareEach(this.orderedMembers).toEach(other.orderedMembers, using = ::normalizationOrder).case
     }
@@ -129,16 +141,16 @@ internal sealed interface ValueUnion<TValue : Value> : ClosedSolvableSet<TValue,
     private val complete = Negative<Nothing>(NormalizationOrdered.empty())
 
     @Suppress("UNCHECKED_CAST")
-    internal fun <TValue : Value> empty(): ValueUnion<TValue> = empty as ValueUnion<TValue>
+    internal fun <TValue : Value> empty(): EnumeratedValues<TValue> = empty as EnumeratedValues<TValue>
 
     @Suppress("UNCHECKED_CAST")
-    internal fun <TValue : Value> complete(): ValueUnion<TValue> = complete as ValueUnion<TValue>
+    internal fun <TValue : Value> complete(): EnumeratedValues<TValue> = complete as EnumeratedValues<TValue>
 
-    internal fun <TValue : Value> of(vararg values: TValue): ValueUnion<TValue> = Positive(NormalizationOrdered.of(*values))
+    internal fun <TValue : Value> of(vararg values: TValue): EnumeratedValues<TValue> = Positive(NormalizationOrdered.of(*values))
   }
 }
 
-private inline fun <reified Union : ValueUnion<out Value>> Union.checkValueUnionInvariant(members: Set<Value>) {
+private inline fun <reified Union : EnumeratedValues<out Value>> Union.checkValueUnionInvariant(members: Set<Value>) {
   solverInvariant {
     if (members.size >= 2) {
       val firstPartition = members.first().partition
