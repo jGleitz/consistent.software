@@ -14,7 +14,7 @@ internal class MonospaceAtom(
   /**
    * The content that the layout will render verbatim. Must not contain any newlines.
    */
-  private val content: CharSequenceWithWidth
+  private val content: CharSequenceWithWidth,
 ) : InternalMonospaceLayout {
   init {
     require(!content.contains(NEWLINE_PATTERN)) { "atoms must not contain newlines!" }
@@ -39,10 +39,11 @@ internal class MonospaceAtom(
   override fun renderTo(target: LayoutTarget) = renderInSingleLineTo(target)
 
   companion object {
-    inline operator fun invoke(builderFun: StringBuilder.() -> Unit): MonospaceAtom =
-      MonospaceAtom(StringBuilder().apply(builderFun))
+    inline operator fun invoke(builderFun: StringBuilder.() -> Unit): MonospaceAtom = MonospaceAtom(StringBuilder().apply(builderFun))
 
-    inline operator fun invoke(expectedSize: Int, builderFun: StringBuilder.() -> Unit): MonospaceAtom =
-      MonospaceAtom(StringBuilder(expectedSize).apply(builderFun))
+    inline operator fun invoke(
+      expectedSize: Int,
+      builderFun: StringBuilder.() -> Unit,
+    ): MonospaceAtom = MonospaceAtom(StringBuilder(expectedSize).apply(builderFun))
   }
 }

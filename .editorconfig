@@ -7,3 +7,9 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 end_of_line = lf
 max_line_length = 140
+
+[*.kt]
+# Top-level declarations are grouped in descriptive lower-case files throughout this project.
+ktlint_standard_filename = disabled
+# Wildcard imports are used for DSL-style APIs and related declarations.
+ktlint_standard_no-wildcard-imports = disabled

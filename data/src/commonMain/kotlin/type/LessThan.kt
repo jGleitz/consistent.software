@@ -13,11 +13,17 @@ public sealed interface LessThan : Type {
   }
 }
 
-private class LessThanImpl(override val comparisonValue: Value.Number) : LessThan, WithMonospaceLayout,
-  Queryable by UsingSolver(DisjunctIntervalUnion(1) {
-    it.appendBoundary(comparisonValue, isInclusive = false)
-    it.leftOpen = true
-  }) {
+private class LessThanImpl(
+  override val comparisonValue: Value.Number,
+) : LessThan,
+  WithMonospaceLayout,
+  Queryable by UsingSolver(
+    DisjunctIntervalUnion(1) {
+      it.appendBoundary(comparisonValue, isInclusive = false)
+      it.leftOpen = true
+    },
+  ) {
   override val monospaceLayout get() = comparisonValue.monospaceLayout.withPrefix("< ")
+
   override fun toString() = monospaceLayout.renderToString()
 }

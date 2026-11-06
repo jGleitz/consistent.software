@@ -6,7 +6,7 @@ import software.consistent.data.formatting.monospacelayout.LayoutSettings.Compan
 @ConsistentCopyVisibility
 public data class Separator private constructor(
   internal val singleLine: CharSequenceWithWidth,
-  internal val multiLine: CharSequenceWithWidth
+  internal val multiLine: CharSequenceWithWidth,
 ) {
   init {
     require(!singleLine.contains(NEWLINE_PATTERN)) { "${::singleLine.name} must not contain newlines!" }
@@ -15,6 +15,6 @@ public data class Separator private constructor(
 
   public constructor(
     singleLine: CharSequence = "",
-    multiLine: CharSequence = ""
+    multiLine: CharSequence = "",
   ) : this(CharSequenceWithCachedWidth(singleLine), CharSequenceWithCachedWidth(multiLine))
 }

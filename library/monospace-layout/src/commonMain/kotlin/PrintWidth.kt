@@ -8,19 +8,26 @@ import kotlin.jvm.JvmInline
  * length where the print width is required.
  */
 @JvmInline
-internal value class PrintWidth(private val value: Int) {
+internal value class PrintWidth(
+  private val value: Int,
+) {
   operator fun plus(other: PrintWidth) = PrintWidth(this.value + other.value)
+
   operator fun minus(other: PrintWidth) = PrintWidth(this.value - other.value)
+
   operator fun compareTo(other: PrintWidth) = this.value - other.value
+
   operator fun compareTo(other: Int) = this.value - other
+
   fun asInt() = value
 }
 
 internal val CharSequence.printWidth: PrintWidth
-  get() = when (this) {
-    is CharSequenceWithWidth -> this.printWidth
-    else -> PrintWidth(this.toString().unicodeWidth())
-  }
+  get() =
+    when (this) {
+      is CharSequenceWithWidth -> this.printWidth
+      else -> PrintWidth(this.toString().unicodeWidth())
+    }
 
 internal interface CharSequenceWithWidth : CharSequence {
   val printWidth: PrintWidth
@@ -32,7 +39,10 @@ internal interface CharSequenceWithWidth : CharSequence {
     CharSequenceWithCachedWidth(this.toString() + other.toString(), this.printWidth + other.printWidth)
 }
 
-internal class CharSequenceWithCachedWidth(private val string: CharSequence, override val printWidth: PrintWidth = string.printWidth) :
-  CharSequenceWithWidth, CharSequence by string {
+internal class CharSequenceWithCachedWidth(
+  private val string: CharSequence,
+  override val printWidth: PrintWidth = string.printWidth,
+) : CharSequenceWithWidth,
+  CharSequence by string {
   override fun toString() = string.toString()
 }

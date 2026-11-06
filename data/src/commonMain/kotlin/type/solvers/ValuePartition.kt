@@ -8,12 +8,13 @@ import software.consistent.data.value.Value
 internal enum class ValuePartition {
   Number,
   Symbol,
-  Map
+  Map,
 }
 
 internal val Value.partition
-  get() = when (this) {
-    is Value.Map -> ValuePartition.Map
-    is Value.Number -> ValuePartition.Number
-    is Value.Symbol -> ValuePartition.Symbol
-  }
+  get() =
+    when (this) {
+      is Value.Map -> ValuePartition.Map
+      is Value.Number -> ValuePartition.Number
+      is Value.Symbol -> ValuePartition.Symbol
+    }

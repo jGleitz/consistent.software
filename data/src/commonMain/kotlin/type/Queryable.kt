@@ -7,6 +7,7 @@ internal sealed interface Queryable : TypeQueries {
 }
 
 internal val Type.solver: SolvableSet
-  get() = when (this) {
-    is Queryable -> solver
-  }
+  get() =
+    when (this) {
+      is Queryable -> solver
+    }

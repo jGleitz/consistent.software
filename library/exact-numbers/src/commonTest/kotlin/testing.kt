@@ -31,20 +31,26 @@ internal fun exactValueOf(double: Double): BigFraction {
   val significand = if (isSubnormal) storedSignificand else storedSignificand or (1L shl 52)
   val exponent = (if (isSubnormal) 1 else biasedExponent) - 1075
   val magnitude =
-    if (exponent >= 0) (significand.toBigInteger() * twoToThe(exponent)).toBigFraction()
-    else bigFractionOf(significand.toBigInteger(), twoToThe(-exponent))
+    if (exponent >= 0) {
+      (significand.toBigInteger() * twoToThe(exponent)).toBigFraction()
+    } else {
+      bigFractionOf(significand.toBigInteger(), twoToThe(-exponent))
+    }
   return if (bits < 0) -magnitude else magnitude
 }
 
 /** Integers of any sign: mostly beyond 64 bits, but also within the [Long] range (including its extremes). */
-internal fun Arb.Companion.bigInteger(): Arb<BigInteger> = choice(
-  long().map { it.toBigInteger() },
-  bind(long(), long(), long()) { a, b, c -> a.toBigInteger() * b.toBigInteger() + c.toBigInteger() },
-)
+internal fun Arb.Companion.bigInteger(): Arb<BigInteger> =
+  choice(
+    long().map { it.toBigInteger() },
+    bind(long(), long(), long()) { a, b, c -> a.toBigInteger() * b.toBigInteger() + c.toBigInteger() },
+  )
 
 /** All [UByte]s from [from] to [to]; the unsigned counterpart of [io.kotest.property.exhaustive.bytes]. */
-internal fun Exhaustive.Companion.uBytes(from: UByte = UByte.MIN_VALUE, to: UByte = UByte.MAX_VALUE): Exhaustive<UByte> =
-  (from..to).map { it.toUByte() }.exhaustive()
+internal fun Exhaustive.Companion.uBytes(
+  from: UByte = UByte.MIN_VALUE,
+  to: UByte = UByte.MAX_VALUE,
+): Exhaustive<UByte> = (from..to).map { it.toUByte() }.exhaustive()
 
 internal fun Arb.Companion.nonZeroBigInteger(): Arb<BigInteger> = bigInteger().filter { it.compareTo(BigIntegers.ZERO) != 0 }
 
@@ -52,8 +58,12 @@ internal fun Arb.Companion.nonZeroBigInteger(): Arb<BigInteger> = bigInteger().f
  * A fraction together with the (unreduced) numerator and denominator it was created from, so tests can compute expected
  * results by the textbook definitions. Denominators take both signs on purpose, to cover sign normalization everywhere.
  */
-internal data class Ratio(val numerator: BigInteger, val denominator: BigInteger) {
+internal data class Ratio(
+  val numerator: BigInteger,
+  val denominator: BigInteger,
+) {
   val value: BigFraction get() = bigFractionOf(numerator, denominator)
+
   override fun toString() = "$numerator/$denominator"
 }
 

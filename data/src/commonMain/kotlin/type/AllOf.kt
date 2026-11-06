@@ -14,14 +14,18 @@ public sealed interface AllOf : Type {
   }
 }
 
-private class AllOfImpl(override val types: List<Type>) : AllOf, WithMonospaceLayout,
+private class AllOfImpl(
+  override val types: List<Type>,
+) : AllOf,
+  WithMonospaceLayout,
   Queryable by UsingSolver(types.fold(Solvers.anything()) { solver, type -> solver overlapWith type.solver }) {
   override fun and(other: Type): Type = AllOf(types + other)
 
   override val monospaceLayout
-    get() = Monospace.line("&") {
-      types.map { it.monospaceLayout }
-    }
+    get() =
+      Monospace.line("&") {
+        types.map { it.monospaceLayout }
+      }
 
   override fun toString() = monospaceLayout.renderToString()
 }

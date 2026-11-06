@@ -5,7 +5,7 @@ public data class LayoutSettings private constructor(
   val maxItemsPerLine: Int,
   val maxBoxOpenPerLine: Int,
   internal val breakLineAfterColumn: PrintWidth,
-  internal val indent: CharSequenceWithWidth
+  internal val indent: CharSequenceWithWidth,
 ) {
   init {
     require(maxItemsPerLine >= 1) { "${::maxItemsPerLine.name} must be positive! (was $maxItemsPerLine)" }
@@ -18,14 +18,14 @@ public data class LayoutSettings private constructor(
     maxItemsPerLine: Int = DEFAULT_MAX_ITEMS_PER_LINE,
     maxBoxOpenPerLine: Int = DEFAULT_MAX_BOX_OPEN_PER_LINE,
     breakLineAfterColumn: Int = DEFAULT_BREAK_LINE_AFTER_LENGTH,
-    indent: CharSequence = DEFAULT_INDENT
+    indent: CharSequence = DEFAULT_INDENT,
   ) : this(maxItemsPerLine, maxBoxOpenPerLine, PrintWidth(breakLineAfterColumn), CharSequenceWithCachedWidth(indent))
 
   public fun copy(
     maxItemsPerLine: Int = this.maxItemsPerLine,
     maxBoxOpenPerLine: Int = this.maxBoxOpenPerLine,
     breakLineAfterLength: Int = this.breakLineAfterColumn.asInt(),
-    indent: CharSequence = this.indent
+    indent: CharSequence = this.indent,
   ): LayoutSettings = LayoutSettings(maxItemsPerLine, maxBoxOpenPerLine, breakLineAfterLength, CharSequenceWithCachedWidth(indent))
 
   public companion object {
@@ -40,5 +40,3 @@ public data class LayoutSettings private constructor(
     public fun default(): LayoutSettings = LayoutSettings()
   }
 }
-
-

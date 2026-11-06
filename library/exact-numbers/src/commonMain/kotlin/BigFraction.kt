@@ -5,6 +5,7 @@ public expect class BigFraction
 // must not be called numerator to not collide with the synthetic property Kotlin creates for
 // org.apache.commons.numbers.fraction.BigFraction#getNumerator. Quite an annoying limitation!
 // Tracked in https://youtrack.jetbrains.com/issue/KT-15620
+
 /**
  * The fraction’s numerator, including the fraction’s sign:
  *
@@ -16,11 +17,11 @@ public expect class BigFraction
  */
 public expect val BigFraction.numeratorAsBigInteger: BigInteger
 
-// must not be called denominator to not collide with the synthetic property Kotlin creates for
-// org.apache.commons.numbers.fraction.BigFraction#getDenominator. Quite an annoying limitation!
-// Tracked in https://youtrack.jetbrains.com/issue/KT-15620
 /**
  * The fraction’s denominator, always positive:
+ *
+ * This name avoids a collision with the synthetic property for
+ * `org.apache.commons.numbers.fraction.BigFraction#getDenominator` ([KT-15620](https://youtrack.jetbrains.com/issue/KT-15620)).
  *
  * `this`    | `this.denominatorAsBigInteger`
  * --------- | -----------------------------
@@ -30,27 +31,40 @@ public expect val BigFraction.numeratorAsBigInteger: BigInteger
  */
 public expect val BigFraction.denominatorAsBigInteger: BigInteger
 
-
 /** Creates an exact, reduced fraction. The denominator must be nonzero. */
-public expect fun bigFractionOf(numerator: BigInteger, denominator: BigInteger): BigFraction
+public expect fun bigFractionOf(
+  numerator: BigInteger,
+  denominator: BigInteger,
+): BigFraction
 
 public fun Byte.toBigFraction(): BigFraction = toBigInteger().toBigFraction()
+
 public fun Short.toBigFraction(): BigFraction = toBigInteger().toBigFraction()
+
 public fun Int.toBigFraction(): BigFraction = toBigInteger().toBigFraction()
+
 public fun Long.toBigFraction(): BigFraction = toBigInteger().toBigFraction()
+
 public expect fun Float.toBigFraction(): BigFraction
+
 public expect fun Double.toBigFraction(): BigFraction
+
 public expect fun BigInteger.toBigFraction(): BigFraction
 
 public expect operator fun BigFraction.unaryMinus(): BigFraction
 
 public expect operator fun BigFraction.plus(addend: BigFraction): BigFraction
+
 public expect operator fun BigFraction.minus(subtrahend: BigFraction): BigFraction
+
 public expect operator fun BigFraction.times(factor: BigFraction): BigFraction
+
 public expect operator fun BigFraction.div(divisor: BigFraction): BigFraction
+
 public expect infix fun BigFraction.toThePowerOf(exponent: Int): BigFraction
 
 public expect operator fun BigFraction.compareTo(other: BigFraction): Int
+
 public fun BigFraction.isInteger(): Boolean = denominatorAsBigInteger == BigIntegers.ONE
 
 /**

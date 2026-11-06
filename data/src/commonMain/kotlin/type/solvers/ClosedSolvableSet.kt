@@ -5,7 +5,9 @@ import kotlin.jvm.JvmInline
 import kotlin.math.abs
 
 internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TValue, TPartition>> :
-  ValueSet.NormalizationComparable<TValue, TPartition>, SetOperations<TPartition>, WithMonospaceLayout {
+  ValueSet.NormalizationComparable<TValue, TPartition>,
+  SetOperations<TPartition>,
+  WithMonospaceLayout {
   fun isEmpty(): Boolean
 
   /**
@@ -55,7 +57,6 @@ internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableS
    */
   fun cardinality(upTo: Int): Cardinality
 
-
   /**
    * The set of all values that are not in this set.
    */
@@ -70,7 +71,6 @@ internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableS
    * The set of all values that are in this set **and** in the [otherSet] (‘intersection’).
    */
   infix fun overlapWith(otherSet: TPartition): TPartition
-
 
   /**
    * The set of all values that are in this set **but not** in the [otherSet] (‘difference’).
@@ -92,10 +92,11 @@ internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableS
     // Int.MIN_VALUE: more than Int.MAX_VALUE
     // negative: at least (-value), might be higher
     // positive: exactly value
-    private val value: Int
+    private val value: Int,
   ) {
     companion object {
       fun moreThanIntMaxValue() = Cardinality(Int.MIN_VALUE)
+
       fun atLeast(value: Int): Cardinality {
         require(value > 0) {
           // TODO better exception?
@@ -114,11 +115,12 @@ internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableS
     }
 
     val lowerBound: Int
-      get() = when {
-        value == Int.MIN_VALUE -> Int.MAX_VALUE
-        value < 0 -> -value
-        else -> value
-      }
+      get() =
+        when {
+          value == Int.MIN_VALUE -> Int.MAX_VALUE
+          value < 0 -> -value
+          else -> value
+        }
 
     val exactValue: Int
       get() {
@@ -126,18 +128,22 @@ internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableS
         return value
       }
 
-    operator fun plus(other: Cardinality) = when {
-      this.value == Int.MIN_VALUE || other.value == Int.MIN_VALUE -> moreThanIntMaxValue()
-      this.value < 0 || other.value < 0 -> {
-        val sum = abs(this.value) + abs(other.value)
-        if (sum >= 0) atLeast(sum) else /* overflow */ moreThanIntMaxValue()
-      }
+    operator fun plus(other: Cardinality) =
+      when {
+        this.value == Int.MIN_VALUE || other.value == Int.MIN_VALUE -> {
+          moreThanIntMaxValue()
+        }
 
-      else -> {
-        val sum = this.value + other.value
-        if (sum >= 0) exactly(sum) else /* overflow */ moreThanIntMaxValue()
+        this.value < 0 || other.value < 0 -> {
+          val sum = abs(this.value) + abs(other.value)
+          if (sum >= 0) atLeast(sum) else moreThanIntMaxValue() // overflow
+        }
+
+        else -> {
+          val sum = this.value + other.value
+          if (sum >= 0) exactly(sum) else moreThanIntMaxValue() // overflow
+        }
       }
-    }
 
     operator fun compareTo(otherValue: Int): Int {
       require(otherValue >= 0) {
@@ -145,8 +151,14 @@ internal sealed interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableS
         "Argument to ${::compareTo.name} must not be negative (got $otherValue)"
       }
       return when {
-        this.value == Int.MIN_VALUE -> 1
-        this.value >= 0 -> this.value - otherValue
+        this.value == Int.MIN_VALUE -> {
+          1
+        }
+
+        this.value >= 0 -> {
+          this.value - otherValue
+        }
+
         else -> {
           val absValue = -value
           require(otherValue < absValue) {

@@ -12,10 +12,16 @@ internal object ValueArb {
   val map = MapArb
 
   // TODO self-referencing maps?
-  internal operator fun invoke(structureSize: IntRange = 0..10, maxNesting: Int = 4) =
-    Arb.value(ValuePartition.entries.toSet(), structureSize, maxNesting)
+  internal operator fun invoke(
+    structureSize: IntRange = 0..10,
+    maxNesting: Int = 4,
+  ) = Arb.value(ValuePartition.entries.toSet(), structureSize, maxNesting)
 
-  internal operator fun invoke(partition: ValuePartition, structureSize: IntRange = 0..10, maxNesting: Int = 4): Arb<Value> {
+  internal operator fun invoke(
+    partition: ValuePartition,
+    structureSize: IntRange = 0..10,
+    maxNesting: Int = 4,
+  ): Arb<Value> {
     require(!structureSize.isEmpty()) { "structureSize must not be empty! (was $structureSize)" }
     require(structureSize.first >= 0) { "structureSize must not be negative! (was $structureSize)" }
     require(maxNesting >= 0) { "maxNesting must not be negative! (was $maxNesting)" }
@@ -30,10 +36,17 @@ internal object ValueArb {
     }
   }
 
-  internal operator fun invoke(vararg partitions: ValuePartition, structureSize: IntRange = 0..10, maxNesting: Int = 4) =
-    Arb.value(partitions.toSet(), structureSize, maxNesting)
+  internal operator fun invoke(
+    vararg partitions: ValuePartition,
+    structureSize: IntRange = 0..10,
+    maxNesting: Int = 4,
+  ) = Arb.value(partitions.toSet(), structureSize, maxNesting)
 
-  internal operator fun invoke(partitions: Set<ValuePartition>, structureSize: IntRange = 0..10, maxNesting: Int = 4): Arb<Value> {
+  internal operator fun invoke(
+    partitions: Set<ValuePartition>,
+    structureSize: IntRange = 0..10,
+    maxNesting: Int = 4,
+  ): Arb<Value> {
     require(!structureSize.isEmpty()) { "structureSize must not be empty! (was $structureSize)" }
     require(structureSize.first >= 0) { "structureSize must not be negative! (was $structureSize)" }
     require(maxNesting >= 0) { "maxNesting must not be negative! (was $maxNesting)" }
@@ -44,9 +57,8 @@ internal object ValueArb {
 }
 
 private val ValuePartition.canContainOtherValues: Boolean
-  get() = when (this) {
-    ValuePartition.Map -> true
-    else -> false
-  }
-
-
+  get() =
+    when (this) {
+      ValuePartition.Map -> true
+      else -> false
+    }

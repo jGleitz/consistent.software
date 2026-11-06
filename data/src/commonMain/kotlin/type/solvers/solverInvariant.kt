@@ -7,14 +7,19 @@ internal class InvariantContext {
 }
 
 @JvmInline
-internal value class RejectionBuilder(private val className: String?) {
-  fun with(parameterName: String, parameter: Any?) = RejectionMessageBuilder(className, parameterName, parameter)
+internal value class RejectionBuilder(
+  private val className: String?,
+) {
+  fun with(
+    parameterName: String,
+    parameter: Any?,
+  ) = RejectionMessageBuilder(className, parameterName, parameter)
 }
 
 internal class RejectionMessageBuilder(
   private val className: String?,
   private val parameterName: String,
-  private val parameter: Any?
+  private val parameter: Any?,
 ) {
   fun because(reason: String): Nothing =
     throw AssertionError("Cannot create a ${className ?: "???"} with $parameterName = ${parameter?.toString() ?: "null"}: $reason")

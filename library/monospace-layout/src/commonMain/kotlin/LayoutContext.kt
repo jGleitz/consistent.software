@@ -1,6 +1,8 @@
 package software.consistent.data.formatting.monospacelayout
 
-internal data class LayoutContext(val settings: LayoutSettings) {
+internal data class LayoutContext(
+  val settings: LayoutSettings,
+) {
   val state = LineState()
 
   internal inner class LineState {
@@ -13,7 +15,10 @@ internal data class LayoutContext(val settings: LayoutSettings) {
       boxesEnteredInThisLine = 0
     }
 
-    internal inline fun <R> reserveWidth(width: PrintWidth, block: () -> R): R {
+    internal inline fun <R> reserveWidth(
+      width: PrintWidth,
+      block: () -> R,
+    ): R {
       remainingWidthBeforeLineBreak -= width
       try {
         return block()
@@ -32,10 +37,13 @@ internal data class LayoutContext(val settings: LayoutSettings) {
     }
   }
 
-  internal class Indent private constructor(private val value: StringBuilder) : CharSequenceWithWidth, CharSequence by value {
+  internal class Indent private constructor(
+    private val value: StringBuilder,
+  ) : CharSequenceWithWidth,
+    CharSequence by value {
     internal constructor() : this(StringBuilder())
 
-    var _printWidth: PrintWidth = PrintWidth(0)
+    private var _printWidth: PrintWidth = PrintWidth(0)
     override val printWidth: PrintWidth get() = _printWidth
 
     override fun toString() = value.toString()

@@ -8,7 +8,7 @@ internal class ListLayout(
   private val items: List<InternalMonospaceLayout>,
   private val prefix: CharSequence,
   private val postfix: CharSequence,
-  private val separator: Separator
+  private val separator: Separator,
 ) : InternalMonospaceLayout {
   init {
     require(!prefix.contains(NEWLINE_PATTERN)) { "${::prefix.name} must not contain newlines!" }
@@ -19,9 +19,11 @@ internal class ListLayout(
 
   context(layout: LayoutContext)
   override fun singleLinePrintWidth(): PrintWidthIfSupported {
-    if (items.size > layout.settings.maxItemsPerLine
-      || layout.state.boxesEnteredInThisLine >= layout.settings.maxBoxOpenPerLine
-    ) return NOT_SUPPORTED
+    if (items.size > layout.settings.maxItemsPerLine ||
+      layout.state.boxesEnteredInThisLine >= layout.settings.maxBoxOpenPerLine
+    ) {
+      return NOT_SUPPORTED
+    }
 
     return hypotheticalWidth {
       layout.state.remainingWidthBeforeLineBreak -= prefix.printWidth
@@ -45,34 +47,36 @@ internal class ListLayout(
   }
 
   context(layout: LayoutContext)
-  override fun renderInSingleLineTo(target: LayoutTarget): Unit = enter {
-    target.append(prefix)
-    for ((index, item) in items.withIndex()) {
-      item.renderInSingleLineTo(target)
-      if (index != items.lastIndex) {
-        target.append(separator.singleLine)
+  override fun renderInSingleLineTo(target: LayoutTarget): Unit =
+    enter {
+      target.append(prefix)
+      for ((index, item) in items.withIndex()) {
+        item.renderInSingleLineTo(target)
+        if (index != items.lastIndex) {
+          target.append(separator.singleLine)
+        }
       }
+      target.append(postfix)
     }
-    target.append(postfix)
-  }
 
   context(layout: LayoutContext)
-  override fun renderMultilineTo(target: LayoutTarget): Unit = enter {
-    target.append(prefix)
-    layout.indented {
-      target.appendNewline().appendIndent()
+  override fun renderMultilineTo(target: LayoutTarget): Unit =
+    enter {
+      target.append(prefix)
+      layout.indented {
+        target.appendNewline().appendIndent()
 
-      for (index in 0..<items.lastIndex) {
-        layout.state.reserveWidth(separator.multiLine.printWidth) {
-          items[index].renderTo(target)
+        for (index in 0..<items.lastIndex) {
+          layout.state.reserveWidth(separator.multiLine.printWidth) {
+            items[index].renderTo(target)
+          }
+          target.append(separator.multiLine).appendNewline().appendIndent()
         }
-        target.append(separator.multiLine).appendNewline().appendIndent()
+        items.last().renderTo(target)
       }
-      items.last().renderTo(target)
-    }
 
-    target.appendNewline().appendIndent().append(postfix)
-  }
+      target.appendNewline().appendIndent().append(postfix)
+    }
 
   context(layout: LayoutContext)
   private inline fun <R> enter(block: () -> R): R {

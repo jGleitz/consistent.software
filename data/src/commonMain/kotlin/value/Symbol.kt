@@ -14,14 +14,19 @@ public sealed interface Symbol : Value {
 }
 
 internal val Symbol.identifier
-  get() = when (this) {
-    is IdentifiedSymbol -> identifier
-  }
+  get() =
+    when (this) {
+      is IdentifiedSymbol -> identifier
+    }
 
-internal class IdentifiedSymbol(val identifier: String) : Symbol, WithMonospaceLayout {
-  override fun compareIdentifiersTo(other: Symbol): Int = when (other) {
-    is IdentifiedSymbol -> identifier.compareTo(other.identifier)
-  }
+internal class IdentifiedSymbol(
+  val identifier: String,
+) : Symbol,
+  WithMonospaceLayout {
+  override fun compareIdentifiersTo(other: Symbol): Int =
+    when (other) {
+      is IdentifiedSymbol -> identifier.compareTo(other.identifier)
+    }
 
   override val monospaceLayout get() = Monospace.atom(identifier)
 

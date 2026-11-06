@@ -10,8 +10,11 @@ public sealed interface AnyNumber : Type {
   }
 }
 
-private object AnyNumberImpl : AnyNumber, WithMonospaceLayout,
+private object AnyNumberImpl :
+  AnyNumber,
+  WithMonospaceLayout,
   Queryable by UsingSolver(DisjunctIntervalUnion.complete()) {
   override val monospaceLayout get() = Monospace.atom("Number")
+
   override fun toString() = monospaceLayout.renderToString()
 }
