@@ -13,6 +13,7 @@ plugins {
 dependencies {
   // Merges the coverage of these projects into the report that SonarQube Cloud imports
   kover(project(":data"))
+  kover(project(":library:collections"))
   kover(project(":library:exact-numbers"))
   kover(project(":library:monospace-layout"))
 }

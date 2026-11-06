@@ -173,6 +173,16 @@ class MapSpec : DescribeSpec({
         expect(mapType(emptyList())).toBeSubtypeOf(type)
       }
 
+      it("ignores components whose key type has no members, even if that is not obvious") {
+        // The key type is a map type whose components contradict each other.
+        val noMaps = Map.Closed(required(Just(a) to AnyNumber())) and Map.Closed(required(Just(a) to AnySymbol()))
+        val withoutEmptyKeys = mapType(listOf(required(Just(a) to AnyNumber())))
+        val type = mapType(listOf(required(Just(a) to AnyNumber()), optional(noMaps to AnySymbol())))
+
+        expect(type).toAllow(Value.Map(a to one)).toBeSubtypeOf(withoutEmptyKeys)
+        expect(withoutEmptyKeys).toBeSubtypeOf(type)
+      }
+
       it("supports numbers as keys") {
         expect(mapType(listOf(required(Just(one) to AnySymbol()))))
           .toAllow(Value.Map(one to a))

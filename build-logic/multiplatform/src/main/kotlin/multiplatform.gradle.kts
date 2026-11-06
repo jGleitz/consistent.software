@@ -1,3 +1,5 @@
+import software.consistent.build.kmp.kotlin
+
 plugins {
   kotlin("multiplatform")
   id("jvm-toolchain")
@@ -7,6 +9,9 @@ plugins {
 
 repositories {
   mavenCentral()
+  google {
+    content { includeGroupByRegex("androidx\\..*") }
+  }
 }
 
 val compileAll =

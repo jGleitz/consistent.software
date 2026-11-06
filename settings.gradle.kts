@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "consistent.software"
 
 gradle.lifecycle.beforeProject {
@@ -25,6 +27,7 @@ dependencyResolutionManagement {
 
 include(
   ":documentation",
+  ":library:collections",
   ":library:exact-numbers",
   ":library:monospace-layout",
   ":data",
