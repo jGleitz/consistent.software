@@ -1,6 +1,6 @@
-package software.consistent.data.formatting.monospacelayout.layouts
+package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.data.formatting.monospacelayout.LayoutSettings
+import software.consistent.formatting.monospacelayout.LayoutSettings
 
 public sealed interface MonospaceLayout {
   /**

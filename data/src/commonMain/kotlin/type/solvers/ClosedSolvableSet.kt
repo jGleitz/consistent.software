@@ -1,6 +1,6 @@
 package software.consistent.data.type.solvers
 
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 internal interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TValue, TPartition>>
   : NormalizationComparable<TPartition>, WithMonospaceLayout {

@@ -1,8 +1,8 @@
-package software.consistent.data.formatting.monospacelayout.layouts
+package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.data.formatting.monospacelayout.LayoutContext
-import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported
-import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported.Companion.supported
+import software.consistent.formatting.monospacelayout.LayoutContext
+import software.consistent.formatting.monospacelayout.PrintWidthIfSupported
+import software.consistent.formatting.monospacelayout.PrintWidthIfSupported.Companion.supported
 
 context(layout: LayoutContext)
 internal inline fun hypotheticalWidth(block: () -> Unit): PrintWidthIfSupported {

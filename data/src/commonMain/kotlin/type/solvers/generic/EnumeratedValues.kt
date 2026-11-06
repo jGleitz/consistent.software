@@ -1,6 +1,5 @@
 package software.consistent.data.type.solvers.generic
 
-import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.type.solvers.*
 import software.consistent.data.type.solvers.Cardinality.Companion.exactly
 import software.consistent.data.type.solvers.Cardinality.Companion.moreThanIntMaxValue
@@ -8,6 +7,7 @@ import software.consistent.data.util.ComparisonCase
 import software.consistent.data.util.compareEach
 import software.consistent.data.value.Value
 import software.consistent.data.value.monospaceLayout
+import software.consistent.formatting.monospacelayout.Monospace
 
 internal sealed interface EnumeratedValues<TValue : Value> : ClosedSolvableSet<TValue, EnumeratedValues<TValue>> {
   private class Positive<TValue : Value>(val orderedMembers: NormalizationOrdered<TValue>) : EnumeratedValues<TValue> {

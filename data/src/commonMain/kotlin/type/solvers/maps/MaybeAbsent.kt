@@ -1,13 +1,13 @@
 package software.consistent.data.type.solvers.maps
 
-import software.consistent.data.formatting.monospacelayout.Monospace
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.type.solvers.Cardinality
 import software.consistent.data.type.solvers.Cardinality.Companion.exactly
 import software.consistent.data.type.solvers.NormalizationComparable
 import software.consistent.data.type.solvers.SolvableSet
 import software.consistent.data.type.solvers.TypePartitionUnion
 import software.consistent.data.util.compare
+import software.consistent.formatting.monospacelayout.Monospace
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 internal data class MaybeAbsent(
   val values: SolvableSet,

@@ -1,6 +1,6 @@
-package software.consistent.data.formatting.monospacelayout
+package software.consistent.formatting.monospacelayout
 
-import software.consistent.data.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
+import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
 
 // TODO consider whether this is necessary
 @ConsistentCopyVisibility

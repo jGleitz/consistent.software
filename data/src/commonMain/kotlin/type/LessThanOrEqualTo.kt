@@ -1,9 +1,9 @@
 package software.consistent.data.type
 
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.type.solvers.DisjunctIntervalUnion
 import software.consistent.data.value.Value
 import software.consistent.data.value.monospaceLayout
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 public sealed interface LessThanOrEqualTo : Type {
   public val comparisonValue: Value.Number

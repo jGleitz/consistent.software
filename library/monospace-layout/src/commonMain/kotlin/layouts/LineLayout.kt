@@ -1,10 +1,10 @@
-package software.consistent.data.formatting.monospacelayout.layouts
+package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.data.formatting.monospacelayout.LayoutContext
-import software.consistent.data.formatting.monospacelayout.LayoutTarget
-import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported
-import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported.Companion.NOT_SUPPORTED
-import software.consistent.data.formatting.monospacelayout.Separator
+import software.consistent.formatting.monospacelayout.LayoutContext
+import software.consistent.formatting.monospacelayout.LayoutTarget
+import software.consistent.formatting.monospacelayout.PrintWidthIfSupported
+import software.consistent.formatting.monospacelayout.PrintWidthIfSupported.Companion.NOT_SUPPORTED
+import software.consistent.formatting.monospacelayout.Separator
 
 internal class LineLayout(
   private val items: List<InternalMonospaceLayout>,

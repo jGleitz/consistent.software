@@ -1,8 +1,8 @@
 package software.consistent.data.type
 
-import software.consistent.data.formatting.monospacelayout.Monospace
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.type.solvers.Solvers
+import software.consistent.formatting.monospacelayout.Monospace
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 public sealed interface AnyOf : Type {
   public val types: List<Type>

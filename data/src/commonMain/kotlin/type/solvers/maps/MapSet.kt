@@ -1,6 +1,5 @@
 package software.consistent.data.type.solvers.maps
 
-import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.type.solvers.*
 import software.consistent.data.type.solvers.generic.BddRepresented
 import software.consistent.data.type.solvers.generic.LazyBdd
@@ -8,6 +7,7 @@ import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.contin
 import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.stopAndReturn
 import software.consistent.data.util.ComparisonCase.*
 import software.consistent.data.value.Value
+import software.consistent.formatting.monospacelayout.Monospace
 
 internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSet> {
 

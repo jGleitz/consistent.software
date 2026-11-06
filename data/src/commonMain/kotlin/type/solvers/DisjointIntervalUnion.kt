@@ -1,6 +1,5 @@
 package software.consistent.data.type.solvers
 
-import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.invariants.Invariants.hasSameSizeAs
 import software.consistent.data.invariants.Invariants.isNonDecreasing
 import software.consistent.data.invariants.checkInvariant
@@ -12,6 +11,7 @@ import software.consistent.data.util.compare
 import software.consistent.data.util.compareEach
 import software.consistent.data.value.Value
 import software.consistent.data.value.monospaceLayout
+import software.consistent.formatting.monospacelayout.Monospace
 
 /**
  *  [orderedBoundaries] holds the interval boundaries, [inclusive] indicates for each boundary whether it’s inclusive.

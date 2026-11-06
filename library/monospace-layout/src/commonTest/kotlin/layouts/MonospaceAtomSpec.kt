@@ -1,10 +1,10 @@
-package software.consistent.data.formatting.monospacelayout
+package software.consistent.formatting.monospacelayout
 
 import ch.tutteli.atrium.api.fluent.en_GB.toEqual
 import ch.tutteli.atrium.api.fluent.en_GB.toThrow
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
-import software.consistent.data.formatting.monospacelayout.layouts.MonospaceLayout
+import software.consistent.formatting.monospacelayout.layouts.MonospaceLayout
 
 class MonospaceAtomSpec : DescribeSpec({
   describe("Monospace.atom") {
