@@ -1,0 +1,70 @@
+name: Publish Documentation
+
+# A separate workflow, so that pull requests don't show a skipped publication job in their checks
+on:
+  workflow_run:
+    workflows: [Build]
+    branches: [main]
+    types:
+      - completed
+
+# Publishing one commit at a time lets the check below rule out that an older commit overwrites a newer one's
+# documentation. A newer commit's publication may displace a waiting one, which is fine.
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish Documentation
+    runs-on: ubuntu-latest
+    # The branch filter above also matches pull requests from a fork's main branch, so check the event, too
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success'
+
+    permissions:
+      actions: read
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+
+    steps:
+      - name: Check for Newer Commits
+        id: latest
+        # If main has moved on, the newer commit’s run publishes its documentation instead, provided its build succeeds
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)
+          if [[ "$head" == "$BUILT_SHA" ]]; then
+            echo "is-latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Not publishing, because main has moved on to $head"
+            echo "is-latest=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILT_SHA: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Download Documentation
+        if: steps.latest.outputs.is-latest == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/documentation
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      # deploy-pages only deploys artifacts of its own workflow run, so upload the archive from the build again
+      - name: Upload Documentation
+        if: steps.latest.outputs.is-latest == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/documentation/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Deploy to GitHub Pages
+        if: steps.latest.outputs.is-latest == 'true'
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
