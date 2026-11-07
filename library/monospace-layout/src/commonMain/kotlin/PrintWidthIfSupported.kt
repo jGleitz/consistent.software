@@ -1,4 +1,4 @@
-package software.consistent.data.formatting.monospacelayout
+package software.consistent.formatting.monospacelayout
 
 import kotlin.jvm.JvmInline
 

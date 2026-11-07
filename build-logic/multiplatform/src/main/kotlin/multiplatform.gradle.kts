@@ -1,3 +1,5 @@
+import software.consistent.build.kmp.kotlin
+
 plugins {
   kotlin("multiplatform")
   id("jvm-toolchain")

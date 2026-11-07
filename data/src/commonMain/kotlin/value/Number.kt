@@ -1,12 +1,12 @@
 package software.consistent.data.value
 
-import software.consistent.data.formatting.monospacelayout.Monospace
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
 import software.consistent.data.invariants.checkInvariant
 import software.consistent.data.value.bignumbers.printFractionalNumber
 import software.consistent.data.value.bignumbers.printWholeNumber
 import software.consistent.data.value.number.parseNumberString
 import software.consistent.exactnumbers.*
+import software.consistent.formatting.monospacelayout.Monospace
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 import kotlin.jvm.JvmName
 
 public sealed interface Number : Value, Comparable<Number> {

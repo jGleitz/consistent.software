@@ -3,3 +3,6 @@
 
 [libraries]
 unicodewidth = "io.github.kotlinmania:unicode-width-kotlin:0.1.2"
+apache-commons-fraction = "org.apache.commons:commons-numbers-fraction:1.3"
+fraction-js = "npm:fraction.js:5.3.4"
+androidx-collection = "androidx.collection:collection:1.7.0"

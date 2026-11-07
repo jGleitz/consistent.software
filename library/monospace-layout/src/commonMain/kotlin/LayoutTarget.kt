@@ -1,6 +1,6 @@
-package software.consistent.data.formatting.monospacelayout
+package software.consistent.formatting.monospacelayout
 
-import software.consistent.data.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE
+import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE
 import kotlin.jvm.JvmInline
 
 @JvmInline

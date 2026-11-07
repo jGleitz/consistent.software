@@ -1,7 +1,8 @@
 package software.consistent.data.value
 
-import software.consistent.data.formatting.monospacelayout.Monospace
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.formatting.monospacelayout.Monospace
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.formatting.monospacelayout.layouts.MonospaceLayout
 import kotlin.jvm.JvmName
 
 public sealed interface Map : Value {
@@ -15,13 +16,28 @@ public sealed interface Map : Value {
 
   public companion object {
     @JvmName("of")
-    public operator fun invoke(data: kotlin.collections.Map<Value, Value>): Map = KotlinBasedMap(buildMap(data.size) { putAll(data) })
+    public operator fun invoke(): Map = Empty
 
     @JvmName("of")
-    public operator fun invoke(vararg data: Pair<Value, Value>): Map = KotlinBasedMap(buildMap(data.size) { putAll(data) })
+    public operator fun invoke(data: kotlin.collections.Map<Value, Value>): Map =
+      if (data.isEmpty()) Empty else KotlinBasedMap(buildMap(data.size) { putAll(data) })
 
     @JvmName("of")
-    public operator fun invoke(data: List<Pair<Value, Value>>): Map = KotlinBasedMap(buildMap(data.size) { putAll(data) })
+    public operator fun invoke(vararg data: Pair<Value, Value>): Map =
+      if (data.isEmpty()) Empty else KotlinBasedMap(buildMap(data.size) { putAll(data) })
+
+    @JvmName("of")
+    public operator fun invoke(data: Iterable<Pair<Value, Value>>): Map =
+      if (data is Collection) Map(data)
+      else Map(buildMap { putAll(data) })
+
+    @JvmName("of")
+    public operator fun invoke(data: Collection<Pair<Value, Value>>): Map =
+      if (data.isEmpty()) Empty
+      else KotlinBasedMap(buildMap(data.size) { putAll(data) })
+
+    @JvmName("of")
+    public operator fun invoke(data: Sequence<Pair<Value, Value>>): Map = Map(buildMap { putAll(data) })
   }
 }
 
@@ -47,6 +63,20 @@ private data class KotlinBasedMap(val data: kotlin.collections.Map<Value, Value>
         }
       }
     }
+
+  override fun toString() = monospaceLayout.renderToString()
+}
+
+private object Empty : Map, WithMonospaceLayout {
+  override val size get() = 0
+  override val keys get() = emptySet<Value>()
+  override val values get() = emptySet<Value>()
+  override val entries get() = emptySet<Map.Entry<Value, Value>>()
+  override fun isEmpty() = true
+  override fun hasKey(key: Value) = false
+  override fun get(key: Value) = null
+  override val monospaceLayout: MonospaceLayout
+    get() = Monospace.atom("{}")
 
   override fun toString() = monospaceLayout.renderToString()
 }

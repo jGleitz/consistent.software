@@ -1,10 +1,10 @@
-package software.consistent.data.formatting.monospacelayout
+package software.consistent.formatting.monospacelayout
 
-import software.consistent.data.formatting.monospacelayout.layouts.InternalMonospaceLayout.Companion.intern
-import software.consistent.data.formatting.monospacelayout.layouts.LineLayout
-import software.consistent.data.formatting.monospacelayout.layouts.ListLayout
-import software.consistent.data.formatting.monospacelayout.layouts.MonospaceAtom
-import software.consistent.data.formatting.monospacelayout.layouts.MonospaceLayout
+import software.consistent.formatting.monospacelayout.layouts.InternalMonospaceLayout.Companion.intern
+import software.consistent.formatting.monospacelayout.layouts.LineLayout
+import software.consistent.formatting.monospacelayout.layouts.ListLayout
+import software.consistent.formatting.monospacelayout.layouts.MonospaceAtom
+import software.consistent.formatting.monospacelayout.layouts.MonospaceLayout
 import kotlin.jvm.JvmInline
 
 public object Monospace {

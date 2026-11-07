@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "consistent.software"
 
 gradle.lifecycle.beforeProject {
@@ -31,6 +33,9 @@ dependencyResolutionManagement {
       mirror yet; build-logic/settings.gradle.kts declares the mirror, too. */
     maven("https://maven-central.storage-download.googleapis.com/maven2/") { name = "Google Maven Central Mirror" }
     mavenCentral()
+    google {
+      content { includeGroupByRegex("androidx\\..*") }
+    }
   }
   versionCatalogs {
     create("testLibs") {
@@ -44,6 +49,7 @@ dependencyResolutionManagement {
 
 include(
   ":documentation",
+  ":library:collections",
   ":library:exact-numbers",
   ":library:monospace-layout",
   ":data",

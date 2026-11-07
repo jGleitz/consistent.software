@@ -1,17 +1,17 @@
 package software.consistent.data.type.solvers
 
-import software.consistent.data.formatting.monospacelayout.Monospace
 import software.consistent.data.invariants.Invariants.hasSameSizeAs
 import software.consistent.data.invariants.Invariants.isNonDecreasing
 import software.consistent.data.invariants.checkInvariant
-import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.atLeast
-import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.exactly
-import software.consistent.data.type.solvers.ClosedSolvableSet.Cardinality.Companion.moreThanIntMaxValue
+import software.consistent.data.type.solvers.Cardinality.Companion.atLeast
+import software.consistent.data.type.solvers.Cardinality.Companion.exactly
+import software.consistent.data.type.solvers.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.util.ComparisonCase.*
 import software.consistent.data.util.compare
 import software.consistent.data.util.compareEach
 import software.consistent.data.value.Value
 import software.consistent.data.value.monospaceLayout
+import software.consistent.formatting.monospacelayout.Monospace
 
 /**
  *  [orderedBoundaries] holds the interval boundaries, [inclusive] indicates for each boundary whether it’s inclusive.
@@ -88,12 +88,13 @@ private constructor(
   private fun isClosed() = !leftOpen && !rightOpen
   override fun isTriviallyEmpty() = isEmpty()
   override fun isEmpty() = orderedBoundaries.isEmpty() && isClosed()
+  override fun isTriviallyNotEmpty() = orderedBoundaries.isNotEmpty() || leftOpen || rightOpen
   override fun isTriviallyComplete() = isComplete()
   override fun isComplete() = orderedBoundaries.isEmpty() && !isClosed()
 
   override fun isFinite() = isClosed() && eachBoundary { lower, upper -> lower == upper }
 
-  override fun cardinality(upTo: Int): ClosedSolvableSet.Cardinality {
+  override fun cardinality(upTo: Int): Cardinality {
     if (!isClosed()) return moreThanIntMaxValue()
     var singletons = 0
     forEachBoundary { lower, upper ->
@@ -259,6 +260,20 @@ private constructor(
   override fun without(otherSet: DisjunctIntervalUnion<TValue>) = this overlapWith !otherSet
 
   override fun isSubsetOf(largerSet: DisjunctIntervalUnion<TValue>) = (this without largerSet).isEmpty()
+
+  override fun triviallyEquals(otherSet: ClosedSolvableSet<*, *>) = this == otherSet
+
+  override fun equals(other: Any?) =
+    this === other
+      || (
+      other is DisjunctIntervalUnion<*>
+        && leftOpen == other.leftOpen
+        && rightOpen == other.rightOpen
+        && orderedBoundaries == other.orderedBoundaries
+        && inclusive.contentEquals(other.inclusive)
+      )
+
+  override fun hashCode(): Int = throw doesNotSupportHashing()
 
   override fun normalizationComparedTo(other: DisjunctIntervalUnion<TValue>) = compare(this).to(other, by = { it.leftOpen })
     .ifEqual { compare(this).to(other, by = { it.rightOpen }) }
