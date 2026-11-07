@@ -3,10 +3,10 @@
 # This file is expected to be part of source control.
 # To regenerate this file, run: ./gradlew :build-logic:multiplatform:dependencies --write-locks
 com.google.code.gson:gson:2.11.0=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.12=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-com.google.devtools.ksp:symbol-processing-api:2.3.12=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.google.devtools.ksp:symbol-processing-common-deps:2.3.12=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.google.devtools.ksp:symbol-processing-gradle-plugin:2.3.12=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.13=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+com.google.devtools.ksp:symbol-processing-api:2.3.13=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
+com.google.devtools.ksp:symbol-processing-common-deps:2.3.13=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
+com.google.devtools.ksp:symbol-processing-gradle-plugin:2.3.13=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 com.google.errorprone:error_prone_annotations:2.27.0=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
 io.kotest:io.kotest.gradle.plugin:6.2.6=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
 io.kotest:kotest-framework-plugin-gradle:6.2.6=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
@@ -56,8 +56,7 @@ org.jetbrains.kotlin:kotlin-scripting-common:2.4.10=compilePluginsBlocksPluginCl
 org.jetbrains.kotlin:kotlin-scripting-compiler-embeddable:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
 org.jetbrains.kotlin:kotlin-scripting-compiler-impl-embeddable:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
 org.jetbrains.kotlin:kotlin-scripting-jvm:2.4.10=compilePluginsBlocksPluginClasspathElements,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
-org.jetbrains.kotlin:kotlin-stdlib:2.3.20=runtimeClasspath
-org.jetbrains.kotlin:kotlin-stdlib:2.4.0=kotlinAbiValidationCompatClasspath
+org.jetbrains.kotlin:kotlin-stdlib:2.4.0=kotlinAbiValidationCompatClasspath,runtimeClasspath
 org.jetbrains.kotlin:kotlin-stdlib:2.4.10=compileClasspath,compilePluginsBlocksPluginClasspathElements,embeddedKotlin,kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest,kotlinKlibCommonizerClasspath,precompiledScriptPluginAccessorsGenerationClasspath,testCompileClasspath,testRuntimeClasspath
 org.jetbrains.kotlin:kotlin-tooling-core:2.4.10=kotlinAbiValidationCompatClasspath,kotlinBuildToolsApiClasspath,kotlinCompilerClasspath
 org.jetbrains.kotlin:kotlin-tooling-core:2.4.21=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
