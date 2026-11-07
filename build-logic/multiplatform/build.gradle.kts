@@ -2,10 +2,6 @@ plugins {
   `kotlin-dsl`
 }
 
-repositories {
-  gradlePluginPortal()
-}
-
 dependencies {
   implementation(project(":nodejs"))
   implementation(buildLibs.plugin.kotlin.multiplatform)
