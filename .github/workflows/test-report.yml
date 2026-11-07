@@ -18,6 +18,8 @@ jobs:
   add_report:
     name: Annotate Test Results on Pull Request
     runs-on: ubuntu-latest
+    # A cancelled build, for example one superseded by a newer push, uploads no test results to report on
+    if: github.event.workflow_run.conclusion != 'cancelled'
 
     steps:
       - uses: dorny/test-reporter@d1b5dff021aa968b288b02285a8bf47471c5928a # v3.2.0
