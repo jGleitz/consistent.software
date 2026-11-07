@@ -1,11 +1,8 @@
-package software.consistent.data.formatting.monospacelayout.layouts
+package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.data.formatting.monospacelayout.CharSequenceWithCachedWidth
-import software.consistent.data.formatting.monospacelayout.CharSequenceWithWidth
-import software.consistent.data.formatting.monospacelayout.LayoutContext
-import software.consistent.data.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
-import software.consistent.data.formatting.monospacelayout.LayoutTarget
-import software.consistent.data.formatting.monospacelayout.PrintWidthIfSupported.Companion.supported
+import software.consistent.formatting.monospacelayout.*
+import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
+import software.consistent.formatting.monospacelayout.PrintWidthIfSupported.Companion.supported
 
 /**
  * A [layout][MonospaceLayout] that renders its content as-is, without any formatting applied.
@@ -37,6 +34,8 @@ internal class MonospaceAtom(
 
   context(layout: LayoutContext)
   override fun renderTo(target: LayoutTarget) = renderInSingleLineTo(target)
+
+  override fun renderToString(settings: LayoutSettings) = content.toString()
 
   companion object {
     inline operator fun invoke(builderFun: StringBuilder.() -> Unit): MonospaceAtom =

@@ -1,8 +1,8 @@
-package software.consistent.data.formatting.monospacelayout.layouts
+package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.data.formatting.monospacelayout.*
-import software.consistent.data.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
-import software.consistent.data.formatting.monospacelayout.layouts.InternalMonospaceLayout.Companion.intern
+import software.consistent.formatting.monospacelayout.*
+import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
+import software.consistent.formatting.monospacelayout.layouts.InternalMonospaceLayout.Companion.intern
 
 internal class LayoutWrapper private constructor(
   val inner: InternalMonospaceLayout,

@@ -1,6 +1,6 @@
 package software.consistent.data.value
 
-import software.consistent.data.formatting.monospacelayout.WithMonospaceLayout
+import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 internal val Value.monospaceLayout
   get() = when (this) {

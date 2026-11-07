@@ -1,6 +1,6 @@
-package software.consistent.data.formatting.monospacelayout.layouts
+package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.data.formatting.monospacelayout.*
+import software.consistent.formatting.monospacelayout.*
 
 internal sealed interface InternalMonospaceLayout : MonospaceLayout, Renderable {
   /**

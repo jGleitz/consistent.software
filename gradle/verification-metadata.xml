@@ -15,6 +15,7 @@
          <trusted-key id="05F1A5DA5701D415BEFC67FC6329ADE2B25B244B" group="io.github.pdvrieze.xmlutil"/>
          <trusted-key id="06D0369BE1D0B06997DA66E8C33B56C147B01975" group="^org[.]sonarsource[.]scanner($|([.].*))" regex="true"/>
          <trusted-key id="09939C73246B4BA7444CAA453D002DBC5EA9615F" group="dev.drewhamilton.poko"/>
+         <trusted-key id="0E225917414670F4442C250DFD533C07C264648F" group="androidx.collection"/>
          <trusted-key id="13AC2213964ABE1D1C147C0E1939A2520BAB1D90" group="org.freemarker" name="freemarker" version="2.3.32"/>
          <trusted-key id="1B07CFB6CD172EF8B1E078A7BC3EFBDB5650D775" group="io.github.kotlinmania"/>
          <trusted-key id="1BD97A6A154E7810EE0BC832E2F38302C8075E3D" group="org.gradle.kotlin" name="gradle-kotlin-dsl-plugins" version="6.7.6"/>
@@ -30,6 +31,7 @@
          <trusted-key id="34441E504A937F43EB0DAEF96A65176A0FB1CD0B" group="org.apache.groovy"/>
          <trusted-key id="3690C240CE51B4670D30AD1C38EE757D69184620" group="org.tukaani" name="xz" version="1.9"/>
          <trusted-key id="416F88D485D425E2777F4CEFEB6B918AB158F3A8" group="^ch[.]tutteli($|([.].*))" regex="true"/>
+         <trusted-key id="41CD49B4EF5876F9E9F691DABAC30622339994C4" group="org.jspecify" name="jspecify" version="1.0.0"/>
          <trusted-key id="4797B4F5DCC46CEA61059071A1AE06236CA2BA62" group="com.diffplug.durian" name="durian-swt.os" version="4.3.0"/>
          <trusted-key id="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5" group="io.github.oshai" name="kotlin-logging-jvm" version="7.0.13"/>
          <trusted-key id="5CBA19E56141E78D54BF716F08A4A4958D61FC3D" group="io.kotest"/>
@@ -50,6 +52,7 @@
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9E3044071B758EBCB7E45673700E4F39BC05364B" group="org.eclipse.platform" name="org.eclipse.osgi" version="3.24.300"/>
          <trusted-key id="A5BD02B93E7A40482EB1D66A5F69AD087600B22C" group="org.ow2.asm" name="asm" version="9.9.1"/>
+         <trusted-key id="A5F483CD733A4EBAEA378B2AE88979FB9B30ACF2" group="androidx.annotation"/>
          <trusted-key id="A7892505CF1A58076453E52D7999BEFBA1039E8B" group="net.bytebuddy"/>
          <trusted-key id="A9789342F598AD5B1175EF357EB97D110DFADD60" group="com.googlecode.concurrent-trees" name="concurrent-trees" version="2.6.1"/>
          <trusted-key id="ADBC987D1A7B91DB6B0AAA81995EFBF4A3D20BEB" group="com.pinterest.ktlint"/>

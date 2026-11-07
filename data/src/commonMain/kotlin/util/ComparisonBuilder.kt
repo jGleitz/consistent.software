@@ -97,4 +97,10 @@ internal enum class ComparisonCase {
     isEqual -> comparison()
     isLower, isHigher -> this
   }
+
+  fun reversed() = when (this) {
+    isLower -> isHigher
+    isEqual -> isEqual
+    isHigher -> isLower
+  }
 }
