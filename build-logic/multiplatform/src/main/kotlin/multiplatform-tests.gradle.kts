@@ -23,7 +23,13 @@ kotlin {
     commonTest {
       dependencies {
         implementation(testLibs["kotest-framework"])
-        implementation(testLibs["atrium-fluent"])
+        implementation(testLibs["atrium-fluent"]) {
+          // Atrium 1.3.0 pulls in kotlin-test 2.0.21 through atrium-test-factory, which we don’t use. The Kotlin/JS compiler
+          // rejects that kotlin-test because of its old ABI version. Atrium recommends this exclusion
+          // (see https://github.com/robstoll/atrium/discussions/2209).
+          // TODO Remove this exclusion once we use Atrium 2.0.0, which is to drop this dependency on kotlin-test.
+          exclude(group = "ch.tutteli.atrium", module = "atrium-test-factory")
+        }
       }
     }
 
