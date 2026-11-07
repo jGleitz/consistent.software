@@ -9,13 +9,10 @@ gradle.lifecycle.beforeProject {
 pluginManagement {
   includeBuild("build-logic")
   repositories {
-    // See the explanation in dependencyResolutionManagement below
-    maven("https://maven-central.storage-download.googleapis.com/maven2/") {
-      name = "Google Maven Central Mirror"
-      // The Gradle Plugin Portal serves other plugin marker POMs than Maven Central does under the same coordinates, and
-      // gradle/verification-metadata.xml has the checksums of the Portal’s
-      content { excludeModuleByRegex(".*", ".*[.]gradle[.]plugin") }
-    }
+    /* See the explanation in dependencyResolutionManagement below. This includes plugin markers: those on Maven Central declare
+      the same plugin as the Portal’s, and the Portal only redirects to Central for some of them, which can fail with a 429, too.
+      Markers that only the Portal has are missing from the mirror, so Gradle falls back to the Portal for them. */
+    maven("https://maven-central.storage-download.googleapis.com/maven2/") { name = "Google Maven Central Mirror" }
     gradlePluginPortal()
   }
 }
