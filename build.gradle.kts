@@ -13,6 +13,7 @@ plugins {
 dependencies {
   // Merges the coverage of these projects into the report that SonarQube Cloud imports
   kover(project(":data"))
+  kover(project(":library:collections"))
   kover(project(":library:exact-numbers"))
   kover(project(":library:monospace-layout"))
 }
@@ -25,6 +26,8 @@ sonar {
     // such as this one, get an empty sonar.tests, for which some analysers would guess test files from their paths if
     // we didn’t disable that feature here.
     property("sonar.testFileHeuristic.disabled", true)
+    // Kover measures only the JVM tests, so code that runs only on JS would always count as uncovered
+    property("sonar.coverage.exclusions", "**/src/jsMain/**")
     // An aggregate report: as a module report, every module would try to match all of its files and warn that none match
     property(
       "sonar.coverage.jacoco.aggregateXmlReportPaths",

@@ -8,10 +8,6 @@ plugins {
   id("nodejs")
 }
 
-repositories {
-  mavenCentral() // to download dependencies of the checkers
-}
-
 // TODO move into dependency catalog
 val prettierVersion = "3.8.3"
 // TODO move into dependency catalog

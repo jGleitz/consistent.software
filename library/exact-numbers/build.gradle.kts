@@ -1,3 +1,5 @@
+import software.consistent.build.kmp.npm
+
 plugins {
   id("format")
   id("multiplatform")
@@ -5,6 +7,10 @@ plugins {
 }
 
 dependencies {
+  jvmMainApi(libs.apache.commons.fraction)
+
+  jsMainApi(npm(libs.fraction.js))
+
   commonTestImplementation(testLibs.kotest.property)
 }
 

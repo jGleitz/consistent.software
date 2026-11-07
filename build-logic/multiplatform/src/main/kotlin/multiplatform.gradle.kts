@@ -1,12 +1,10 @@
+import software.consistent.build.kmp.kotlin
+
 plugins {
   kotlin("multiplatform")
   id("jvm-toolchain")
   id("multiplatform-targets-all")
   id("multiplatform-tests")
-}
-
-repositories {
-  mavenCentral()
 }
 
 val compileAll =
