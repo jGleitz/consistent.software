@@ -36,6 +36,16 @@ kotlin {
   }
 }
 
+// Atrium 1.3.0 pulls in kotlin-test 2.0.21 through atrium-test-factory, which we don’t use. The Kotlin/JS compiler rejects that
+// kotlin-test because of its old ABI version. Atrium recommends excluding atrium-test-factory
+// (see https://github.com/robstoll/atrium/discussions/2209). We exclude it from the test configurations instead of from the
+// dependency on atrium-fluent: the platform configurations reach it through the platform modules that Gradle substitutes for
+// Atrium’s modules, and the exclusion on the dependency doesn’t carry over to them.
+// TODO Remove this exclusion once we use Atrium 2.0.0, which is to drop this dependency on kotlin-test.
+configurations.named { it.contains("Test") }.configureEach {
+  exclude(group = "ch.tutteli.atrium", module = "atrium-test-factory")
+}
+
 tasks.withType<Test>().configureEach {
   useJUnitPlatform()
 }
