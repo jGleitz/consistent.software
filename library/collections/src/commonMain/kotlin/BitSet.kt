@@ -110,6 +110,8 @@ public class BitSet private constructor(private val bits: BitStorage, size: Int)
     var element = nextElement(0)
     while (element >= 0) {
       action(element)
+      // element + 1 would overflow to a negative index
+      if (element == Int.MAX_VALUE) break
       element = nextElement(element + 1)
     }
   }

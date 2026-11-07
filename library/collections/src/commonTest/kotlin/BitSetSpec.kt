@@ -276,6 +276,16 @@ class BitSetSpec : DescribeSpec({
       }
     }
 
+    // Stores 256 MiB of bits
+    it("handles the largest possible element") {
+      val set = BitSet().apply { add(0); add(Int.MAX_VALUE) }
+      expect(set.elements()).toContainExactly(0, Int.MAX_VALUE)
+      expect(set.toString()).toEqual("[0, ${Int.MAX_VALUE}]")
+      expect(set.hashCode()).toEqual(setOf(0, Int.MAX_VALUE).hashCode())
+      expect(set.removeAll { it == Int.MAX_VALUE }).toEqual(true)
+      expect(set.elements()).toContainExactly(0)
+    }
+
     it("iterates over all elements of a full set") {
       val set = BitSet(130)
       (0..<130).forEach { set.add(it) }
