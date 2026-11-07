@@ -57,7 +57,7 @@ internal class MapComponent(
   override fun isFinite() = cardinality(2).isExact()
 
   override fun cardinality(upTo: Int): Cardinality {
-    if (values.values.isEmpty()) {
+    if (values.values.isEmpty() && !keys.isEmpty()) {
       // the component allows no map
       if (!values.includesAbsent) return exactly(0)
       // the component allows only the empty map
