@@ -2,10 +2,6 @@ plugins {
   `kotlin-dsl`
 }
 
-repositories {
-  gradlePluginPortal()
-}
-
 dependencies {
   implementation(buildLibs.plugin.spotless)
   implementation(project(":nodejs"))

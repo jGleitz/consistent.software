@@ -7,13 +7,6 @@ plugins {
   id("multiplatform-tests")
 }
 
-repositories {
-  mavenCentral()
-  google {
-    content { includeGroupByRegex("androidx\\..*") }
-  }
-}
-
 val compileAll =
   tasks.register("compileAll") {
     dependsOn(kotlin.targets.flatMap { target -> target.compilations.map { it.compileAllTaskName } })
