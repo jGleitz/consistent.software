@@ -58,7 +58,12 @@ include(
 develocity {
   buildScan {
     publishing.onlyIf { false }
-    if (providers.environmentVariable("CI").orNull == "true") {
+    /* Publishing a scan with `--scan` requires agreeing to gradle.com’s terms of service. CI agrees to them, and so does
+      anyone who sets AGREE_TO_GRADLE_COM_TERMS_OF_SERVICE=yes, for example the cloud environment of AI agents. */
+    if (
+      providers.environmentVariable("CI").orNull == "true" ||
+      providers.environmentVariable("AGREE_TO_GRADLE_COM_TERMS_OF_SERVICE").orNull == "yes"
+    ) {
       termsOfUseUrl = "https://gradle.com/terms-of-service"
       termsOfUseAgree = "yes"
     }
