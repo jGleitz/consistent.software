@@ -1,17 +1,17 @@
 package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.formatting.monospacelayout.*
+import software.consistent.formatting.monospacelayout.CharSequenceWithCachedWidth
+import software.consistent.formatting.monospacelayout.CharSequenceWithWidth
+import software.consistent.formatting.monospacelayout.LayoutContext
+import software.consistent.formatting.monospacelayout.LayoutSettings
 import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
+import software.consistent.formatting.monospacelayout.LayoutTarget
 import software.consistent.formatting.monospacelayout.PrintWidthIfSupported.Companion.supported
 
-/**
- * A [layout][MonospaceLayout] that renders its content as-is, without any formatting applied.
- */
+/** A [layout][MonospaceLayout] that renders its content as-is, without any formatting applied. */
 internal class MonospaceAtom(
-  /**
-   * The content that the layout will render verbatim. Must not contain any newlines.
-   */
-  private val content: CharSequenceWithWidth
+    /** The content that the layout will render verbatim. Must not contain any newlines. */
+    private val content: CharSequenceWithWidth,
 ) : InternalMonospaceLayout {
   init {
     require(!content.contains(NEWLINE_PATTERN)) { "atoms must not contain newlines!" }
@@ -19,7 +19,8 @@ internal class MonospaceAtom(
 
   constructor(content: CharSequence) : this(CharSequenceWithCachedWidth(content))
 
-  override val isContainer get() = false
+  override val isContainer
+    get() = false
 
   context(layout: LayoutContext)
   override fun singleLinePrintWidth() = supported(content.printWidth)
@@ -39,9 +40,11 @@ internal class MonospaceAtom(
 
   companion object {
     inline operator fun invoke(builderFun: StringBuilder.() -> Unit): MonospaceAtom =
-      MonospaceAtom(StringBuilder().apply(builderFun))
+        MonospaceAtom(StringBuilder().apply(builderFun))
 
-    inline operator fun invoke(expectedSize: Int, builderFun: StringBuilder.() -> Unit): MonospaceAtom =
-      MonospaceAtom(StringBuilder(expectedSize).apply(builderFun))
+    inline operator fun invoke(
+        expectedSize: Int,
+        builderFun: StringBuilder.() -> Unit,
+    ): MonospaceAtom = MonospaceAtom(StringBuilder(expectedSize).apply(builderFun))
   }
 }

@@ -3,17 +3,19 @@ package software.consistent.data.type.solvers
 import software.consistent.data.value.Value
 
 /**
- * Represents a _partition_ of the set of all values \(\mathbb{V}\). That is: each enum member `e` represents a set Vₑ such that
+ * Represents a _partition_ of the set of all values \(\mathbb{V}\). That is: each enum member `e`
+ * represents a set Vₑ such that
  */
 internal enum class ValuePartition {
   Number,
   Symbol,
-  Map
+  Map,
 }
 
 internal val Value.partition
-  get() = when (this) {
-    is Value.Map -> ValuePartition.Map
-    is Value.Number -> ValuePartition.Number
-    is Value.Symbol -> ValuePartition.Symbol
-  }
+  get() =
+      when (this) {
+        is Value.Map -> ValuePartition.Map
+        is Value.Number -> ValuePartition.Number
+        is Value.Symbol -> ValuePartition.Symbol
+      }

@@ -9,15 +9,22 @@ public sealed interface LessThanOrEqualTo : Type {
   public val comparisonValue: Value.Number
 
   public companion object {
-    public operator fun invoke(comparisonValue: Value.Number): LessThanOrEqualTo = LessThanOrEqualToImpl(comparisonValue)
+    public operator fun invoke(comparisonValue: Value.Number): LessThanOrEqualTo =
+        LessThanOrEqualToImpl(comparisonValue)
   }
 }
 
-private class LessThanOrEqualToImpl(override val comparisonValue: Value.Number) : LessThanOrEqualTo, WithMonospaceLayout,
-  Queryable by UsingSolver(DisjunctIntervalUnion(1) {
-    it.appendBoundary(comparisonValue, isInclusive = true)
-    it.leftOpen = true
-  }) {
-  override val monospaceLayout get() = comparisonValue.monospaceLayout.withPrefix("<= ")
+private class LessThanOrEqualToImpl(override val comparisonValue: Value.Number) :
+    LessThanOrEqualTo,
+    WithMonospaceLayout,
+    Queryable by UsingSolver(
+        DisjunctIntervalUnion(1) {
+          it.appendBoundary(comparisonValue, isInclusive = true)
+          it.leftOpen = true
+        },
+    ) {
+  override val monospaceLayout
+    get() = comparisonValue.monospaceLayout.withPrefix("<= ")
+
   override fun toString() = monospaceLayout.renderToString()
 }

@@ -8,9 +8,11 @@ plugins {
 }
 
 val compileAll =
-  tasks.register("compileAll") {
-    dependsOn(kotlin.targets.flatMap { target -> target.compilations.map { it.compileAllTaskName } })
-  }
+    tasks.register("compileAll") {
+      dependsOn(
+          kotlin.targets.flatMap { target -> target.compilations.map { it.compileAllTaskName } },
+      )
+    }
 
 kotlin {
   compilerOptions {

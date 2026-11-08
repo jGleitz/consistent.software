@@ -10,8 +10,10 @@ public sealed interface Any : Type {
   }
 }
 
-private object AnyImpl : Any, WithMonospaceLayout, Queryable by UsingSolver(TypePartitionUnion.complete()) {
-  override val monospaceLayout get() = Monospace.atom("Any")
+private object AnyImpl :
+    Any, WithMonospaceLayout, Queryable by UsingSolver(TypePartitionUnion.complete()) {
+  override val monospaceLayout
+    get() = Monospace.atom("Any")
 
   override fun toString() = monospaceLayout.renderToString()
 }

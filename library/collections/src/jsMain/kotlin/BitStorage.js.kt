@@ -15,7 +15,8 @@ internal actual class BitStorage private constructor(private var words: IntArray
   actual fun set(index: Int) {
     val wordIndex = index ushr WORD_SHIFT
     if (wordIndex >= words.size) {
-      // Like java.util.BitSet, at least double the size, so that adding ascending elements takes amortised constant time
+      // Like java.util.BitSet, at least double the size, so that adding ascending elements takes
+      // amortised constant time
       words = words.copyOf(max(2 * words.size, wordIndex + 1))
     }
     words[wordIndex] = words[wordIndex] or (1 shl index)
@@ -33,7 +34,8 @@ internal actual class BitStorage private constructor(private var words: IntArray
   actual fun nextSetBit(fromIndex: Int): Int {
     var wordIndex = fromIndex ushr WORD_SHIFT
     if (wordIndex >= words.size) return -1
-    // `shl` only uses the lowest five bits of the shift distance, so this masks out the bits before fromIndex within its word
+    // `shl` only uses the lowest five bits of the shift distance, so this masks out the bits before
+    // fromIndex within its word
     var word = words[wordIndex] and (-1 shl fromIndex)
     while (word == 0) {
       wordIndex++

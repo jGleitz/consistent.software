@@ -9,7 +9,9 @@ gradle.lifecycle.beforeProject {
 pluginManagement {
   repositories {
     // We ask Google’s mirror of Maven Central first; ../settings.gradle.kts explains why
-    maven("https://maven-central.storage-download.googleapis.com/maven2/") { name = "Google Maven Central Mirror" }
+    maven("https://maven-central.storage-download.googleapis.com/maven2/") {
+      name = "Google Maven Central Mirror"
+    }
     gradlePluginPortal()
   }
 }
@@ -17,8 +19,11 @@ pluginManagement {
 dependencyResolutionManagement {
   repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
   repositories {
-    // The same as in pluginManagement, because the build-logic projects depend on plugin markers, too
-    maven("https://maven-central.storage-download.googleapis.com/maven2/") { name = "Google Maven Central Mirror" }
+    // The same as in pluginManagement, because the build-logic projects depend on plugin markers,
+    // too
+    maven("https://maven-central.storage-download.googleapis.com/maven2/") {
+      name = "Google Maven Central Mirror"
+    }
     gradlePluginPortal()
   }
   versionCatalogs {
@@ -29,8 +34,8 @@ dependencyResolutionManagement {
 }
 
 include(
-  "codedoc",
-  "codestyle",
-  "multiplatform",
-  "nodejs",
+    "codedoc",
+    "codestyle",
+    "multiplatform",
+    "nodejs",
 )

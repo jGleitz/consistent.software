@@ -16,8 +16,9 @@ val kfmtVersion = "0.65"
 val prettierRc = rootProject.projectDir.resolve(".prettierrc.yaml")
 
 spotless {
-  // Matches `end_of_line` in .editorconfig. The default policy reads Git attributes through JGit, which reads `PATH`
-  // during configuration, so any change to `PATH` (for example IDE versus terminal) would discard the configuration cache.
+  // Matches `end_of_line` in .editorconfig. The default policy reads Git attributes through JGit,
+  // which reads `PATH` during configuration, so any change to `PATH` (for example IDE versus
+  // terminal) would discard the configuration cache.
   lineEndings = LineEnding.UNIX
 
   kotlin {
@@ -79,42 +80,42 @@ spotless {
       exclude("gradle/wrapper/gradle-wrapper.properties")
     }
     csPrettier(
-      // TODO move into dependency catalog
-      "prettier-plugin-properties" to "0.3.1",
-    ).config(mapOf("plugins" to listOf("prettier-plugin-properties")))
+            // TODO move into dependency catalog
+            "prettier-plugin-properties" to "0.3.1",
+        )
+        .config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
 }
 
 val format =
-  tasks.register("format") {
-    dependsOn("spotlessApply")
-  }
+    tasks.register("format") {
+      dependsOn("spotlessApply")
+    }
 
 val lint =
-  tasks.register("lint") {
-    dependsOn("spotlessCheck")
-  }
+    tasks.register("lint") {
+      dependsOn("spotlessCheck")
+    }
 
 tasks.named("check") {
   dependsOn(lint)
 }
 
-val Project.hasKotlin: Boolean get() = plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")
+val Project.hasKotlin: Boolean
+  get() = plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")
 
-fun ConfigurableFileTree.excludeSubprojects(): ConfigurableFileTree =
-  apply {
-    exclude(
+fun ConfigurableFileTree.excludeSubprojects(): ConfigurableFileTree = apply {
+  exclude(
       rootProject.subprojects
-        .filter { it.projectDir.startsWith(this.dir) && it.projectDir != this.dir }
-        .map { it.projectDir.relativeTo(this.dir).path + "/**" },
-    )
-  }
+          .filter { it.projectDir.startsWith(this.dir) && it.projectDir != this.dir }
+          .map { it.projectDir.relativeTo(this.dir).path + "/**" },
+  )
+}
 
-fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree =
-  apply {
-    if (this.dir == projectDir) {
-      excludeSubprojects()
-      exclude(
+fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree = apply {
+  if (this.dir == projectDir) {
+    excludeSubprojects()
+    exclude(
         "**/node_modules/**",
         "**/.kotlin/**",
         "**/.gradle/**",
@@ -123,41 +124,49 @@ fun ConfigurableFileTree.excludeDefaultPatterns(): ConfigurableFileTree =
         "**/kotlin-js-store/**",
         "**/.omo/**",
         "**/.codegraph/**",
-        // VitePress writes this directory during its build and deletes it afterwards. Its location is not configurable.
+        // VitePress writes this directory during its build and deletes it afterwards. Its location
+        // is not configurable.
         "**/.vitepress/.temp/**",
-      )
-    }
-    exclude("yarn.lock", "pnpm-lock.yaml")
+    )
   }
+  exclude("yarn.lock", "pnpm-lock.yaml")
+}
 
 fun FormatExtension.from(
-  base: Any,
-  config: Action<ConfigurableFileTree>,
-) = target(
-  fileTree(base) {
-    excludeDefaultPatterns()
-    config.execute(this)
-  },
-)
+    base: Any,
+    config: Action<ConfigurableFileTree>,
+) =
+    target(
+        fileTree(base) {
+          excludeDefaultPatterns()
+          config.execute(this)
+        },
+    )
 
-fun FormatExtension.csPrettier(vararg plugins: Pair<String, String>): FormatExtension.PrettierConfig =
-  configurePrettier(
-    prettier(
-      mapOf(
-        "prettier" to prettierVersion,
-        *plugins,
-      ),
-    ),
-  )
+fun FormatExtension.csPrettier(
+    vararg plugins: Pair<String, String>,
+): FormatExtension.PrettierConfig =
+    configurePrettier(
+        prettier(
+            mapOf(
+                "prettier" to prettierVersion,
+                *plugins,
+            ),
+        ),
+    )
 
-fun FormatExtension.csPrettier(): FormatExtension.PrettierConfig = configurePrettier(prettier(prettierVersion))
+fun FormatExtension.csPrettier(): FormatExtension.PrettierConfig =
+    configurePrettier(prettier(prettierVersion))
 
 private fun Project.configurePrettier(prettier: FormatExtension.PrettierConfig) =
-  prettier.configFile(prettierRc).nodeExecutable(nodeJs.nodeExecutable).npmExecutable(nodeJs.npmExecutable)
+    prettier
+        .configFile(prettierRc)
+        .nodeExecutable(nodeJs.nodeExecutable)
+        .npmExecutable(nodeJs.npmExecutable)
 
 fun SpotlessExtension.prettierFormat(
-  name: String,
-  config: Action<FormatExtension>,
+    name: String,
+    config: Action<FormatExtension>,
 ) {
   format(name, config)
 }

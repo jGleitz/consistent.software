@@ -1,21 +1,23 @@
 package software.consistent.formatting.monospacelayout
 
-import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE
 import kotlin.jvm.JvmInline
+import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE
 
 @JvmInline
 internal value class LayoutTarget(private val out: Appendable) {
   @IgnorableReturnValue
   context(layout: LayoutContext)
-  internal fun append(value: CharSequence) = when (value) {
-    is CharSequenceWithWidth -> append(value)
-    else -> append(value.toString())
-  }
+  internal fun append(value: CharSequence) =
+      when (value) {
+        is CharSequenceWithWidth -> append(value)
+        else -> append(value.toString())
+      }
 
   @IgnorableReturnValue
   context(layout: LayoutContext)
   internal fun append(value: String) = apply {
-    // we assume that value doesn’t contain newlines because all fragment implementations check their inputs
+    // we assume that value doesn’t contain newlines because all fragment implementations check
+    // their inputs
     out.append(value)
     layout.state.remainingWidthBeforeLineBreak -= value.printWidth
   }
@@ -23,7 +25,8 @@ internal value class LayoutTarget(private val out: Appendable) {
   @IgnorableReturnValue
   context(layout: LayoutContext)
   internal fun append(value: CharSequenceWithWidth) = apply {
-    // we assume that value doesn’t contain newlines because all fragment implementations check their inputs
+    // we assume that value doesn’t contain newlines because all fragment implementations check
+    // their inputs
     out.append(value)
     layout.state.remainingWidthBeforeLineBreak -= value.printWidth
   }

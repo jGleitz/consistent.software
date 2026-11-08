@@ -32,11 +32,13 @@ internal data class LayoutContext(val settings: LayoutSettings) {
     }
   }
 
-  internal class Indent private constructor(private val value: StringBuilder) : CharSequenceWithWidth, CharSequence by value {
+  internal class Indent private constructor(private val value: StringBuilder) :
+      CharSequenceWithWidth, CharSequence by value {
     internal constructor() : this(StringBuilder())
 
     var _printWidth: PrintWidth = PrintWidth(0)
-    override val printWidth: PrintWidth get() = _printWidth
+    override val printWidth: PrintWidth
+      get() = _printWidth
 
     override fun toString() = value.toString()
 
