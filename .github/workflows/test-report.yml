@@ -31,3 +31,5 @@ jobs:
           reporter: java-junit
           max-annotations: "50"
           fail-on-error: "false"
+          # A build that breaks before its tests run has no test results, and the build already reports that failure itself
+          fail-on-empty: "false"
