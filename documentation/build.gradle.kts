@@ -2,7 +2,7 @@ import org.gradle.api.tasks.PathSensitivity.RELATIVE
 
 plugins {
   id("nodejs")
-  id("format")
+  id("codestyle")
 }
 
 val buildVitepressSite =

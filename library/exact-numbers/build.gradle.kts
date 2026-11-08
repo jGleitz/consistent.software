@@ -1,7 +1,7 @@
 import software.consistent.build.kmp.npm
 
 plugins {
-  id("format")
+  id("codestyle")
   id("multiplatform")
   id("codedoc")
 }

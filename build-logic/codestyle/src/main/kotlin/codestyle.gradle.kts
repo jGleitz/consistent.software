@@ -11,7 +11,7 @@ plugins {
 // TODO move into dependency catalog
 val prettierVersion = "3.8.3"
 // TODO move into dependency catalog
-val klintVersion = "1.8.0"
+val kfmtVersion = "0.65"
 
 val prettierRc = rootProject.projectDir.resolve(".prettierrc.yaml")
 
@@ -20,20 +20,18 @@ spotless {
   // during configuration, so any change to `PATH` (for example IDE versus terminal) would discard the configuration cache.
   lineEndings = LineEnding.UNIX
 
-  if (project.hasKotlin) {
-    kotlin {
-      from(projectDir.resolve("src")) {
-        include("**/*.kt")
-      }
-      ktlint(klintVersion)
+  kotlin {
+    from(projectDir.resolve("src")) {
+      include("**/*.kt")
     }
+    ktfmt(kfmtVersion)
   }
 
   kotlinGradle {
     from(projectDir) {
       include("**/*.gradle.kts")
     }
-    ktlint(klintVersion)
+    ktfmt(kfmtVersion)
   }
 
   prettierFormat("markdown") {

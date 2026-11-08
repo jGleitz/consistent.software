@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "build-logic"
 
 gradle.lifecycle.beforeProject {
@@ -28,7 +30,7 @@ dependencyResolutionManagement {
 
 include(
   "codedoc",
-  "format",
+  "codestyle",
   "multiplatform",
   "nodejs",
 )

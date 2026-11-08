@@ -1,5 +1,5 @@
 plugins {
-  id("format")
+  id("codestyle")
   id("multiplatform")
   id("codedoc")
 }

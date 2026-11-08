@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmExtension
 
 plugins {
+  id("codestyle")
   id("nodejs")
-  id("format")
   alias(buildLibs.plugins.kotlin.multiplatform) apply false
   alias(buildLibs.plugins.kover)
   alias(buildLibs.plugins.sonarqube)
