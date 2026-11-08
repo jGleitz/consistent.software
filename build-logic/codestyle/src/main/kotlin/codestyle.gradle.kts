@@ -83,6 +83,16 @@ spotless {
         .config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
 
+  prettierFormat("toml") {
+    from(projectDir) {
+      include("**/*.toml")
+    }
+    csPrettier(
+            buildLibs["prettier-plugin-toml"],
+        )
+        .config(mapOf("plugins" to listOf("prettier-plugin-toml")))
+  }
+
   // Files that no formatter supports get at least the whitespace rules of .editorconfig
   format("text") {
     from(projectDir) {
