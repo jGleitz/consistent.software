@@ -51,6 +51,7 @@ spotless {
   prettierFormat("yaml") {
     from(projectDir) {
       include("**/*.yml")
+      include("**/*.yaml")
     }
     csPrettier()
   }
@@ -91,6 +92,17 @@ spotless {
         )
         .config(mapOf("plugins" to listOf("prettier-plugin-toml")))
   }
+
+  // Files that no formatter supports get at least the whitespace rules of .editorconfig
+  format("text") {
+    from(projectDir) {
+      include("**/.editorconfig")
+      include("**/.gitignore")
+      include("**/.gitattributes")
+    }
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
 }
 
 val format =
@@ -106,9 +118,6 @@ val lint =
 tasks.named("check") {
   dependsOn(lint)
 }
-
-val Project.hasKotlin: Boolean
-  get() = plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")
 
 fun ConfigurableFileTree.excludeSubprojects(): ConfigurableFileTree = apply {
   exclude(
