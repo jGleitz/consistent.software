@@ -111,3 +111,9 @@ jobs:
         with:
           report_paths: "**/build/test-results/**/*.xml"
           check_name: JUnit (${{ matrix.name }})
+          detailed_summary: true
+          include_passed: true
+          include_skipped: true
+          group_suite: true
+          failed_summary_logs: true
+          summary: "[Full report with all tests](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
