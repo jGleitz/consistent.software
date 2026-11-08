@@ -29,7 +29,10 @@ jobs:
           name: Test Results ($1)
           path: "**/*.xml"
           reporter: java-junit
-          max-annotations: "50"
+          # GitHub accepts at most 50 annotations per request, and test-reporter sends one more than this limit
+          max-annotations: "49"
           fail-on-error: "false"
           # A build that breaks before its tests run has no test results, and the build already reports that failure itself
           fail-on-empty: "false"
+          # Only check runs can carry annotations. Without this, test-reporter writes nothing but the summary of this job.
+          use-actions-summary: "false"
