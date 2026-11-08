@@ -109,9 +109,6 @@ tasks.named("check") {
   dependsOn(lint)
 }
 
-val Project.hasKotlin: Boolean
-  get() = plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")
-
 fun ConfigurableFileTree.excludeSubprojects(): ConfigurableFileTree = apply {
   exclude(
       rootProject.subprojects
