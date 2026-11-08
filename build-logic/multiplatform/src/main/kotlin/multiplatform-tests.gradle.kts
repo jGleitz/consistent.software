@@ -6,9 +6,7 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin.Companion.kotl
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.js.testing.mocha.KotlinMocha
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
-import software.consistent.build.kmp.get
-import software.consistent.build.kmp.kotlin
-import software.consistent.build.kmp.testLibs
+import software.consistent.build.conventions.testLibs
 
 plugins {
   id("com.google.devtools.ksp")

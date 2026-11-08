@@ -1,18 +1,9 @@
-import software.consistent.build.kmp.kotlin
-
 plugins {
   kotlin("multiplatform")
   id("jvm-toolchain")
   id("multiplatform-targets-all")
   id("multiplatform-tests")
 }
-
-val compileAll =
-    tasks.register("compileAll") {
-      dependsOn(
-          kotlin.targets.flatMap { target -> target.compilations.map { it.compileAllTaskName } },
-      )
-    }
 
 kotlin {
   compilerOptions {

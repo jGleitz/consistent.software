@@ -1,17 +1,13 @@
 import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.spotless.LineEnding
+import software.consistent.build.conventions.buildLibs
 
 plugins {
   base
   com.diffplug.spotless
   id("nodejs")
 }
-
-// TODO move into dependency catalog
-val prettierVersion = "3.8.3"
-// TODO move into dependency catalog
-val kfmtVersion = "0.65"
 
 val prettierRc = rootProject.projectDir.resolve(".prettierrc.yaml")
 
@@ -25,14 +21,14 @@ spotless {
     from(projectDir.resolve("src")) {
       include("**/*.kt")
     }
-    ktfmt(kfmtVersion)
+    ktfmt(buildLibs["ktfmt"].get().version)
   }
 
   kotlinGradle {
     from(projectDir) {
       include("**/*.gradle.kts")
     }
-    ktfmt(kfmtVersion)
+    ktfmt(buildLibs["ktfmt"].get().version)
   }
 
   prettierFormat("markdown") {
@@ -80,8 +76,7 @@ spotless {
       exclude("gradle/wrapper/gradle-wrapper.properties")
     }
     csPrettier(
-            // TODO move into dependency catalog
-            "prettier-plugin-properties" to "0.3.1",
+            buildLibs["prettier-plugin-properties"],
         )
         .config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
@@ -144,19 +139,15 @@ fun FormatExtension.from(
     )
 
 fun FormatExtension.csPrettier(
-    vararg plugins: Pair<String, String>,
-): FormatExtension.PrettierConfig =
-    configurePrettier(
-        prettier(
-            mapOf(
-                "prettier" to prettierVersion,
-                *plugins,
-            ),
-        ),
-    )
+    vararg plugins: Provider<MinimalExternalModuleDependency>,
+): FormatExtension.PrettierConfig {
+  val devDependencies =
+      listOf(buildLibs["prettier"], *plugins).map { it.get() }.map { it.name to it.version }.toMap()
+  return configurePrettier(prettier(devDependencies))
+}
 
 fun FormatExtension.csPrettier(): FormatExtension.PrettierConfig =
-    configurePrettier(prettier(prettierVersion))
+    configurePrettier(prettier(buildLibs["prettier"].get().version))
 
 private fun Project.configurePrettier(prettier: FormatExtension.PrettierConfig) =
     prettier

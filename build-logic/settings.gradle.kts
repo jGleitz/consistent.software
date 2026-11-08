@@ -36,6 +36,7 @@ dependencyResolutionManagement {
 include(
     "codedoc",
     "codestyle",
+    "conventions",
     "multiplatform",
     "nodejs",
 )
