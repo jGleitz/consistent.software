@@ -1,5 +1,10 @@
 rootProject.name = "consistent.software"
 
+// Gradle hides these files from all file trees by default, so the format checks could not see them
+org.apache.tools.ant.DirectoryScanner.removeDefaultExclude("**/.gitignore")
+
+org.apache.tools.ant.DirectoryScanner.removeDefaultExclude("**/.gitattributes")
+
 @Suppress("UnstableApiUsage")
 gradle.lifecycle.beforeProject {
   dependencyLocking { lockAllConfigurations() }

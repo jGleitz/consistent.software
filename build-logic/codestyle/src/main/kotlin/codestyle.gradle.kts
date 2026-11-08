@@ -82,6 +82,17 @@ spotless {
         )
         .config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
+
+  // Files that no formatter supports get at least the whitespace rules of .editorconfig
+  format("text") {
+    from(projectDir) {
+      include("**/.editorconfig")
+      include("**/.gitignore")
+      include("**/.gitattributes")
+    }
+    trimTrailingWhitespace()
+    endWithNewline()
+  }
 }
 
 val format =
