@@ -2,6 +2,7 @@ import com.diffplug.gradle.spotless.FormatExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import com.diffplug.spotless.LineEnding
 import software.consistent.build.conventions.buildLibs
+import software.consistent.build.conventions.get
 
 plugins {
   base
