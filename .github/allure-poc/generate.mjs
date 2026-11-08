@@ -4,6 +4,7 @@ import { copyFileSync, globSync, mkdirSync, readFileSync, writeFileSync } from "
 import { basename, resolve } from "node:path";
 
 const root = resolve("allure-work");
+mkdirSync(`${root}/dumps`, { recursive: true });
 const allure = resolve(".github/allure-poc/node_modules/.bin/allure");
 const systems = ["Linux", "macOS", "Windows"];
 const targets = { jvmTest: "JVM", jsNodeTest: "JS (Node)", jsBrowserTest: "JS (Browser)" };
