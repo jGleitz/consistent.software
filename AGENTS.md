@@ -72,6 +72,10 @@ If your harness keeps one shell open across commands, you may instead activate m
 
 Activating the tools is authorised. Never change mise's global configuration or trust settings.
 
+## Build Scans
+
+When you analyse a build, for example its performance or its cache hits, publish a build scan with `--scan` and give the human its link. Publishing a scan requires agreeing to gradle.com's terms of service. Do so only if the environment variable `AGREE_TO_GRADLE_COM_TERMS_OF_SERVICE` is already set to `yes`; never set it yourself. Don't publish scans of builds you don't analyse.
+
 ## Commit Attribution
 
 Commits that contain only agent work carry the agent's identity. This is the standard case.

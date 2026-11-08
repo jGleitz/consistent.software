@@ -63,6 +63,8 @@ jobs:
       - name: Build
         run: ./gradlew build --continue --scan
         env:
+          # Publishing the build scan requires agreeing to gradle.com's terms of service (see settings.gradle.kts)
+          AGREE_TO_GRADLE_COM_TERMS_OF_SERVICE: "yes"
           # Only Linux checks external links, so that the other operating systems don't send the same requests again
           ORG_GRADLE_PROJECT_checkExternalLinks: ${{ runner.os == 'Linux' }}
           # lychee checks github.com URLs through GitHub's API, which rate-limits anonymous requests
