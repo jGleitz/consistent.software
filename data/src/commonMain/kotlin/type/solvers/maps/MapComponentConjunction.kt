@@ -55,21 +55,22 @@ internal class MapComponentConjunction(
   fun isIrreversiblyEmpty() = positive.isEmpty()
 
   fun anyMember(): Value.Map? {
+    // TODO better method for checking
     require(!isIrreversiblyEmpty()) {
       "${::anyMember.name}() called on irreversibly empty conjunction!"
-    } // TODO better method for checking
+    }
     // A member needs to come from `⋃positive ∖ ⋃negative`. We know at this point that ⋃positive is
-    // not empty. Since its keys are disjunct,
-    // this means they allow at least one member. We check the negative clauses progressively so we
-    // can abort the search as soon as we
-    // discover that they cancel out each positive member.
+    // not empty. Since its keys are disjunct, this means they allow at least one member. We check
+    // the negative clauses progressively so we can abort the search as soon as we discover that
+    // they cancel out each positive member.
     return TODO()
   }
 
   fun isEmpty(): Boolean {
+    // TODO better method for checking
     require(!isIrreversiblyEmpty()) {
       "${::isEmpty.name}() called on irreversibly empty conjunction!"
-    } // TODO better method for checking
+    }
     if (negative.isEmpty()) return false
 
     val satisfier = NegativesSatisfier(negative)
@@ -274,9 +275,8 @@ internal class MapComponentConjunction(
       satisfiableNegatives.removeAll(this::isSatisfied)
       satisfiableNegatives.removeAll {
         // The negative forbids every positive value of this partition -> we cannot satisfy it in
-        // this partition.
-        // We rely on each candidate actually being able to satisfy its negatives, so
-        // isTriviallyEmpty would not be enough here.
+        // this partition. We rely on each candidate actually being able to satisfy its negatives,
+        // so isTriviallyEmpty would not be enough here.
         (positiveValues without negatives[it].values).isEmpty()
       }
       if (satisfiableNegatives.isEmpty()) return moreToSatisfy()
@@ -285,11 +285,7 @@ internal class MapComponentConjunction(
       if (keyCardinality >= satisfiableNegatives.size) {
         /*
          * We have enough keys to use a new key to satisfy each of the remaining negatives. Hence,
-         * we can satisfy them all with
-         * this partition and assume eagerly that we do so. There is no need to retain alternative
-         * assignments or store this
-         * partition: it has done all it could do, and its keys are disjoint from those of the other
-         * partitions.
+         * we can satisfy them all with this partition and assume eagerly that we do so. There is no need to retain alternative assignments or store this partition: it has done all it could do, and its keys are disjoint from those of the other partitions.
          */
         satisfiableNegatives.forEach { negative ->
           markSatisfied(negative).ifDecided { decision ->
@@ -336,9 +332,8 @@ internal class MapComponentConjunction(
 
     private fun addCandidate(candidate: Candidate) {
       // The caller supplies only still-open negatives: new partitions filter out satisfied
-      // negatives, and rest candidates
-      // inherit the original candidate's up-to-date set. Hence, their candidatesPerNegative entries
-      // cannot be null.
+      // negatives, and rest candidates inherit the original candidate's up-to-date set. Hence,
+      // their candidatesPerNegative entries cannot be null.
       val index = candidates.size
       candidates.add(candidate)
       candidate.satisfiableNegatives.forEach { negative ->
@@ -385,9 +380,8 @@ internal class MapComponentConjunction(
       }
 
       // The key we used to satisfy the negative might also satisfy another negative. If that is
-      // possible, we need to add
-      // a candidate for this possibility, with its values restricted by the negative we have
-      // already satisfied.
+      // possible, we need to add a candidate for this possibility, with its values restricted by
+      // the negative we have already satisfied.
 
       // This cannot be empty, otherwise this would not be a candidate for this negative.
       // TODO check this invariant to help detect bugs in candidate registration or selection.
@@ -406,10 +400,9 @@ internal class MapComponentConjunction(
     }
 
     // potential optimisation: initially and every time we make a change, we can check for
-    // candidates whose positive type and whose set
-    // of satisfiable negatives are both equal. We can merge those candidates, creating a larger key
-    // type that may satisfy obligations
-    // trivially now or in the future.
+    // candidates whose positive type and whose set of satisfiable negatives are both equal. We can
+    // merge those candidates, creating a larger key type that may satisfy obligations trivially now
+    // or in the future.
     private fun propagateDecisions(): PropagationOutcome {
       while (
           candidatesToCheckForTriviallySatisfyingAll.isNotEmpty() ||
@@ -452,14 +445,12 @@ internal class MapComponentConjunction(
         when (remainingCandidates.size) {
           0 -> {
             // remove the remaining negatives so the list is cleared for use by the next try.
-            // candidatesToCheckForTriviallySatisfyingAll
-            // is empty at this point.
+            // candidatesToCheckForTriviallySatisfyingAll is empty at this point.
             negativesToCheckForRemainingCandidates.clear()
             return definitelyUnsatisfiable()
           }
           // All partitions are known, and this negative can only be satisfied by one candidate. It
-          // must take this
-          // obligation, so we can make the choice eagerly without branching.
+          // must take this obligation, so we can make the choice eagerly without branching.
           1 ->
               satisfyUsing(negative, remainingCandidates.single()).ifDecided { decision ->
                 return decision
