@@ -11,7 +11,8 @@
                 <projects>
                   <project path="$PROJECT_DIR$/build-logic" />
                   <project path="$PROJECT_DIR$/build-logic/codedoc" />
-                  <project path="$PROJECT_DIR$/build-logic/format" />
+                  <project path="$PROJECT_DIR$/build-logic/codestyle" />
+                  <project path="$PROJECT_DIR$/build-logic/conventions" />
                   <project path="$PROJECT_DIR$/build-logic/multiplatform" />
                   <project path="$PROJECT_DIR$/build-logic/nodejs" />
                 </projects>
@@ -25,7 +26,8 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/build-logic" />
             <option value="$PROJECT_DIR$/build-logic/codedoc" />
-            <option value="$PROJECT_DIR$/build-logic/format" />
+            <option value="$PROJECT_DIR$/build-logic/codestyle" />
+            <option value="$PROJECT_DIR$/build-logic/conventions" />
             <option value="$PROJECT_DIR$/build-logic/multiplatform" />
             <option value="$PROJECT_DIR$/build-logic/nodejs" />
             <option value="$PROJECT_DIR$/data" />

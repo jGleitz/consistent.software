@@ -1,27 +1,34 @@
 package software.consistent.formatting.monospacelayout.layouts
 
-import software.consistent.formatting.monospacelayout.*
+import software.consistent.formatting.monospacelayout.LayoutContext
 import software.consistent.formatting.monospacelayout.LayoutSettings.Companion.NEWLINE_PATTERN
+import software.consistent.formatting.monospacelayout.LayoutTarget
+import software.consistent.formatting.monospacelayout.PrintWidthIfSupported
 import software.consistent.formatting.monospacelayout.PrintWidthIfSupported.Companion.NOT_SUPPORTED
+import software.consistent.formatting.monospacelayout.Separator
+import software.consistent.formatting.monospacelayout.printWidth
 
 internal class ListLayout(
-  private val items: List<InternalMonospaceLayout>,
-  private val prefix: CharSequence,
-  private val postfix: CharSequence,
-  private val separator: Separator
+    private val items: List<InternalMonospaceLayout>,
+    private val prefix: CharSequence,
+    private val postfix: CharSequence,
+    private val separator: Separator,
 ) : InternalMonospaceLayout {
   init {
     require(!prefix.contains(NEWLINE_PATTERN)) { "${::prefix.name} must not contain newlines!" }
     require(!postfix.contains(NEWLINE_PATTERN)) { "${::postfix.name} must not contain newlines!" }
   }
 
-  override val isContainer get() = true
+  override val isContainer
+    get() = true
 
   context(layout: LayoutContext)
   override fun singleLinePrintWidth(): PrintWidthIfSupported {
-    if (items.size > layout.settings.maxItemsPerLine
-      || layout.state.boxesEnteredInThisLine >= layout.settings.maxBoxOpenPerLine
-    ) return NOT_SUPPORTED
+    if (
+        items.size > layout.settings.maxItemsPerLine ||
+            layout.state.boxesEnteredInThisLine >= layout.settings.maxBoxOpenPerLine
+    )
+        return NOT_SUPPORTED
 
     return hypotheticalWidth {
       layout.state.remainingWidthBeforeLineBreak -= prefix.printWidth
@@ -30,7 +37,10 @@ internal class ListLayout(
 
       enter {
         for ((index, item) in items.withIndex()) {
-          val itemWidth = item.singleLinePrintWidth().getOrElse { return NOT_SUPPORTED }
+          val itemWidth =
+              item.singleLinePrintWidth().getOrElse {
+                return NOT_SUPPORTED
+              }
           layout.state.remainingWidthBeforeLineBreak -= itemWidth
 
           if (index != items.lastIndex) {

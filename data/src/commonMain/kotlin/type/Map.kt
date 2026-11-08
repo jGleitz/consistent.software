@@ -14,9 +14,15 @@ public object Map {
     public val remainder: Type
 
     public companion object {
-      public operator fun invoke(components: List<Component>, remainder: Type = Type.Any()): Map.Open = OpenMapImpl(components, remainder)
-      public operator fun invoke(vararg components: Component, remainder: Type = Type.Any()): Map.Open =
-        Map.Open(components.toList(), remainder)
+      public operator fun invoke(
+          components: List<Component>,
+          remainder: Type = Type.Any(),
+      ): Map.Open = OpenMapImpl(components, remainder)
+
+      public operator fun invoke(
+          vararg components: Component,
+          remainder: Type = Type.Any(),
+      ): Map.Open = Map.Open(components.toList(), remainder)
     }
   }
 
@@ -24,8 +30,11 @@ public object Map {
     public val components: List<Component>
 
     public companion object {
-      public operator fun invoke(components: List<Component>): Map.Closed = ClosedMapImpl(components)
-      public operator fun invoke(vararg components: Component): Map.Closed = ClosedMapImpl(components.toList())
+      public operator fun invoke(components: List<Component>): Map.Closed =
+          ClosedMapImpl(components)
+
+      public operator fun invoke(vararg components: Component): Map.Closed =
+          ClosedMapImpl(components.toList())
     }
   }
 
@@ -35,14 +44,20 @@ public object Map {
     public val value: Type
 
     public companion object {
-      public fun required(types: Pair<Type, Type>): Map.Component = MapComponentImpl(types.first, keyRequired = true, types.second)
-      public fun optional(types: Pair<Type, Type>): Map.Component = MapComponentImpl(types.first, keyRequired = false, types.second)
+      public fun required(types: Pair<Type, Type>): Map.Component =
+          MapComponentImpl(types.first, keyRequired = true, types.second)
+
+      public fun optional(types: Pair<Type, Type>): Map.Component =
+          MapComponentImpl(types.first, keyRequired = false, types.second)
     }
   }
 }
 
-private class MapComponentImpl(override val key: Type, override val keyRequired: Boolean, override val value: Type) : Map.Component,
-  WithMonospaceLayout {
+private class MapComponentImpl(
+    override val key: Type,
+    override val keyRequired: Boolean,
+    override val value: Type,
+) : Map.Component, WithMonospaceLayout {
   override val monospaceLayout: MonospaceLayout
     get() {
       return Monospace.line(separator = if (keyRequired) "=" else "?=", 2) {
@@ -55,24 +70,28 @@ private class MapComponentImpl(override val key: Type, override val keyRequired:
 }
 
 private val Map.Component.monospaceLayout
-  get() = when (this) {
-    is MapComponentImpl -> monospaceLayout
-  }
+  get() =
+      when (this) {
+        is MapComponentImpl -> monospaceLayout
+      }
 
 private val Map.Component.solver
-  get() = when (this) {
-    is MapComponentImpl -> MapComponent(key.solver, MaybeAbsent(value.solver, includesAbsent = !keyRequired))
-  }
-
-private class ClosedMapImpl(override val components: List<Map.Component>) : Map.Closed, WithMonospaceLayout,
-  Queryable by UsingSolver(closedSolver(components)) {
-  override val monospaceLayout
-    get() = Monospace.list(prefix = "{", separator = ",", postfix = "}", size = components.size + 1) {
-      components.forEach {
-        -it.monospaceLayout
+  get() =
+      when (this) {
+        is MapComponentImpl ->
+            MapComponent(key.solver, MaybeAbsent(value.solver, includesAbsent = !keyRequired))
       }
-      -Monospace.atom("!...")
-    }
+
+private class ClosedMapImpl(override val components: List<Map.Component>) :
+    Map.Closed, WithMonospaceLayout, Queryable by UsingSolver(closedSolver(components)) {
+  override val monospaceLayout
+    get() =
+        Monospace.list(prefix = "{", separator = ",", postfix = "}", size = components.size + 1) {
+          components.forEach {
+            -it.monospaceLayout
+          }
+          -Monospace.atom("!...")
+        }
 
   override fun toString() = monospaceLayout.renderToString()
 }
@@ -83,7 +102,10 @@ private fun closedSolver(components: List<Map.Component>): MapSet {
   for (component in components) {
     val keySolver = component.key.solver
     val componentSolver =
-      MapComponent(keySolver, MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired))
+        MapComponent(
+            keySolver,
+            MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired),
+        )
     solver = solver overlapWith componentSolver
     remainingKeys = remainingKeys without keySolver
   }
@@ -93,15 +115,18 @@ private fun closedSolver(components: List<Map.Component>): MapSet {
   return solver
 }
 
-private class OpenMapImpl(override val components: List<Map.Component>, override val remainder: Type) : Map.Open, WithMonospaceLayout,
-  Queryable by UsingSolver(openSolver(components, remainder)) {
+private class OpenMapImpl(
+    override val components: List<Map.Component>,
+    override val remainder: Type,
+) : Map.Open, WithMonospaceLayout, Queryable by UsingSolver(openSolver(components, remainder)) {
   override val monospaceLayout
-    get() = Monospace.list(prefix = "{", separator = ",", postfix = "}", size = components.size + 1) {
-      components.forEach {
-        -it.monospaceLayout
-      }
-      -Monospace.atom("...")
-    }
+    get() =
+        Monospace.list(prefix = "{", separator = ",", postfix = "}", size = components.size + 1) {
+          components.forEach {
+            -it.monospaceLayout
+          }
+          -Monospace.atom("...")
+        }
 
   override fun toString() = monospaceLayout.renderToString()
 }
@@ -117,12 +142,17 @@ private fun openSolver(components: List<Map.Component>, remainder: Type): MapSet
   for (component in components) {
     val keySolver = component.key.solver
     val componentSolver =
-      MapComponent(keySolver, MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired))
+        MapComponent(
+            keySolver,
+            MaybeAbsent(component.value.solver, includesAbsent = !component.keyRequired),
+        )
     solver = solver overlapWith componentSolver
     remainingKeys = remainingKeys without keySolver
   }
   if (!remainingKeys.isTriviallyEmpty()) {
-    solver = solver overlapWith MapComponent(remainingKeys, MaybeAbsent(remainderSolver, includesAbsent = true))
+    solver =
+        solver overlapWith
+            MapComponent(remainingKeys, MaybeAbsent(remainderSolver, includesAbsent = true))
   }
   return solver
 }

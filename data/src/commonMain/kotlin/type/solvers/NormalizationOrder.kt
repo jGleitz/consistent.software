@@ -1,23 +1,26 @@
 package software.consistent.data.type.solvers
 
+import kotlin.jvm.JvmInline
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.util.ComparisonResult
 import software.consistent.data.util.compare
 import software.consistent.data.value.Value
 import software.consistent.data.value.identifier
-import kotlin.jvm.JvmInline
 
 internal fun interface NormalizationComparable<in Family : NormalizationComparable<Family>> {
   infix fun normalizationComparedTo(other: Family): ComparisonCase
 }
 
-private fun ValuePartition.compareWithinPartition(left: Value, right: Value): Int = when (this) {
-  ValuePartition.Number -> compare(left as Value.Number).to(right as Value.Number)
-  ValuePartition.Symbol -> compare(left as Value.Symbol).to(right as Value.Symbol, by = Value.Symbol::identifier)
-  ValuePartition.Map -> TODO()
-}.result
+private fun ValuePartition.compareWithinPartition(left: Value, right: Value): Int =
+    when (this) {
+      ValuePartition.Number -> compare(left as Value.Number).to(right as Value.Number)
+      ValuePartition.Symbol ->
+          compare(left as Value.Symbol).to(right as Value.Symbol, by = Value.Symbol::identifier)
+      ValuePartition.Map -> TODO()
+    }.result
 
-internal fun normalizationOrder(left: Value, right: Value) = compareForNormalization(left).to(right).result
+internal fun normalizationOrder(left: Value, right: Value) =
+    compareForNormalization(left).to(right).result
 
 internal fun compareForNormalization(left: Value) = NormalizationComparisonBuilderForValues(left)
 
@@ -25,19 +28,23 @@ internal fun compareForNormalization(left: Value) = NormalizationComparisonBuild
 internal value class NormalizationComparisonBuilderForValues(private val left: Value) {
   fun to(right: Value): ComparisonResult {
     val leftPartition = left.partition
-    return compare(leftPartition).to(right.partition)
-      .ifEqual { compare(left).to(right, using = left.partition::compareWithinPartition) }
+    return compare(leftPartition).to(right.partition).ifEqual {
+      compare(left).to(right, using = left.partition::compareWithinPartition)
+    }
   }
 }
 
-internal infix fun Value.isNormalizedBefore(other: Value) = compareForNormalization(this).to(other).isLower()
+internal infix fun Value.isNormalizedBefore(other: Value) =
+    compareForNormalization(this).to(other).isLower()
 
-internal infix fun Value.isNormalizedAfter(other: Value) = compareForNormalization(this).to(other).isHigher()
+internal infix fun Value.isNormalizedAfter(other: Value) =
+    compareForNormalization(this).to(other).isHigher()
 
-// TODO since values is ordered, the advantage of using a HashSet may be slim. Test whether an ArrayList or Array is faster.
+// TODO since values is ordered, the advantage of using a HashSet may be slim. Test whether an
+// ArrayList or Array is faster.
 @JvmInline
-internal value class NormalizationOrdered<TValue : Value> private constructor(private val values: LinkedHashSet<TValue>) :
-  Set<TValue> by values {
+internal value class NormalizationOrdered<TValue : Value>
+private constructor(private val values: LinkedHashSet<TValue>) : Set<TValue> by values {
   operator fun plus(other: NormalizationOrdered<TValue>): NormalizationOrdered<TValue> {
     if (isEmpty()) return other
     if (other.isEmpty()) return this
@@ -104,11 +111,10 @@ internal value class NormalizationOrdered<TValue : Value> private constructor(pr
   }
 
   internal companion object {
-    internal fun <TValue : Value> of(vararg values: TValue) = NormalizationOrdered(
-      values
-        .sortedWith(::normalizationOrder)
-        .toCollection(LinkedHashSet(values.size))
-    )
+    internal fun <TValue : Value> of(vararg values: TValue) =
+        NormalizationOrdered(
+            values.sortedWith(::normalizationOrder).toCollection(LinkedHashSet(values.size)),
+        )
 
     private val empty = NormalizationOrdered<Nothing>(LinkedHashSet())
 

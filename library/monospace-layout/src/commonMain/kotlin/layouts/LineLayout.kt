@@ -7,10 +7,11 @@ import software.consistent.formatting.monospacelayout.PrintWidthIfSupported.Comp
 import software.consistent.formatting.monospacelayout.Separator
 
 internal class LineLayout(
-  private val items: List<InternalMonospaceLayout>,
-  private val separator: Separator
+    private val items: List<InternalMonospaceLayout>,
+    private val separator: Separator,
 ) : InternalMonospaceLayout {
-  override val isContainer get() = true
+  override val isContainer
+    get() = true
 
   context(layout: LayoutContext)
   override fun singleLinePrintWidth(): PrintWidthIfSupported {
@@ -19,7 +20,10 @@ internal class LineLayout(
 
     return hypotheticalWidth {
       for ((index, item) in items.withIndex()) {
-        val itemWidth = item.singleLinePrintWidth().getOrElse { return NOT_SUPPORTED }
+        val itemWidth =
+            item.singleLinePrintWidth().getOrElse {
+              return NOT_SUPPORTED
+            }
 
         layout.state.remainingWidthBeforeLineBreak -= itemWidth
         if (index != items.lastIndex) {

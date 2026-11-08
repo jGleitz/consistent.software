@@ -12,3 +12,6 @@ plugin-kover = "org.jetbrains.kotlinx.kover:org.jetbrains.kotlinx.kover.gradle.p
 plugin-kotest = "io.kotest:io.kotest.gradle.plugin:6.2.6"
 plugin-ksp = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.13"
 plugin-dokka = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.2.0"
+prettier = "npm:prettier:3.8.3"
+prettier-plugin-properties = "npm:prettier-plugin-properties:0.3.1"
+ktfmt = "com.facebook:ktfmt:0.65"

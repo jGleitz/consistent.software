@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+  implementation(project(":conventions"))
   implementation(project(":nodejs"))
   implementation(buildLibs.plugin.kotlin.multiplatform)
   implementation(buildLibs.plugin.kotest)

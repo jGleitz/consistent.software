@@ -10,8 +10,10 @@ public sealed interface AnySymbol : Type {
   }
 }
 
-private object AnySymbolImpl : AnySymbol, WithMonospaceLayout,
-  Queryable by UsingSolver(EnumeratedValues.complete()) {
-  override val monospaceLayout get() = Monospace.atom("Symbol")
+private object AnySymbolImpl :
+    AnySymbol, WithMonospaceLayout, Queryable by UsingSolver(EnumeratedValues.complete()) {
+  override val monospaceLayout
+    get() = Monospace.atom("Symbol")
+
   override fun toString() = monospaceLayout.renderToString()
 }

@@ -6,33 +6,36 @@ import software.consistent.exactnumbers.BigFractions.ZERO
 @JsName("default")
 public external class JsFraction(numerator: BigInteger, denominator: BigInteger) {
   public constructor(number: Double)
+
   public constructor(number: BigInteger)
 
-  @JsName("n")
-  public val numerator: BigInteger
+  @JsName("n") public val numerator: BigInteger
 
-  @JsName("d")
-  public val denominator: BigInteger
+  @JsName("d") public val denominator: BigInteger
 
-  @JsName("s")
-  public val sign: BigInteger
+  @JsName("s") public val sign: BigInteger
 
   public fun neg(): JsFraction
+
   public fun add(other: JsFraction): JsFraction
+
   public fun sub(other: JsFraction): JsFraction
+
   public fun mul(other: JsFraction): JsFraction
+
   public fun div(other: JsFraction): JsFraction
-  @JsName("pow")
-  public fun power(exponent: Int): JsFraction
+
+  @JsName("pow") public fun power(exponent: Int): JsFraction
 
   public fun compare(other: JsFraction): Int
 }
 
 public actual typealias BigFraction = JsFraction
 
-
-public actual val BigFraction.numeratorAsBigInteger: BigInteger get() = sign * numerator
-public actual val BigFraction.denominatorAsBigInteger: BigInteger get() = denominator
+public actual val BigFraction.numeratorAsBigInteger: BigInteger
+  get() = sign * numerator
+public actual val BigFraction.denominatorAsBigInteger: BigInteger
+  get() = denominator
 
 public actual fun bigFractionOf(numerator: BigInteger, denominator: BigInteger): BigFraction {
   try {
@@ -80,12 +83,16 @@ public actual operator fun BigFraction.unaryMinus(): BigFraction = neg()
 public actual operator fun BigFraction.plus(addend: BigFraction): BigFraction = add(addend)
 
 public actual operator fun BigFraction.minus(subtrahend: BigFraction): BigFraction = sub(subtrahend)
+
 public actual operator fun BigFraction.times(factor: BigFraction): BigFraction = mul(factor)
+
 public actual operator fun BigFraction.div(divisor: BigFraction): BigFraction {
   try {
     return div(divisor)
   } catch (e: Throwable) {
-    throw if (e.message == JS_DIVISION_BY_ZERO_MESSAGE) divisionByZero(numeratorAsBigInteger, denominatorAsBigInteger) else e
+    throw if (e.message == JS_DIVISION_BY_ZERO_MESSAGE)
+        divisionByZero(numeratorAsBigInteger, denominatorAsBigInteger)
+    else e
   }
 }
 
