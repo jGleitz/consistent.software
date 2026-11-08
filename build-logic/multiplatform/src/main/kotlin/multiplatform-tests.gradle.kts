@@ -6,6 +6,7 @@ import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsPlugin.Companion.kotl
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.js.testing.mocha.KotlinMocha
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
+import software.consistent.build.conventions.get
 import software.consistent.build.conventions.testLibs
 
 plugins {
