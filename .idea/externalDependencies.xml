@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ExternalDependencies">
+    <plugin id="com.intellij.gradle" />
+    <plugin id="com.intellij.modules.json" />
+    <plugin id="com.jetbrains.kmm" />
+    <plugin id="intellij.prettierJS" />
+    <plugin id="org.editorconfig.editorconfigjetbrains" />
+    <plugin id="org.intellij.plugins.markdown" />
+    <plugin id="org.jetbrains.plugins.vue" />
+    <plugin id="org.jetbrains.plugins.yaml" />
+  </component>
+</project>
