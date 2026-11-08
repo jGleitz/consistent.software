@@ -19,6 +19,15 @@
       matchPackageNames: ["markdown-it-mathjax3"],
       allowedVersions: "^4",
     },
+    {
+      // The shared configuration looks up "npm:" entries of Gradle version catalogs on npm and strips
+      // the prefix from their names. Renovate would then pass the bare name, for example "prettier",
+      // to Gradle's --update-locks, which only accepts <group>:<artifact>. Gradle doesn't resolve
+      // these entries, so they appear in no Gradle lockfile and there is nothing to update.
+      matchManagers: ["gradle"],
+      matchDatasources: ["npm"],
+      skipArtifactsUpdate: true,
+    },
   ],
   customManagers: [
     // ktlint("1.8.0") inside a spotless {} block
