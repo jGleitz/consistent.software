@@ -38,13 +38,12 @@ kotlin {
 }
 
 // Atrium 1.3.0 pulls in kotlin-test 2.0.21 through atrium-test-factory, which we don’t use. The
-// Kotlin/JS compiler rejects that
-// kotlin-test because of its old ABI version. Atrium recommends excluding atrium-test-factory
-// (see https://github.com/robstoll/atrium/discussions/2209). We exclude it from the test
-// configurations instead of from the
-// dependency on atrium-fluent: the platform configurations reach it through the platform modules
-// that Gradle substitutes for
+// Kotlin/JS compiler rejects that kotlin-test because of its old ABI version. Atrium recommends
+// excluding atrium-test-factory (see https://github.com/robstoll/atrium/discussions/2209). We
+// exclude it from the test configurations instead of from the dependency on atrium-fluent: the
+// platform configurations reach it through the platform modules that Gradle substitutes for
 // Atrium’s modules, and the exclusion on the dependency doesn’t carry over to them.
+
 // TODO Remove this exclusion once we use Atrium 2.0.0, which is to drop this dependency on
 // kotlin-test.
 configurations
@@ -62,9 +61,8 @@ tasks.withType<AbstractTestTask>().configureEach {
   // failures.
   inputs.property("ignoreFailures", provider { ignoreFailures })
   // With ignoreFailures, a task with failing tests succeeds. KGP’s allTests notices the failures
-  // only through test events, which
-  // a result restored from the build cache does not replay, so caching such a result would turn the
-  // failure into a pass.
+  // only through test events, which a result restored from the build cache does not replay, so
+  // caching such a result would turn the failure into a pass.
   outputs.doNotCacheIf("Failing tests would be cached as passing") { ignoreFailures }
   // A local UP-TO-DATE result would suppress the failure events, too.
   outputs.upToDateWhen { !ignoreFailures }
@@ -77,10 +75,8 @@ tasks.withType<KotlinTest>().configureEach {
 }
 
 // KGP disables caching for JS tests without giving a reason (see KT-78586). We enable it and
-// declare the inputs that KGP leaves
-// out. Node modules are covered: the tasks already track the installed package-lock.json, which
-// also pins Playwright and so the
-// browser it downloads.
+// declare the inputs that KGP leaves out. Node modules are covered: the tasks already track the
+// installed package-lock.json, which also pins Playwright and so the browser it downloads.
 tasks.withType<KotlinJsTest>().configureEach {
   val testTask = this
   // A build script can still replace the test framework, so the inputs read the one that the task
@@ -102,11 +98,10 @@ kotlin {
       test { chromium() }
 
       // KGP declares only the test entry file as the bundle's input. Without the modules it
-      // imports, the bundle would stay
-      // up to date after a change to the code under test, and the browser tests would run against
-      // the old code.
-      // KGP bundles only the default test run, and that run's input file is the entry file of the
-      // bundle.
+      // imports, the bundle would stay up to date after a change to the code under test, and the
+      // browser tests would run against the old code. KGP bundles only the default test run, and
+      // that run's input file is the entry file of the bundle.
+
       // TODO Remove this workaround once we use a Kotlin version that fixes KT-89797 (2.5.20 or
       // later).
       val testModules =
@@ -121,11 +116,10 @@ kotlin {
       }
 
       // KGP declares the host-wide Playwright browser directory as an input of the browser tests,
-      // while each project's install
-      // task writes to it under a lock (see KT-90386). On Windows, a test cannot fingerprint the
-      // locked file while another
-      // project installs. So that the fingerprint is stable, browser tests run only after every
-      // installation.
+      // while each project's install task writes to it under a lock (see KT-90386). On Windows, a
+      // test cannot fingerprint the locked file while another project installs. So that the
+      // fingerprint is stable, browser tests run only after every installation.
+
       // TODO Remove this workaround once KT-90386 is fixed.
       testRuns.named("test") {
         executionTask.configure {
