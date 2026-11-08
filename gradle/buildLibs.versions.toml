@@ -14,4 +14,5 @@ plugin-ksp = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.3.
 plugin-dokka = "org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.2.0"
 prettier = "npm:prettier:3.8.3"
 prettier-plugin-properties = "npm:prettier-plugin-properties:0.3.1"
+prettier-plugin-toml = "npm:prettier-plugin-toml:4.1.0"
 ktfmt = "com.facebook:ktfmt:0.65"
