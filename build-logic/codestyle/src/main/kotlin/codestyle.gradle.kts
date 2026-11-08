@@ -51,6 +51,7 @@ spotless {
   prettierFormat("yaml") {
     from(projectDir) {
       include("**/*.yml")
+      include("**/*.yaml")
     }
     csPrettier()
   }
