@@ -32,6 +32,7 @@ jobs:
 
     permissions:
       contents: read
+      checks: write
 
     defaults:
       run:
@@ -103,3 +104,10 @@ jobs:
           # Test Report creates one report per test-results artifact and names it after the operating system
           name: test-results (${{ matrix.name }})
           path: "**/build/test-results/"
+
+      - name: Try Out mikepenz/action-junit-report
+        if: ${{ !cancelled() }}
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: "**/build/test-results/**/*.xml"
+          check_name: JUnit (${{ matrix.name }})
