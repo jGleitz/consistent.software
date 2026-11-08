@@ -81,6 +81,16 @@ spotless {
         )
         .config(mapOf("plugins" to listOf("prettier-plugin-properties")))
   }
+
+  prettierFormat("toml") {
+    from(projectDir) {
+      include("**/*.toml")
+    }
+    csPrettier(
+            buildLibs["prettier-plugin-toml"],
+        )
+        .config(mapOf("plugins" to listOf("prettier-plugin-toml")))
+  }
 }
 
 val format =
