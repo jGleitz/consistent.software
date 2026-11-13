@@ -2,17 +2,28 @@
 # Manual edits can break the build and are not advised.
 # This file is expected to be part of source control.
 # To regenerate this file, run: ./gradlew :build-logic:codedoc:dependencies --write-locks
-com.fasterxml.jackson.core:jackson-annotations:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.fasterxml.jackson.core:jackson-core:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.fasterxml.jackson.core:jackson-databind:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.fasterxml.jackson:jackson-bom:2.15.3=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-com.fasterxml.woodstox:woodstox-core:6.5.1=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-org.codehaus.woodstox:stax2-api:4.2.1=precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testRuntimeClasspath
-org.jetbrains.dokka:dokka-core:2.2.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.jetbrains.dokka:dokka-gradle-plugin:2.2.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
-org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.2.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath,runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+com.fasterxml.jackson.core:jackson-annotations:2.15.3=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.jackson.core:jackson-annotations:2.22=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.core:jackson-core:2.15.3=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.jackson.core:jackson-core:2.22.2=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.core:jackson-databind:2.15.3=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.jackson.core:jackson-databind:2.22.2=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.15.3=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.2=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson.module:jackson-module-kotlin:2.15.3=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.jackson.module:jackson-module-kotlin:2.22.2=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.jackson:jackson-bom:2.15.3=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.jackson:jackson-bom:2.22.2=precompiledScriptPluginAccessorsGenerationClasspath
+com.fasterxml.woodstox:woodstox-core:6.5.1=runtimeClasspath,testRuntimeClasspath
+com.fasterxml.woodstox:woodstox-core:7.2.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.codehaus.woodstox:stax2-api:4.2.1=runtimeClasspath,testRuntimeClasspath
+org.codehaus.woodstox:stax2-api:4.3.0=precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.dokka:dokka-core:2.2.0=runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jetbrains.dokka:dokka-core:2.3.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.dokka:dokka-gradle-plugin:2.2.0=runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jetbrains.dokka:dokka-gradle-plugin:2.3.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
+org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.2.0=runtimeClasspath,testCompileClasspath,testRuntimeClasspath
+org.jetbrains.dokka:org.jetbrains.dokka.gradle.plugin:2.3.0=compileClasspath,precompiledScriptPluginAccessorsGenerationClasspath
 org.jetbrains.kotlin:kotlin-assignment-compiler-plugin-embeddable:2.4.10=kotlinCompilerPluginClasspathMain,kotlinCompilerPluginClasspathTest
 org.jetbrains.kotlin:kotlin-build-tools-api:2.4.0=kotlinAbiValidationCompatClasspath
 org.jetbrains.kotlin:kotlin-build-tools-api:2.4.10=kotlinBuildToolsApiClasspath,kotlinCompilerClasspath,kotlinKlibCommonizerClasspath
