@@ -111,18 +111,29 @@ public class BitSet private constructor(private val bits: BitStorage, size: Int)
         else -> throw IllegalArgumentException("BitSet has more than one element.")
       }
 
+  /**
+   * Any element of this set. The choice is deterministic: For two bit sets `a`, `b`, `a == b`
+   * implies `a.any() == b.any()`.
+   *
+   * @throws NoSuchElementException if this set is empty.
+   */
+  public fun any(): Int {
+    val element = nextElement(0)
+    if (element == -1) {
+      throw NoSuchElementException("BitSet is empty.")
+    }
+    return element
+  }
+
   /** Calls [action] for each element of this set, in ascending order. */
   // Potential optimisation: on JS, iterate word by word instead of calling nextElement for each
-  // element, as
-  // TypedFastBitSet.js does: keep the word in a local, take its lowest set bit with
-  // countTrailingZeroBits, then clear it
-  // with `word and (word - 1)`. This saves re-reading and masking the word per element. To keep
-  // this function inline
-  // (no callback per element, non-local returns, which equals relies on), the inlined loop must
-  // reach the words, e.g.
-  // through a @PublishedApi expect/actual inline helper. java.util.BitSet offers no word access, so
-  // the JVM would need its
-  // own LongArray storage to do the same. Only worth it if a benchmark shows that forEach matters.
+  // element, as TypedFastBitSet.js does: keep the word in a local, take its lowest set bit with
+  // countTrailingZeroBits, then clear it with `word and (word - 1)`. This saves re-reading and
+  // masking the word per element. To keep this function inline (no callback per element, non-local
+  // returns, which equals relies on), the inlined loop must reach the words, e.g. through a
+  // @PublishedApi expect/actual inline helper. java.util.BitSet offers no word access, so the JVM
+  // would need its own LongArray storage to do the same. Only worth it if a benchmark shows that
+  // forEach matters.
   public inline fun forEach(action: (element: Int) -> Unit) {
     var element = nextElement(0)
     while (element >= 0) {

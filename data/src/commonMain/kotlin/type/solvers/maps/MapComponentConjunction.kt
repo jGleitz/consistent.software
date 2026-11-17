@@ -4,6 +4,7 @@ package software.consistent.data.type.solvers.maps
 
 import androidx.collection.CircularIntArray
 import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
 import kotlin.jvm.JvmInline
 import software.consistent.collections.BitSet
@@ -262,6 +263,7 @@ internal class MapComponentConjunction(
       private val negatives: List<MapComponent>,
       // A null entry means that the negative has been satisfied.
       private val candidatesPerNegative: Array<BitSet?> = Array(negatives.size) { BitSet() },
+      // an empty list means we reached a definitely unsatisfiable state
       private val candidates: MutableList<Candidate?> = mutableListOf(),
       private var toSatisfy: Int = negatives.size,
       private val candidatesToCheckForTriviallySatisfyingAll: CircularIntArray = CircularIntArray(),
@@ -283,10 +285,10 @@ internal class MapComponentConjunction(
 
       val keyCardinality = keys.cardinality(satisfiableNegatives.size)
       if (keyCardinality >= satisfiableNegatives.size) {
-        /*
-         * We have enough keys to use a new key to satisfy each of the remaining negatives. Hence,
-         * we can satisfy them all with this partition and assume eagerly that we do so. There is no need to retain alternative assignments or store this partition: it has done all it could do, and its keys are disjoint from those of the other partitions.
-         */
+        // We have enough keys to use a new key to satisfy each of the remaining negatives. Hence,
+        // we can satisfy them all with this partition and assume eagerly that we do so. There is no
+        // need to retain alternative assignments or store this partition: it has done all it could
+        // do, and its keys are disjoint from those of the other partitions.
         satisfiableNegatives.forEach { negative ->
           markSatisfied(negative).ifDecided { decision ->
             return decision
@@ -310,24 +312,59 @@ internal class MapComponentConjunction(
       return tryAllCombinationsToSatisfy()
     }
 
-    private fun tryAllCombinationsToSatisfy(minNegativeIndex: Int = 0): Boolean {
-      var negativeToTry = minNegativeIndex
-      var candidatesForNegative: BitSet? = candidatesPerNegative[negativeToTry]
-      while (candidatesForNegative == null) {
-        negativeToTry += 1
-        candidatesForNegative = candidatesPerNegative[negativeToTry]
+    private fun tryAllCombinationsToSatisfy(): Boolean {
+      val toRetry = ArrayDeque<NegativesSatisfier>()
+      var branch = this
+
+      while (branch.mayBeSatisfiable || toRetry.isNotEmpty()) {
+        if (branch.mayBeSatisfiable) {
+          branch.pickNextTry { negative, candidate ->
+            // We continue by modifying the current branch. We save a copy of the branch’s current
+            // state in case the current try fails.
+            toRetry.addLast(branch.copy())
+
+            val outcome = branch.satisfyAndPropagate(negative, using = candidate)
+            if (outcome == definitelySatisfiable()) return true
+          }
+        } else {
+          ::candidatesToCheckForTriviallySatisfyingAll.checkInvariant(
+              "is empty before branch switches",
+          ) {
+            it.isEmpty()
+          }
+          ::negativesToCheckForRemainingCandidates.checkInvariant(
+              "is empty before branch switches",
+          ) {
+            it.isEmpty()
+          }
+          branch = toRetry.removeLast()
+          // We rely on `pickNextTry` to be cheap and return stable results
+          branch.pickNextTry { negative, candidate ->
+            // This is the combination that failed after this branch had been added to the retry
+            // list. We mark it as impossible and go back into the upper loop if there are other
+            // combinations to try.
+            val outcome = branch.markImpossibleAndPropagate(negative, candidate)
+            if (outcome == definitelySatisfiable()) return true
+          }
+        }
       }
 
-      // Each try works on a copy, so this set stays unchanged during the loop.
-      candidatesForNegative.forEach { candidateToTry ->
-        val copy = copy()
-        copy.satisfyAndPropagate(negativeToTry, using = candidateToTry).ifDecided {
-          if (it.isDefinitelySatisfiable()) return@tryAllCombinationsToSatisfy true
-          else return@forEach
-        }
-        if (copy.tryAllCombinationsToSatisfy()) return true
-      }
       return false
+    }
+
+    private inline fun pickNextTry(consumer: (negative: Int, candidate: Int) -> Unit) {
+      contract {
+        callsInPlace(consumer, EXACTLY_ONCE)
+      }
+
+      var negative = -1
+      var candidates: BitSet?
+      do {
+        negative += 1
+        candidates = candidatesPerNegative[negative]
+      } while (candidates == null)
+
+      consumer(negative, candidates.any())
     }
 
     private fun addCandidate(candidate: Candidate) {
@@ -399,6 +436,17 @@ internal class MapComponentConjunction(
       return moreToSatisfy()
     }
 
+    private fun markImpossibleAndPropagate(negative: Int, candidateIndex: Int): PropagationOutcome {
+      // TODO check invariant: negative is satisfiable by candidate.
+      val candidate = candidates[candidateIndex]!!
+      candidate.satisfiableNegatives.remove(negative)
+      candidatesPerNegative[negative]!!.remove(candidateIndex)
+
+      candidatesToCheckForTriviallySatisfyingAll.addLast(candidateIndex)
+      negativesToCheckForRemainingCandidates.addLast(negative)
+      return propagateDecisions()
+    }
+
     // potential optimisation: initially and every time we make a change, we can check for
     // candidates whose positive type and whose set of satisfiable negatives are both equal. We can
     // merge those candidates, creating a larger key type that may satisfy obligations trivially now
@@ -447,6 +495,8 @@ internal class MapComponentConjunction(
             // remove the remaining negatives so the list is cleared for use by the next try.
             // candidatesToCheckForTriviallySatisfyingAll is empty at this point.
             negativesToCheckForRemainingCandidates.clear()
+            // mark as definitely unsatisfiable
+            candidates.clear()
             return definitelyUnsatisfiable()
           }
           // All partitions are known, and this negative can only be satisfied by one candidate. It
@@ -460,13 +510,7 @@ internal class MapComponentConjunction(
       return moreToSatisfy()
     }
 
-    fun copy(): NegativesSatisfier {
-      ::candidatesToCheckForTriviallySatisfyingAll.checkInvariant("is empty when copying") {
-        it.isEmpty()
-      }
-      ::negativesToCheckForRemainingCandidates.checkInvariant("is empty when copying") {
-        it.isEmpty()
-      }
+    private fun copy(): NegativesSatisfier {
       return NegativesSatisfier(
           negatives,
           Array(candidatesPerNegative.size) { candidatesPerNegative[it]?.copy() },
@@ -480,6 +524,12 @@ internal class MapComponentConjunction(
     private fun isSatisfied(negativeIndex: Int) = candidatesPerNegative[negativeIndex] == null
 
     fun allNegativesSatisfied() = toSatisfy == 0
+
+    val isDefinitelyUnsatisfiable: Boolean
+      get() = candidates.isEmpty()
+
+    val mayBeSatisfiable: Boolean
+      get() = candidates.isNotEmpty()
 
     private class Candidate(
         val keys: SolvableSet,

@@ -416,6 +416,88 @@ class MapSpec :
                     .toForbid(Value.Map(a to two, b to two))
               }
 
+              describe("requiring distinct values to occur") {
+                val d = Value.Symbol("d")
+                val e = Value.Symbol("e")
+                val zero = Value.Number(0)
+                val three = Value.Number(3)
+                val four = Value.Number(4)
+                val five = Value.Number(5)
+                val six = Value.Number(6)
+                val oneToFour = Just(one) or Just(two) or Just(three) or Just(four)
+                val keys = Just(a) or Just(b) or Just(c) or Just(d)
+                val components =
+                    listOf(
+                        required(Just(a) to oneToFour),
+                        required(Just(b) to (oneToFour or Just(five))),
+                        required(Just(c) to (Just(one) or Just(two))),
+                        required(Just(d) to (Just(one) or Just(two) or Just(six))),
+                    )
+
+                fun requiringOccurrences(
+                    positive: Type,
+                    keys: Type,
+                    values: List<Value.Number>,
+                ): Type {
+                  // Excluding maps whose values at these keys all differ from a number requires
+                  // that number to occur at least once.
+                  return values.fold(positive) { remaining, value ->
+                    remaining butNot Map.Open(optional(keys to (AnyNumber() butNot Just(value))))
+                  }
+                }
+
+                it("reserves the only two keys that can hold 3 and 4 for those values") {
+                  val remaining =
+                      requiringOccurrences(
+                          Map.Closed(components),
+                          keys,
+                          listOf(one, two, three, four),
+                      )
+
+                  // Only a and b can hold 3 or 4, so c and d must supply 1 and 2. The extra
+                  // alternatives 5 and 6 cannot occur alongside all four required numbers.
+                  expect(remaining).notToBeSubtypeOf(noValues)
+                  expect(remaining)
+                      .toAllow(Value.Map(a to three, b to four, c to one, d to two))
+                      .toAllow(Value.Map(a to four, b to three, c to two, d to one))
+                      .toForbid(Value.Map(a to one, b to three, c to two, d to two))
+                      .toForbid(Value.Map(a to three, b to five, c to one, d to two))
+                }
+
+                it("also requires an independent optional key to supply a fifth number") {
+                  val remaining =
+                      requiringOccurrences(
+                          Map.Closed(components + optional(Just(e) to Just(zero))),
+                          keys or Just(e),
+                          listOf(zero, one, two, three, four),
+                      )
+
+                  // Zero can occur only at e. Requiring it must preserve the possible assignments
+                  // of the other four numbers: a and b hold 3 and 4, and c and d hold 1 and 2.
+                  expect(remaining).notToBeSubtypeOf(noValues)
+                  expect(remaining)
+                      .toAllow(Value.Map(a to three, b to four, c to one, d to two, e to zero))
+                      .toForbid(Value.Map(a to three, b to four, c to one, d to two))
+                }
+
+                it("cannot fit five distinct required numbers into four keys") {
+                  val requiredValues = listOf(one, two, three, four, five)
+                  val requiredType = oneToFour or Just(five)
+                  val keyValues = listOf(a, b, c, d)
+                  val positive =
+                      Map.Closed(
+                          keyValues.mapIndexed { index, key ->
+                            required(Just(key) to (requiredType or Just(Value.Number(6 + index))))
+                          },
+                      )
+                  val remaining = requiringOccurrences(positive, keys, requiredValues)
+
+                  // Every required number is individually possible at every key, but all five
+                  // cannot occur together. Each key's additional alternative cannot create room.
+                  expect(remaining).toBeSubtypeOf(noValues)
+                }
+              }
+
               for (keysRequired in listOf(false, true)) {
                 it(
                     "agrees with exhaustive membership for competing obligations, required keys = $keysRequired",
