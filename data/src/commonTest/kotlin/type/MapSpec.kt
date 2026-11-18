@@ -455,6 +455,8 @@ class MapSpec :
                           listOf(one, two, three, four),
                       )
 
+                  expect(remaining).toAllow(checkNotNull(remaining.solver.anyMember()))
+
                   // Only a and b can hold 3 or 4, so c and d must supply 1 and 2. The extra
                   // alternatives 5 and 6 cannot occur alongside all four required numbers.
                   expect(remaining).notToBeSubtypeOf(noValues)
@@ -472,6 +474,8 @@ class MapSpec :
                           keys or Just(e),
                           listOf(zero, one, two, three, four),
                       )
+
+                  expect(remaining).toAllow(checkNotNull(remaining.solver.anyMember()))
 
                   // Zero can occur only at e. Requiring it must preserve the possible assignments
                   // of the other four numbers: a and b hold 3 and 4, and c and d hold 1 and 2.

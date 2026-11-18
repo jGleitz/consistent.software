@@ -130,6 +130,9 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
       get() = enumerateMapMembers()
 
     override fun cardinality(upTo: Int): Cardinality {
+      // Provisional fallback: bounded enumeration constructs sample maps. When this type is
+      // itself used as a key type, those samples are constructed during the outer search,
+      // before its solution is known. A symbolic cardinality implementation can avoid that.
       require(upTo >= 0)
       var count = 0
       members.forEach {

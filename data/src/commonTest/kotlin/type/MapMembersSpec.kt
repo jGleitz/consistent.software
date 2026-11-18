@@ -107,6 +107,22 @@ class MapMembersSpec :
             results.forEach { expect(type).toAllow(it) }
           }
 
+          it("enumerates nested map values without duplicates") {
+            val nested = Map.Closed(optional(Just(b) to Just(one)))
+            val type = Map.Closed(required(Just(a) to nested))
+            val results = type.solver.members.toList()
+            expect(results.size).toEqual(2)
+            expect(results.toSet().size).toEqual(2)
+            results.forEach { expect(type).toAllow(it) }
+          }
+
+          it("counts nested map key types only up to the requested bound") {
+            val type = Map.Closed(optional(Just(a) to (Just(one) or Just(two))))
+            expect(type.solver.cardinality(0).lowerBound).toEqual(1)
+            expect(type.solver.cardinality(2).lowerBound).toEqual(3)
+            expect(type.solver.cardinality(3).exactValue).toEqual(3)
+          }
+
           it("enumerates map top and individual components lazily") {
             for (type in listOf(Map.Open(), Map.Open(required(Just(a) to Just(one))))) {
               val results = type.solver.members.take(4).toList()
