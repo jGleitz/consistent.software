@@ -22,6 +22,8 @@ internal interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TVal
 
   fun isEmpty(): Boolean
 
+  fun isNotEmpty(): Boolean = !isEmpty()
+
   /**
    * Whether this set can trivially be determined to be empty. If this method returns `true`, then
    * [isEmpty] definitely returns `true`. If it returns `false`, the set might still be empty.

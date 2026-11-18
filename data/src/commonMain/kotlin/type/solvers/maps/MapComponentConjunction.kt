@@ -14,9 +14,6 @@ import software.consistent.data.type.solvers.TypePartitionUnion
 import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.definitelySatisfiable
 import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.definitelyUnsatisfiable
 import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.moreToSatisfy
-import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.continueSearching
-import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.notFound
-import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.stopAndReturn
 import software.consistent.data.value.Value
 
 internal class MapComponentConjunction(
@@ -75,72 +72,85 @@ internal class MapComponentConjunction(
     if (negative.isEmpty()) return false
 
     val satisfier = NegativesSatisfier(negative)
-    return searchPartition { keys, positiveValues, negatives ->
-      satisfier.addCandidate(keys, positiveValues, negatives).ifDecided {
-        return@searchPartition stopAndReturn(!it.isDefinitelySatisfiable())
+    forEachPartition { keys, positiveValues, negatives ->
+      satisfier.addPartition(keys, positiveValues, negatives).ifDecided {
+        return@isEmpty !it.isDefinitelySatisfiable()
       }
-      continueSearching()
     }
-        .orElse { !satisfier.canSatisfyAllNegatives() }
+    return !satisfier.canSatisfyAllNegatives()
   }
 
-  private fun <R : Any> searchPartition(
-      consumer:
-          (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> SearchOutcome<R>,
-  ): SearchOutcome<R> {
-    var outcome: SearchOutcome<R> = notFound()
+  private inline fun forEachPartition(
+      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> Unit,
+  ) {
+    val includedNegatives = BitSet(negative.size)
+    val keyMemory = arrayOfNulls<SolvableSet>(negative.size)
+
     for ((keys, values) in positive) {
-      outcome = searchPartition(keys, values, BitSet(negative.size), 0, consumer)
-      if (outcome.isFound()) return outcome
+      forEachPartition(keys, values, consumer, includedNegatives, keyMemory)
+
+      // TODO better method for checking
+      check(includedNegatives.isEmpty()) { "includedNegatives not cleared" }
+      check(keyMemory.all { it == null }) { "keyMemory not cleared" }
     }
 
     val uncoveredKeys =
         positive.fold(TypePartitionUnion.complete()) { acc, positive -> acc without positive.keys }
     if (!uncoveredKeys.isEmpty()) {
-      outcome =
-          searchPartition(uncoveredKeys, MaybeAbsent.complete(), BitSet(negative.size), 0, consumer)
+      forEachPartition(
+          uncoveredKeys,
+          MaybeAbsent.complete(),
+          consumer,
+          includedNegatives,
+          keyMemory,
+      )
     }
-    return outcome
   }
 
-  private fun <R : Any> searchPartition(
+  private inline fun forEachPartition(
       keys: SolvableSet,
       positiveValues: MaybeAbsent,
-      negativeMapComponents: BitSet,
-      negativesIndex: Int,
-      consumer:
-          (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> SearchOutcome<R>,
-  ): SearchOutcome<R> {
-    return if (negativesIndex == negative.size) {
-      consumer(keys, positiveValues, negativeMapComponents.copy())
-    } else {
-      val negative = negative[negativesIndex]
-      val negativeKeyOverlap = keys overlapWith negative.keys
-      if (negativeKeyOverlap.isEmpty()) {
-        searchPartition(keys, positiveValues, negativeMapComponents, negativesIndex + 1, consumer)
-      } else {
-        negativeMapComponents
-            .with(negativesIndex) { withNegative ->
-              searchPartition(
-                  negativeKeyOverlap,
-                  positiveValues,
-                  withNegative,
-                  negativesIndex + 1,
-                  consumer,
-              )
-            }
-            .elseTry {
-              val withoutNegativeKeys = keys without negative.keys
-              if (!withoutNegativeKeys.isEmpty()) {
-                searchPartition(
-                    withoutNegativeKeys,
-                    positiveValues,
-                    negativeMapComponents,
-                    negativesIndex + 1,
-                    consumer,
-                )
-              } else notFound()
-            }
+      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> Unit,
+      includedNegatives: BitSet,
+      keysBeforeIntersecting: Array<SolvableSet?>,
+  ) {
+    var remainingKeys = keys
+    var negativeIndex = 0
+
+    // Descend through intersections, saving the keys before each included negative.
+    // After emitting a partition, undo inclusions in reverse order and resume descending
+    // from the first non-empty difference.
+
+    while (negativeIndex != CANNOT_DESCEND) {
+      while (negativeIndex < negative.size) {
+        val negative = negative[negativeIndex]
+        val negativeKeyOverlap = remainingKeys overlapWith negative.keys
+        if (negativeKeyOverlap.isNotEmpty()) {
+          keysBeforeIntersecting[negativeIndex] = remainingKeys
+          remainingKeys = negativeKeyOverlap
+          includedNegatives.add(negativeIndex)
+        }
+        negativeIndex += 1
+      }
+      // TODO make sure to remove the copy() if and when the BitSet is no longer modified or
+      // retained
+      consumer(remainingKeys, positiveValues, includedNegatives.copy())
+      negativeIndex = CANNOT_DESCEND
+
+      while (negativeIndex == CANNOT_DESCEND && includedNegatives.isNotEmpty()) {
+        val previouslyIncludedIndex = includedNegatives.highest()
+        includedNegatives.remove(previouslyIncludedIndex)
+
+        val keysAtTheIndex = keysBeforeIntersecting[previouslyIncludedIndex]
+        // TODO better method of checking
+        check(keysAtTheIndex != null) { "included negative without saved previous keys!" }
+        keysBeforeIntersecting[previouslyIncludedIndex] = null
+
+        val withoutNegativeKeys = keysAtTheIndex without negative[previouslyIncludedIndex].keys
+        if (withoutNegativeKeys.isNotEmpty()) {
+          negativeIndex = previouslyIncludedIndex + 1
+          remainingKeys = withoutNegativeKeys
+        }
       }
     }
   }
@@ -251,14 +261,6 @@ internal class MapComponentConjunction(
     }
   }
 
-  /**
-   * An undecided outcome leaves candidate links and capacities consistent; pending checks may still
-   * need propagation. A definitely satisfiable outcome is terminal and must be returned immediately
-   * through the calling mutations and loops. It may skip candidate updates and discard pending
-   * checks: neither this state nor its worklist may be used or copied again. A definitely
-   * unsatisfiable outcome likewise abandons this search attempt; alternatives use their own state
-   * copies.
-   */
   private class NegativesSatisfier(
       private val negatives: List<MapComponent>,
       // A null entry means that the negative has been satisfied.
@@ -269,7 +271,7 @@ internal class MapComponentConjunction(
       private val candidatesToCheckForTriviallySatisfyingAll: CircularIntArray = CircularIntArray(),
       private val negativesToCheckForRemainingCandidates: CircularIntArray = CircularIntArray(),
   ) {
-    fun addCandidate(
+    fun addPartition(
         keys: SolvableSet,
         positiveValues: MaybeAbsent,
         satisfiableNegatives: BitSet,
@@ -300,6 +302,16 @@ internal class MapComponentConjunction(
         )
       }
       return propagateCandidates()
+    }
+
+    private fun addCandidate(candidate: Candidate) {
+      val index = candidates.size
+      candidates.add(candidate)
+      candidate.satisfiableNegatives.forEach { negative ->
+        candidatesPerNegative[negative]!!.add(index)
+        negativesToCheckForRemainingCandidates.addLast(negative)
+      }
+      candidatesToCheckForTriviallySatisfyingAll.addLast(index)
     }
 
     fun canSatisfyAllNegatives(): Boolean {
@@ -365,19 +377,6 @@ internal class MapComponentConjunction(
       } while (candidates == null)
 
       consumer(negative, candidates.lowest())
-    }
-
-    private fun addCandidate(candidate: Candidate) {
-      // The caller supplies only still-open negatives: new partitions filter out satisfied
-      // negatives, and rest candidates inherit the original candidate's up-to-date set. Hence,
-      // their candidatesPerNegative entries cannot be null.
-      val index = candidates.size
-      candidates.add(candidate)
-      candidate.satisfiableNegatives.forEach { negative ->
-        candidatesPerNegative[negative]!!.add(index)
-        negativesToCheckForRemainingCandidates.addLast(negative)
-      }
-      candidatesToCheckForTriviallySatisfyingAll.addLast(index)
     }
 
     private fun markSatisfied(negative: Int): PropagationOutcome {
@@ -603,3 +602,5 @@ internal class MapComponentConjunction(
     private fun CircularIntArray.isNotEmpty() = !isEmpty()
   }
 }
+
+private const val CANNOT_DESCEND = -1
