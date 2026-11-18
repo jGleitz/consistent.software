@@ -3,7 +3,6 @@ package software.consistent.data.type.solvers.generic
 import software.consistent.data.type.solvers.Cardinality.Companion.exactly
 import software.consistent.data.type.solvers.Cardinality.Companion.moreThanIntMaxValue
 import software.consistent.data.type.solvers.ClosedSolvableSet
-import software.consistent.data.type.solvers.mustNotRequestMembersOfInfiniteType
 import software.consistent.data.util.ComparisonCase.isEqual
 import software.consistent.data.util.ComparisonCase.isHigher
 import software.consistent.data.util.ComparisonCase.isLower
@@ -176,9 +175,6 @@ internal sealed interface LazyBdd<
     override fun isFinite() = false
 
     override fun cardinality(upTo: Int) = moreThanIntMaxValue()
-
-    override val members: Sequence<TValue>
-      get() = throw mustNotRequestMembersOfInfiniteType()
 
     override fun with(otherSet: Node) = this.asRep
 

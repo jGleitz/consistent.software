@@ -64,7 +64,7 @@ internal class MapComponent(
   }
 
   override val members: Sequence<Value.Map>
-    get() = TODO("Not yet implemented")
+    get() = enumerateMapMembers()
 
   override fun isFinite() = cardinality(2).isExact()
 

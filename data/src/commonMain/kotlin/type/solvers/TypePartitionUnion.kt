@@ -8,8 +8,8 @@ import software.consistent.formatting.monospacelayout.Monospace
 import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 internal data class TypePartitionUnion(
-    private val symbols: EnumeratedValues<Value.Symbol>,
-    private val numbers: DisjunctIntervalUnion<Value.Number>,
+    private val symbols: EnumeratedValues,
+    private val numbers: DisjunctIntervalUnion,
     private val maps: MapSet,
 ) : SolvableSet, WithMonospaceLayout {
   override fun contains(value: Value) =
@@ -45,10 +45,10 @@ internal data class TypePartitionUnion(
     return result
   }
 
-  override fun anyMember() = symbols.anyMember() ?: maps.anyMember() // TODO numbers
+  override fun anyMember() = symbols.anyMember() ?: numbers.anyMember() ?: maps.anyMember()
 
   override val members
-    get() = symbols.members + numbers.members + maps.members
+    get() = interleaveMembers(listOf(symbols.members, numbers.members, maps.members))
 
   // https://pnwamk.github.io/sst-tutorial/#%28part._.Type_.Operations%29
   override fun with(otherSet: SolvableSet): SolvableSet =

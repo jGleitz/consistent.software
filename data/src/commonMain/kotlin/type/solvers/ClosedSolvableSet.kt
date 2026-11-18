@@ -17,7 +17,13 @@ internal interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TVal
    */
   fun anyMember(): TValue?
 
-  // TODO evaluate whether an eager collection or a lazy sequence is more appropriate here
+  /**
+   * Lazily provides distinct members in an unspecified order. Finite sets are enumerated fully;
+   * infinite sets support requesting any finite number of members without first enumerating or
+   * materialising the whole set. No exhaustive ordering is promised for infinite sets.
+   *
+   * Each iterator is independent. Consumers must bound traversal unless the set is known finite.
+   */
   val members: Sequence<TValue>
 
   fun isEmpty(): Boolean
@@ -103,9 +109,6 @@ internal interface ClosedSolvableSet<TValue, TPartition : ClosedSolvableSet<TVal
   /** Whether there is at least one value in this set that is not in the [largerSet]. */
   infix fun isNotSubsetOf(largerSet: TPartition): Boolean = !isSubsetOf(largerSet)
 }
-
-internal fun ClosedSolvableSet<*, *>.mustNotRequestMembersOfInfiniteType() =
-    IllegalStateException("members called on infinite $this") // TODO better exception
 
 internal fun ClosedSolvableSet<*, *>.doesNotSupportHashing() =
     UnsupportedOperationException("${ClosedSolvableSet::class.simpleName}s do not support hashing!")

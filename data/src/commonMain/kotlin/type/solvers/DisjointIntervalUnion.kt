@@ -44,14 +44,13 @@ import software.consistent.formatting.monospacelayout.Monospace
  *
  * represents the set `(-∞,3] ∪ {5}`.
  */
-internal class DisjunctIntervalUnion<TValue>
+internal class DisjunctIntervalUnion
 private constructor(
-    private val orderedBoundaries: List<TValue>,
+    private val orderedBoundaries: List<Value.Number>,
     private val inclusive: BooleanArray,
     private val leftOpen: Boolean,
     private val rightOpen: Boolean,
-) : ClosedSolvableSet<TValue, DisjunctIntervalUnion<TValue>>
-    where TValue : Value, TValue : Comparable<TValue> {
+) : ClosedSolvableSet<Value.Number, DisjunctIntervalUnion> {
   init {
     ::orderedBoundaries hasSameSizeAs ::inclusive
     ::orderedBoundaries.isNonDecreasing
@@ -96,7 +95,7 @@ private constructor(
     }
   }
 
-  override fun contains(value: TValue) = isInsideInterval(findPositionOf(value))
+  override fun contains(value: Value.Number) = isInsideInterval(findPositionOf(value))
 
   private fun isClosed() = !leftOpen && !rightOpen
 
@@ -123,21 +122,30 @@ private constructor(
     return exactly(singletons)
   }
 
-  override val members
-    get() =
-        when {
-          !isClosed() -> throw mustNotRequestMembersOfInfiniteType()
-          orderedBoundaries.isEmpty() -> emptySequence()
-          else ->
-              (0 until (orderedBoundaries.size / 2)).asSequence().map { intervalIndex ->
-                val lowerBoundary = orderedBoundaries[intervalIndex * 2]
-                if (lowerBoundary != orderedBoundaries[intervalIndex * 2 + 1])
-                    throw mustNotRequestMembersOfInfiniteType()
-                lowerBoundary
-              }
+  override val members: Sequence<Value.Number>
+    get() = sequence {
+      // Inclusive endpoints are disjoint from the open intervals emitted below.
+      for (index in orderedBoundaries.indices) {
+        if (
+            inclusive[index] &&
+                (index == 0 || orderedBoundaries[index] != orderedBoundaries[index - 1])
+        ) {
+          yield(orderedBoundaries[index])
         }
+      }
+      val intervals = mutableListOf<Sequence<Value.Number>>()
+      var lower: Value.Number? = null
+      var inside = leftOpen
+      for (boundary in orderedBoundaries) {
+        if (inside && lower != boundary) intervals.add(numberMembersBetween(lower, boundary))
+        lower = boundary
+        inside = !inside
+      }
+      if (inside) intervals.add(numberMembersBetween(lower, null))
+      yieldAll(interleaveMembers(intervals))
+    }
 
-  override fun anyMember(): TValue? {
+  override fun anyMember(): Value.Number? {
     if (orderedBoundaries.isEmpty()) {
       return if (leftOpen && rightOpen) exampleBetween(null, null) else null
     }
@@ -148,7 +156,7 @@ private constructor(
     else exampleBetween(orderedBoundaries[0], orderedBoundaries[1])
   }
 
-  override fun with(otherSet: DisjunctIntervalUnion<TValue>) =
+  override fun with(otherSet: DisjunctIntervalUnion) =
       DisjunctIntervalUnion(this.orderedBoundaries.size + otherSet.orderedBoundaries.size) { result
         ->
         var thisIndex = 0
@@ -230,7 +238,7 @@ private constructor(
         result.rightOpen = this.rightOpen || otherSet.rightOpen
       }
 
-  override fun overlapWith(otherSet: DisjunctIntervalUnion<TValue>) =
+  override fun overlapWith(otherSet: DisjunctIntervalUnion) =
       DisjunctIntervalUnion(this.orderedBoundaries.size + otherSet.orderedBoundaries.size) { result
         ->
         var thisIndex = 0
@@ -317,16 +325,15 @@ private constructor(
           !rightOpen,
       )
 
-  override fun without(otherSet: DisjunctIntervalUnion<TValue>) = this overlapWith !otherSet
+  override fun without(otherSet: DisjunctIntervalUnion) = this overlapWith !otherSet
 
-  override fun isSubsetOf(largerSet: DisjunctIntervalUnion<TValue>) =
-      (this without largerSet).isEmpty()
+  override fun isSubsetOf(largerSet: DisjunctIntervalUnion) = (this without largerSet).isEmpty()
 
   override fun triviallyEquals(otherSet: ClosedSolvableSet<*, *>) = this == otherSet
 
   override fun equals(other: Any?) =
       this === other ||
-          (other is DisjunctIntervalUnion<*> &&
+          (other is DisjunctIntervalUnion &&
               leftOpen == other.leftOpen &&
               rightOpen == other.rightOpen &&
               orderedBoundaries == other.orderedBoundaries &&
@@ -334,7 +341,7 @@ private constructor(
 
   override fun hashCode(): Int = throw doesNotSupportHashing()
 
-  override fun normalizationComparedTo(other: DisjunctIntervalUnion<TValue>) =
+  override fun normalizationComparedTo(other: DisjunctIntervalUnion) =
       compare(this)
           .to(other, by = { it.leftOpen })
           .ifEqual { compare(this).to(other, by = { it.rightOpen }) }
@@ -344,44 +351,37 @@ private constructor(
 
   companion object {
     private val empty =
-        DisjunctIntervalUnion<Nothing>(
+        DisjunctIntervalUnion(
             listOf(),
             booleanArrayOf(),
             leftOpen = false,
             rightOpen = false,
         )
     private val complete =
-        DisjunctIntervalUnion<Nothing>(
+        DisjunctIntervalUnion(
             listOf(),
             booleanArrayOf(),
             leftOpen = true,
             rightOpen = true,
         )
 
-    @Suppress("UNCHECKED_CAST")
-    internal fun <TValue> empty(): DisjunctIntervalUnion<TValue>
-        where TValue : Value, TValue : Comparable<TValue> = empty as DisjunctIntervalUnion<TValue>
+    internal fun empty(): DisjunctIntervalUnion = empty
 
-    @Suppress("UNCHECKED_CAST")
-    internal fun <TValue> complete(): DisjunctIntervalUnion<TValue>
-        where TValue : Value, TValue : Comparable<TValue> =
-        complete as DisjunctIntervalUnion<TValue>
+    internal fun complete(): DisjunctIntervalUnion = complete
 
-    internal fun <TValue> just(value: TValue): DisjunctIntervalUnion<TValue>
-        where TValue : Value, TValue : Comparable<TValue> =
+    internal fun just(value: Value.Number): DisjunctIntervalUnion =
         DisjunctIntervalUnion(2) { result ->
           result.appendBoundary(value, true)
           result.appendBoundary(value, true)
         }
 
-    internal inline operator fun <TValue> invoke(
+    internal inline operator fun invoke(
         boundaryCountEstimate: Int,
-        block: (Builder<TValue>) -> Unit,
-    ): DisjunctIntervalUnion<TValue> where TValue : Value, TValue : Comparable<TValue> =
-        Builder<TValue>(boundaryCountEstimate).apply(block).build()
+        block: (Builder) -> Unit,
+    ): DisjunctIntervalUnion = Builder(boundaryCountEstimate).apply(block).build()
   }
 
-  private fun findPositionOf(value: TValue) = orderedBoundaries.binarySearch(value)
+  private fun findPositionOf(value: Value.Number) = orderedBoundaries.binarySearch(value)
 
   private fun isInsideInterval(findResult: Int) =
       when {
@@ -410,7 +410,7 @@ private constructor(
           else
               Monospace.atom(
                   "AnyNumber",
-              ) // TODO this class is supposed to be agnostic! We probably need a subclass.
+              )
         } else
             Monospace.line("∪", orderedBoundaries.size / 2 + if (!isClosed()) 1 else 0) {
               var boundaryIndex = 0
@@ -449,12 +449,14 @@ private constructor(
         if (inclusive[index]) ']' else ')'
       }
 
-  private inline fun eachBoundary(predicate: (lower: TValue, upper: TValue) -> Boolean): Boolean {
+  private inline fun eachBoundary(
+      predicate: (lower: Value.Number, upper: Value.Number) -> Boolean,
+  ): Boolean {
     forEachBoundary { lower, upper -> if (!predicate(lower, upper)) return false }
     return true
   }
 
-  private inline fun forEachBoundary(action: (lower: TValue, upper: TValue) -> Unit) {
+  private inline fun forEachBoundary(action: (lower: Value.Number, upper: Value.Number) -> Unit) {
     var i = 0
     while (i < orderedBoundaries.size) {
       action(orderedBoundaries[i], orderedBoundaries[i + 1])
@@ -464,14 +466,13 @@ private constructor(
 
   override fun toString() = monospaceLayout.renderToString()
 
-  internal class Builder<TValue>(boundaryCountEstimate: Int)
-      where TValue : Value, TValue : Comparable<TValue> {
+  internal class Builder(boundaryCountEstimate: Int) {
     internal var leftOpen: Boolean = false
     internal var rightOpen: Boolean = false
-    private val boundariesBuilder = ArrayList<TValue>(boundaryCountEstimate)
+    private val boundariesBuilder = ArrayList<Value.Number>(boundaryCountEstimate)
     private val inclusiveBuilder = ArrayList<Boolean>(boundaryCountEstimate)
 
-    fun appendBoundary(boundary: TValue, isInclusive: Boolean) {
+    fun appendBoundary(boundary: Value.Number, isInclusive: Boolean) {
       boundariesBuilder += boundary
       inclusiveBuilder += isInclusive
     }
@@ -486,4 +487,10 @@ private constructor(
   }
 }
 
-private fun <TValue> exampleBetween(left: TValue?, right: TValue?): TValue = TODO()
+private fun exampleBetween(left: Value.Number?, right: Value.Number?): Value.Number =
+    when {
+      left == null && right == null -> Value.Number(0)
+      left == null -> right!! - Value.Number(1)
+      right == null -> left + Value.Number(1)
+      else -> (left + right) / 2
+    }

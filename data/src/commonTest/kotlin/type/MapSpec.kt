@@ -1,5 +1,6 @@
 package software.consistent.data.type
 
+import ch.tutteli.atrium.api.fluent.en_GB.toEqual
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
@@ -544,6 +545,9 @@ class MapSpec :
                     }
                     if (inhabited) expect(remaining).notToBeSubtypeOf(noValues)
                     else expect(remaining).toBeSubtypeOf(noValues)
+                    val member = remaining.solver.anyMember()
+                    expect(member != null).toEqual(inhabited)
+                    if (member != null) expect(remaining).toAllow(member)
                   }
                 }
 
@@ -598,6 +602,9 @@ class MapSpec :
                     }
                     if (inhabited) expect(remaining).notToBeSubtypeOf(noValues)
                     else expect(remaining).toBeSubtypeOf(noValues)
+                    val member = remaining.solver.anyMember()
+                    expect(member != null).toEqual(inhabited)
+                    if (member != null) expect(remaining).toAllow(member)
                   }
                 }
               }

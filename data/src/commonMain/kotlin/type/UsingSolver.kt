@@ -9,11 +9,11 @@ import software.consistent.data.value.Value
 @JvmInline
 internal value class UsingSolver(override val solver: SolvableSet) : Queryable {
   constructor(
-      symbolsSolver: EnumeratedValues<Value.Symbol>,
+      symbolsSolver: EnumeratedValues,
   ) : this(TypePartitionUnion.empty().copy(symbols = symbolsSolver))
 
   constructor(
-      numbersSolver: DisjunctIntervalUnion<Value.Number>,
+      numbersSolver: DisjunctIntervalUnion,
   ) : this(TypePartitionUnion.empty().copy(numbers = numbersSolver))
 
   constructor(mapSolver: MapSet) : this(TypePartitionUnion.empty().copy(maps = mapSolver))

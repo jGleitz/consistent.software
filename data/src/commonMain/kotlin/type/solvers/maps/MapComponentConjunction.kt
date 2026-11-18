@@ -58,11 +58,66 @@ internal class MapComponentConjunction(
     require(!isIrreversiblyEmpty()) {
       "${::anyMember.name}() called on irreversibly empty conjunction!"
     }
-    // A member needs to come from `⋂positive ∖ ⋃negative`. We know at this point that ⋂positive is
-    // not empty. Since its keys are disjunct, this means they allow at least one member. We check
-    // the negative clauses progressively so we can abort the search as soon as we discover that
-    // they cancel out each positive member.
-    return TODO()
+    val builder = InhabitationCheckBuilder(negative, MemberPlan())
+    if (negative.isNotEmpty()) {
+      context(PropagationQueues(negative.size)) {
+        forEachPartition { keys, values, negatives ->
+          builder.addPartition(keys, values, negatives).ifDecided {
+            return if (it == definitelyInhabited()) materialise(builder.plan!!) else null
+          }
+        }
+        val search = builder.build()
+        if (!search.isInhabited()) return null
+        return materialise(search.plan!!)
+      }
+    }
+    return materialise(builder.plan!!)
+  }
+
+  private fun materialise(plan: MemberPlan): Value.Map {
+    val entries = mutableMapOf<Value, Value>()
+    // Newest constraints win. Neither slots nor their sources contain actual keys.
+    val finalValues = mutableMapOf<KeySlot, MaybeAbsent>()
+    var step = plan.last
+    while (step != null) {
+      if (step.slot !in finalValues) finalValues[step.slot] = step.values
+      step = step.previous
+    }
+    val iterators = mutableMapOf<KeySource, Iterator<Value>>()
+    for ((slot, values) in finalValues) {
+      if (values.includesAbsent) continue
+      val keys = iterators.getOrPut(slot.source) { slot.source.keys.members.iterator() }
+      entries[keys.next()] = checkNotNull(values.values.anyMember())
+    }
+    // Search may have succeeded before visiting every partition. Fill required positives from
+    // the original conjunction, preserving the entries selected by the plan.
+    for ((keys, values) in positive) {
+      if (values.includesAbsent) continue
+      val defaultValue by lazy { checkNotNull(values.values.anyMember()) }
+      for (key in keys.members) {
+        if (key !in entries) entries[key] = defaultValue
+      }
+    }
+    return Value.Map(entries)
+  }
+
+  private class KeySource(val keys: SolvableSet)
+
+  private class KeySlot(val source: KeySource)
+
+  private class MemberStep(
+      val slot: KeySlot,
+      val values: MaybeAbsent,
+      val previous: MemberStep?,
+  )
+
+  /** A branch-local head into an immutable trail; snapshots share the prefix in O(1). */
+  private class MemberPlan(var last: MemberStep? = null) {
+    fun constrain(slot: KeySlot, values: MaybeAbsent) {
+      last = MemberStep(slot, values, last)
+    }
+
+    fun snapshot() = MemberPlan(last)
   }
 
   fun isEmpty(): Boolean {
@@ -282,6 +337,8 @@ internal class MapComponentConjunction(
        * construction.
        */
       val valuesWithoutNegative: Array<MaybeAbsent?>,
+      val source: KeySource? = null,
+      val slot: KeySlot? = null,
   )
 
   /**
@@ -311,6 +368,7 @@ internal class MapComponentConjunction(
       // representation complicates other operations, though, so the impact should be measured.
       protected val eligibleNegativesPerCandidate: MutableList<BitSet?> = mutableListOf(),
       protected var leftToSatisfy: Int = negatives.size,
+      var plan: MemberPlan? = null,
   ) {
     protected abstract fun remainingKeys(candidate: Int): Int
 
@@ -387,7 +445,13 @@ internal class MapComponentConjunction(
         // We have enough keys to use a distinct key for each remaining negative.
         if (remainingKeys(index) >= eligibleNegatives.size) {
           // Every affected negative is satisfied below; no negative needs a candidate-count check.
-          removeCandidate(index).forEach { negative ->
+          val candidate = candidates[index]!!
+          val eligible = removeCandidate(index)
+          eligible.forEach { negative ->
+            plan?.constrain(
+                candidate.slot ?: KeySlot(candidate.source!!),
+                candidate.valuesWithoutNegative[negative]!!,
+            )
             markSatisfied(negative).ifDecided { decision ->
               return decision
             }
@@ -400,8 +464,8 @@ internal class MapComponentConjunction(
     protected fun isSatisfied(negativeIndex: Int) = candidatesPerNegative[negativeIndex] == null
   }
 
-  private class InhabitationCheckBuilder(negatives: List<MapComponent>) :
-      InhabitationCheckState(negatives) {
+  private class InhabitationCheckBuilder(negatives: List<MapComponent>, plan: MemberPlan? = null) :
+      InhabitationCheckState(negatives, plan = plan) {
     private val keyCounts = MutableIntList()
     private var built = false
 
@@ -429,14 +493,19 @@ internal class MapComponentConjunction(
       if (keyCardinality >= eligibleNegatives.size) {
         // This partition can satisfy every eligible negative using distinct keys. Its keys are
         // disjoint from the other partitions, so no alternative assignments need to be retained.
+        val source = plan?.let { KeySource(keys) }
         eligibleNegatives.forEach { negative ->
+          plan?.constrain(KeySlot(source!!), differences[negative]!!)
           markSatisfied(negative).ifDecided { decision ->
             return decision
           }
         }
       } else {
         keyCounts.add(keyCardinality.exactValue)
-        addCandidate(Candidate(keys, positiveValues, differences), eligibleNegatives)
+        addCandidate(
+            Candidate(keys, positiveValues, differences, plan?.let { KeySource(keys) }),
+            eligibleNegatives,
+        )
       }
       return propagateCandidates()
     }
@@ -452,6 +521,7 @@ internal class MapComponentConjunction(
           eligibleNegativesPerCandidate,
           leftToSatisfy,
           IntArray(keyCounts.size) { keyCounts[it] },
+          plan,
       )
     }
   }
@@ -466,6 +536,7 @@ internal class MapComponentConjunction(
       // class have only one key until they are removed. Merging candidates would require revisiting
       // this rule.
       private val remainingKeysPerCandidate: IntArray,
+      plan: MemberPlan?,
   ) :
       InhabitationCheckState(
           negatives,
@@ -473,6 +544,7 @@ internal class MapComponentConjunction(
           candidatesPerNegative,
           eligibleNegativesPerCandidate,
           leftToSatisfy,
+          plan,
       ) {
     override fun remainingKeys(candidate: Int) =
         if (candidate < remainingKeysPerCandidate.size) remainingKeysPerCandidate[candidate] else 1
@@ -514,7 +586,10 @@ internal class MapComponentConjunction(
           branch = toRetry.removeLast()
           outcome = branch.restoreForRetry()
         }
-        if (outcome == definitelyInhabited()) return true
+        if (outcome == definitelyInhabited()) {
+          plan = branch.plan
+          return true
+        }
       }
 
       return false
@@ -545,11 +620,13 @@ internal class MapComponentConjunction(
       val exhausted = consumeKey(candidateIndex)
       // Registration already proved this difference non-empty.
       val remainingValues = candidate.valuesWithoutNegative[negative]!!
+      val slot = plan?.let { candidate.slot ?: KeySlot(candidate.source!!) }
+      if (slot != null) plan!!.constrain(slot, remainingValues)
       markSatisfied(negative).ifDecided { decision ->
         return decision
       }
 
-      addSingleKeyContinuation(candidateIndex, remainingValues)
+      addSingleKeyContinuation(candidateIndex, remainingValues, slot)
       if (exhausted) {
         removeCandidate(candidateIndex).forEach { negative ->
           propagation.negativesToCheckForRemainingCandidates.addLast(negative)
@@ -560,14 +637,21 @@ internal class MapComponentConjunction(
 
     /** Keeps the key just used available for further negatives, with its narrowed value type. */
     context(propagation: PropagationQueues)
-    private fun addSingleKeyContinuation(sourceIndex: Int, remainingValues: MaybeAbsent) {
+    private fun addSingleKeyContinuation(
+        sourceIndex: Int,
+        remainingValues: MaybeAbsent,
+        slot: KeySlot?,
+    ) {
       val remainingNegatives = eligibleNegativesPerCandidate[sourceIndex]!!.copy()
       if (remainingNegatives.isEmpty()) return
       val differences = computeDifferencesAndFilterNegatives(remainingValues, remainingNegatives)
       if (remainingNegatives.isEmpty()) return
 
       val source = candidates[sourceIndex]!!
-      addCandidate(Candidate(source.keys, remainingValues, differences), remainingNegatives)
+      addCandidate(
+          Candidate(source.keys, remainingValues, differences, source.source, slot),
+          remainingNegatives,
+      )
       remainingNegatives.forEach { negative ->
         propagation.negativesToCheckForRemainingCandidates.addLast(negative)
       }
@@ -634,6 +718,7 @@ internal class MapComponentConjunction(
             },
             this@InhabitationCheck.leftToSatisfy,
             remainingKeysPerCandidate.copyOf(),
+            plan?.snapshot(),
         )
 
     /**

@@ -127,10 +127,17 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
     }
 
     override val members
-      get() = TODO("Not yet implemented")
+      get() = enumerateMapMembers()
 
     override fun cardinality(upTo: Int): Cardinality {
-      TODO("Not yet implemented")
+      require(upTo >= 0)
+      var count = 0
+      members.forEach {
+        if (count == Int.MAX_VALUE) return Cardinality.moreThanIntMaxValue()
+        count += 1
+        if (count > upTo) return Cardinality.atLeast(count)
+      }
+      return Cardinality.exactly(count)
     }
 
     override fun normalizationComparedTo(other: MapSet) =
@@ -185,6 +192,9 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
     override fun not(): MapSet = Bottom
 
     override fun anyMember() = Value.Map()
+
+    override val members
+      get() = enumerateMapMembers()
 
     override fun <Result : Any> searchConjunction(
         accumulator: MapComponentConjunction,
@@ -271,5 +281,15 @@ internal sealed interface MapSet : BddRepresented<Value.Map, MapComponent, MapSe
 
     internal fun allOf(components: Iterable<MapComponent>) =
         components.fold(complete()) { acc, component -> acc overlapWith component }
+  }
+}
+
+/** Excluding previous results keeps this draft simple, at the cost of a growing BDD. */
+internal fun MapSet.enumerateMapMembers(): Sequence<Value.Map> = sequence {
+  var remaining = this@enumerateMapMembers
+  while (true) {
+    val member = remaining.anyMember() ?: break
+    yield(member)
+    remaining = remaining without MapSet.just(member)
   }
 }
