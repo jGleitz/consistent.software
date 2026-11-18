@@ -3,6 +3,7 @@
 package software.consistent.data.type.solvers.maps
 
 import androidx.collection.CircularIntArray
+import androidx.collection.MutableIntList
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind.EXACTLY_ONCE
 import kotlin.contracts.contract
@@ -11,12 +12,9 @@ import software.consistent.collections.BitSet
 import software.consistent.data.invariants.checkInvariant
 import software.consistent.data.type.solvers.SolvableSet
 import software.consistent.data.type.solvers.TypePartitionUnion
-import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.definitelySatisfiable
-import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.definitelyUnsatisfiable
-import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.moreToSatisfy
-import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.continueSearching
-import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.notFound
-import software.consistent.data.type.solvers.maps.SearchOutcome.Companion.stopAndReturn
+import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.definitelyInhabited
+import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.definitelyNotInhabited
+import software.consistent.data.type.solvers.maps.MapComponentConjunction.PropagationOutcome.Companion.undecided
 import software.consistent.data.value.Value
 
 internal class MapComponentConjunction(
@@ -25,7 +23,7 @@ internal class MapComponentConjunction(
      * Hence, we use arrays, which are cheaper to copy.
      */
     /**
-     * The positive atoms of the conjunction, split such that each component’s key type in disjunct
+     * The positive atoms of the conjunction, split such that each component’s key type is disjunct
      * from the key type of any other component.
      */
     val positive: KeyDisjointPositiveConjunction,
@@ -60,7 +58,7 @@ internal class MapComponentConjunction(
     require(!isIrreversiblyEmpty()) {
       "${::anyMember.name}() called on irreversibly empty conjunction!"
     }
-    // A member needs to come from `⋃positive ∖ ⋃negative`. We know at this point that ⋃positive is
+    // A member needs to come from `⋂positive ∖ ⋃negative`. We know at this point that ⋂positive is
     // not empty. Since its keys are disjunct, this means they allow at least one member. We check
     // the negative clauses progressively so we can abort the search as soon as we discover that
     // they cancel out each positive member.
@@ -74,73 +72,88 @@ internal class MapComponentConjunction(
     }
     if (negative.isEmpty()) return false
 
-    val satisfier = NegativesSatisfier(negative)
-    return searchPartition { keys, positiveValues, negatives ->
-      satisfier.addCandidate(keys, positiveValues, negatives).ifDecided {
-        return@searchPartition stopAndReturn(!it.isDefinitelySatisfiable())
+    return context(PropagationQueues(negative.size)) {
+      val inhabitationCheck = InhabitationCheckBuilder(negative)
+      forEachPartition { keys, positiveValues, negatives ->
+        inhabitationCheck.addPartition(keys, positiveValues, negatives).ifDecided {
+          return@isEmpty it == definitelyNotInhabited()
+        }
       }
-      continueSearching()
+      inhabitationCheck.build().isNotInhabited()
     }
-        .orElse { !satisfier.canSatisfyAllNegatives() }
   }
 
-  private fun <R : Any> searchPartition(
-      consumer:
-          (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> SearchOutcome<R>,
-  ): SearchOutcome<R> {
-    var outcome: SearchOutcome<R> = notFound()
+  private inline fun forEachPartition(
+      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> Unit,
+  ) {
+    val includedNegatives = BitSet(negative.size)
+    val keyMemory = arrayOfNulls<SolvableSet>(negative.size)
+
     for ((keys, values) in positive) {
-      outcome = searchPartition(keys, values, BitSet(negative.size), 0, consumer)
-      if (outcome.isFound()) return outcome
+      forEachPartition(keys, values, consumer, includedNegatives, keyMemory)
+
+      // TODO better method for checking
+      check(includedNegatives.isEmpty()) { "includedNegatives not cleared" }
+      check(keyMemory.all { it == null }) { "keyMemory not cleared" }
     }
 
     val uncoveredKeys =
         positive.fold(TypePartitionUnion.complete()) { acc, positive -> acc without positive.keys }
     if (!uncoveredKeys.isEmpty()) {
-      outcome =
-          searchPartition(uncoveredKeys, MaybeAbsent.complete(), BitSet(negative.size), 0, consumer)
+      forEachPartition(
+          uncoveredKeys,
+          MaybeAbsent.complete(),
+          consumer,
+          includedNegatives,
+          keyMemory,
+      )
     }
-    return outcome
   }
 
-  private fun <R : Any> searchPartition(
+  private inline fun forEachPartition(
       keys: SolvableSet,
       positiveValues: MaybeAbsent,
-      negativeMapComponents: BitSet,
-      negativesIndex: Int,
-      consumer:
-          (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> SearchOutcome<R>,
-  ): SearchOutcome<R> {
-    return if (negativesIndex == negative.size) {
-      consumer(keys, positiveValues, negativeMapComponents.copy())
-    } else {
-      val negative = negative[negativesIndex]
-      val negativeKeyOverlap = keys overlapWith negative.keys
-      if (negativeKeyOverlap.isEmpty()) {
-        searchPartition(keys, positiveValues, negativeMapComponents, negativesIndex + 1, consumer)
-      } else {
-        negativeMapComponents
-            .with(negativesIndex) { withNegative ->
-              searchPartition(
-                  negativeKeyOverlap,
-                  positiveValues,
-                  withNegative,
-                  negativesIndex + 1,
-                  consumer,
-              )
-            }
-            .elseTry {
-              val withoutNegativeKeys = keys without negative.keys
-              if (!withoutNegativeKeys.isEmpty()) {
-                searchPartition(
-                    withoutNegativeKeys,
-                    positiveValues,
-                    negativeMapComponents,
-                    negativesIndex + 1,
-                    consumer,
-                )
-              } else notFound()
-            }
+      consumer: (keys: SolvableSet, positiveValues: MaybeAbsent, negatives: BitSet) -> Unit,
+      includedNegatives: BitSet,
+      keysBeforeIntersecting: Array<SolvableSet?>,
+  ) {
+    var remainingKeys = keys
+    var negativeIndex = 0
+
+    // Descend through intersections, saving the keys before each included negative.
+    // After emitting a partition, undo inclusions in reverse order and resume descending
+    // from the first non-empty difference.
+
+    while (negativeIndex != NOTHING_TO_DESCEND) {
+      while (negativeIndex < negative.size) {
+        val negative = negative[negativeIndex]
+        val negativeKeyOverlap = remainingKeys overlapWith negative.keys
+        if (negativeKeyOverlap.isNotEmpty()) {
+          keysBeforeIntersecting[negativeIndex] = remainingKeys
+          remainingKeys = negativeKeyOverlap
+          includedNegatives.add(negativeIndex)
+        }
+        negativeIndex += 1
+      }
+      // TODO make sure to remove the copy() if and when the BitSet is no longer modified or
+      // retained
+      consumer(remainingKeys, positiveValues, includedNegatives.copy())
+      negativeIndex = NOTHING_TO_DESCEND
+
+      while (negativeIndex == NOTHING_TO_DESCEND && includedNegatives.isNotEmpty()) {
+        val previouslyIncludedIndex = includedNegatives.highest()
+        includedNegatives.remove(previouslyIncludedIndex)
+
+        val keysAtTheIndex = keysBeforeIntersecting[previouslyIncludedIndex]
+        // TODO better method of checking
+        check(keysAtTheIndex != null) { "included negative without saved previous keys!" }
+        keysBeforeIntersecting[previouslyIncludedIndex] = null
+
+        val withoutNegativeKeys = keysAtTheIndex without negative[previouslyIncludedIndex].keys
+        if (withoutNegativeKeys.isNotEmpty()) {
+          negativeIndex = previouslyIncludedIndex + 1
+          remainingKeys = withoutNegativeKeys
+        }
       }
     }
   }
@@ -242,111 +255,266 @@ internal class MapComponentConjunction(
     }
   }
 
-  inline fun <R> BitSet.with(element: Int, block: (BitSet) -> R): R {
-    val previous = element in this
-    return if (previous) block(this)
-    else {
-      this += element
-      block(this).also { this -= element }
-    }
+  private interface CandidatePropagation {
+    val candidatesToCheckForTriviallySatisfyingAll: CircularIntArray
   }
 
+  private class PropagationQueues(negativeCount: Int) : CandidatePropagation {
+    override val candidatesToCheckForTriviallySatisfyingAll = CircularIntArray()
+    // The ring needs a spare slot to hold the initial batch without growing when it becomes full.
+    val negativesToCheckForRemainingCandidates = CircularIntArray(negativeCount + 1)
+
+    fun isEmpty() =
+        candidatesToCheckForTriviallySatisfyingAll.isEmpty() &&
+            negativesToCheckForRemainingCandidates.isEmpty()
+
+    fun isNotEmpty() =
+        candidatesToCheckForTriviallySatisfyingAll.isNotEmpty() ||
+            negativesToCheckForRemainingCandidates.isNotEmpty()
+  }
+
+  /** Immutable candidate data, shared by branch copies. */
+  private class Candidate(
+      val keys: SolvableSet,
+      val positiveValues: MaybeAbsent,
+      /**
+       * Non-null entries have been proved non-empty. The array is never modified after
+       * construction.
+       */
+      val valuesWithoutNegative: Array<MaybeAbsent?>,
+  )
+
   /**
-   * An undecided outcome leaves candidate links and capacities consistent; pending checks may still
-   * need propagation. A definitely satisfiable outcome is terminal and must be returned immediately
-   * through the calling mutations and loops. It may skip candidate updates and discard pending
-   * checks: neither this state nor its worklist may be used or copied again. A definitely
-   * unsatisfiable outcome likewise abandons this search attempt; alternatives use their own state
-   * copies.
+   * Each negative component must be violated at some key, possibly by leaving that key absent. A
+   * candidate represents interchangeable keys with common allowed values. Satisfying a negative
+   * takes one key from the candidate and narrows that key's allowed values to violate the
+   * component. A one-key successor may satisfy further negatives using the same key; the source
+   * retains any unused keys with their original allowed values.
+   *
+   * The builder collects partitions and propagates choices that need no alternatives. Only after
+   * collection can zero candidates for a negative prove failure or a sole candidate force a choice.
+   * The two eligibility indexes record the remaining possible assignments in opposite directions.
    */
-  private class NegativesSatisfier(
-      private val negatives: List<MapComponent>,
+  private abstract class InhabitationCheckState(
+      protected val negatives: List<MapComponent>,
+      // Shared by search branches. Appended candidates are truncated on backtracking.
+      // Removing a candidate only clears its branch-local eligibility.
+      // Null entries are candidates discarded during building, before the list is shared.
+      protected val candidates: MutableList<Candidate?> = mutableListOf(),
       // A null entry means that the negative has been satisfied.
-      private val candidatesPerNegative: Array<BitSet?> = Array(negatives.size) { BitSet() },
-      // an empty list means we reached a definitely unsatisfiable state
-      private val candidates: MutableList<Candidate?> = mutableListOf(),
-      private var toSatisfy: Int = negatives.size,
-      private val candidatesToCheckForTriviallySatisfyingAll: CircularIntArray = CircularIntArray(),
-      private val negativesToCheckForRemainingCandidates: CircularIntArray = CircularIntArray(),
+      protected val candidatesPerNegative: Array<BitSet?> = Array(negatives.size) { BitSet() },
+      // A bit means that the candidate can and may satisfy this negative in the current branch.
+      // Missing bits include assignments ruled out by the search and negatives satisfied elsewhere.
+      // A null entry denotes a removed candidate; the list size is the branch's checkpoint.
+      // optimisation potential: This might be one large “rectangular” BitSet. Depending on the
+      // state size, this would be smaller. More importantly, it might be much cheaper to copy. The
+      // representation complicates other operations, though, so the impact should be measured.
+      protected val eligibleNegativesPerCandidate: MutableList<BitSet?> = mutableListOf(),
+      protected var leftToSatisfy: Int = negatives.size,
   ) {
-    fun addCandidate(
+    protected abstract fun remainingKeys(candidate: Int): Int
+
+    /**
+     * Removes negatives with empty differences from [eligibleNegatives] and returns the
+     * differences.
+     */
+    protected fun computeDifferencesAndFilterNegatives(
+        positiveValues: MaybeAbsent,
+        eligibleNegatives: BitSet,
+    ): Array<MaybeAbsent?> {
+      val differences = arrayOfNulls<MaybeAbsent>(negatives.size)
+      eligibleNegatives.forEach { negative ->
+        val difference = positiveValues without negatives[negative].values
+        // Each registered candidate must actually be able to satisfy its eligible negatives:
+        // isTriviallyEmpty would not be enough here. Retain both the type and this knowledge.
+        if (difference.isEmpty()) {
+          eligibleNegatives.remove(negative)
+        } else {
+          differences[negative] = difference
+        }
+      }
+      return differences
+    }
+
+    /**
+     * Registers both directions of eligibility and schedules candidate propagation. During search,
+     * callers must also schedule checks for the affected negatives.
+     */
+    context(propagation: CandidatePropagation)
+    protected fun addCandidate(candidate: Candidate, eligibleNegatives: BitSet) {
+      val index = candidates.size
+      candidates.add(candidate)
+      this.eligibleNegativesPerCandidate.add(eligibleNegatives)
+      eligibleNegatives.forEach { negative ->
+        candidatesPerNegative[negative]!!.add(index)
+      }
+      propagation.candidatesToCheckForTriviallySatisfyingAll.addLast(index)
+    }
+
+    context(propagation: CandidatePropagation)
+    protected fun markSatisfied(negative: Int): PropagationOutcome {
+      val affectedCandidates = candidatesPerNegative[negative] ?: return undecided()
+      candidatesPerNegative[negative] = null
+      leftToSatisfy -= 1
+      // Success is terminal: skip the remaining updates and potentially expensive type operations.
+      if (leftToSatisfy == 0) return definitelyInhabited()
+      // The detached set is stable: no propagation runs inside this loop.
+      affectedCandidates.forEach { index ->
+        eligibleNegativesPerCandidate[index]!! -= negative
+        propagation.candidatesToCheckForTriviallySatisfyingAll.addLast(index)
+      }
+      return undecided()
+    }
+
+    /**
+     * Removes both directions of eligibility and returns the candidate's former eligible negatives.
+     * Callers must schedule rechecks for any of these negatives they leave unsatisfied.
+     */
+    protected open fun removeCandidate(index: Int): BitSet {
+      val eligibleNegatives = this.eligibleNegativesPerCandidate.set(index, null)!!
+      eligibleNegatives.forEach { negative ->
+        // This negative is not satisfied: it still contains this candidate.
+        candidatesPerNegative[negative]!!.remove(index)
+      }
+      return eligibleNegatives
+    }
+
+    context(propagation: CandidatePropagation)
+    protected fun propagateCandidates(): PropagationOutcome {
+      while (propagation.candidatesToCheckForTriviallySatisfyingAll.isNotEmpty()) {
+        val index = propagation.candidatesToCheckForTriviallySatisfyingAll.popFirst()
+        val eligibleNegatives = this.eligibleNegativesPerCandidate[index] ?: continue
+        // We have enough keys to use a distinct key for each remaining negative.
+        if (remainingKeys(index) >= eligibleNegatives.size) {
+          // Every affected negative is satisfied below; no negative needs a candidate-count check.
+          removeCandidate(index).forEach { negative ->
+            markSatisfied(negative).ifDecided { decision ->
+              return decision
+            }
+          }
+        }
+      }
+      return undecided()
+    }
+
+    protected fun isSatisfied(negativeIndex: Int) = candidatesPerNegative[negativeIndex] == null
+  }
+
+  private class InhabitationCheckBuilder(negatives: List<MapComponent>) :
+      InhabitationCheckState(negatives) {
+    private val keyCounts = MutableIntList()
+    private var built = false
+
+    override fun remainingKeys(candidate: Int) = keyCounts[candidate]
+
+    override fun removeCandidate(index: Int): BitSet {
+      // No search snapshots exist yet, so discarded candidate data can still be released eagerly.
+      candidates[index] = null
+      return super.removeCandidate(index)
+    }
+
+    context(propagation: CandidatePropagation)
+    fun addPartition(
         keys: SolvableSet,
         positiveValues: MaybeAbsent,
-        satisfiableNegatives: BitSet,
+        eligibleNegatives: BitSet,
     ): PropagationOutcome {
-      satisfiableNegatives.removeAll(this::isSatisfied)
-      satisfiableNegatives.removeAll {
-        // The negative forbids every positive value of this partition -> we cannot satisfy it in
-        // this partition. We rely on each candidate actually being able to satisfy its negatives,
-        // so isTriviallyEmpty would not be enough here.
-        (positiveValues without negatives[it].values).isEmpty()
-      }
-      if (satisfiableNegatives.isEmpty()) return moreToSatisfy()
+      check(!built) { "Cannot add partitions after building the search" }
+      eligibleNegatives.removeAll(this::isSatisfied)
+      if (eligibleNegatives.isEmpty()) return undecided()
+      val differences = computeDifferencesAndFilterNegatives(positiveValues, eligibleNegatives)
+      if (eligibleNegatives.isEmpty()) return undecided()
 
-      val keyCardinality = keys.cardinality(satisfiableNegatives.size)
-      if (keyCardinality >= satisfiableNegatives.size) {
-        // We have enough keys to use a new key to satisfy each of the remaining negatives. Hence,
-        // we can satisfy them all with this partition and assume eagerly that we do so. There is no
-        // need to retain alternative assignments or store this partition: it has done all it could
-        // do, and its keys are disjoint from those of the other partitions.
-        satisfiableNegatives.forEach { negative ->
+      val keyCardinality = keys.cardinality(eligibleNegatives.size)
+      if (keyCardinality >= eligibleNegatives.size) {
+        // This partition can satisfy every eligible negative using distinct keys. Its keys are
+        // disjoint from the other partitions, so no alternative assignments need to be retained.
+        eligibleNegatives.forEach { negative ->
           markSatisfied(negative).ifDecided { decision ->
             return decision
           }
         }
       } else {
-        addCandidate(
-            Candidate(keys, positiveValues, satisfiableNegatives, keyCardinality.exactValue),
-        )
+        keyCounts.add(keyCardinality.exactValue)
+        addCandidate(Candidate(keys, positiveValues, differences), eligibleNegatives)
       }
       return propagateCandidates()
     }
 
-    fun canSatisfyAllNegatives(): Boolean {
+    fun build(): InhabitationCheck {
+      check(!built) { "Search already built" }
+      built = true
+      // Transfer ownership of the mutable candidate tables. The builder cannot be used afterwards.
+      return InhabitationCheck(
+          negatives,
+          candidates,
+          candidatesPerNegative,
+          eligibleNegativesPerCandidate,
+          leftToSatisfy,
+          IntArray(keyCounts.size) { keyCounts[it] },
+      )
+    }
+  }
+
+  private class InhabitationCheck(
+      negatives: List<MapComponent>,
+      candidates: MutableList<Candidate?>,
+      candidatesPerNegative: Array<BitSet?>,
+      eligibleNegativesPerCandidate: MutableList<BitSet?>,
+      leftToSatisfy: Int,
+      // Only candidates added through the builder need stored counts. Candidates added by this
+      // class have only one key until they are removed. Merging candidates would require revisiting
+      // this rule.
+      private val remainingKeysPerCandidate: IntArray,
+  ) :
+      InhabitationCheckState(
+          negatives,
+          candidates,
+          candidatesPerNegative,
+          eligibleNegativesPerCandidate,
+          leftToSatisfy,
+      ) {
+    override fun remainingKeys(candidate: Int) =
+        if (candidate < remainingKeysPerCandidate.size) remainingKeysPerCandidate[candidate] else 1
+
+    /** Returns whether consuming a key exhausts this candidate. */
+    private fun consumeKey(candidate: Int) =
+        candidate >= remainingKeysPerCandidate.size || --remainingKeysPerCandidate[candidate] == 0
+
+    context(propagation: PropagationQueues)
+    fun isNotInhabited() = !isInhabited()
+
+    context(propagation: PropagationQueues)
+    fun isInhabited(): Boolean {
       for (negative in negatives.indices) {
-        negativesToCheckForRemainingCandidates.addLast(negative)
+        if (isSatisfied(negative)) continue
+        propagation.negativesToCheckForRemainingCandidates.addLast(negative)
       }
       propagateDecisions().ifDecided {
-        return it.isDefinitelySatisfiable()
+        return it == definitelyInhabited()
       }
-      return tryAllCombinationsToSatisfy()
+      return isInhabitedBySearch()
     }
 
-    private fun tryAllCombinationsToSatisfy(): Boolean {
-      val toRetry = ArrayDeque<NegativesSatisfier>()
+    context(propagation: PropagationQueues)
+    private fun isInhabitedBySearch(): Boolean {
+      val toRetry = ArrayDeque<InhabitationCheck>()
       var branch = this
+      var outcome = undecided()
 
-      while (branch.mayBeSatisfiable || toRetry.isNotEmpty()) {
-        if (branch.mayBeSatisfiable) {
+      while (outcome != definitelyNotInhabited() || toRetry.isNotEmpty()) {
+        if (outcome != definitelyNotInhabited()) {
           branch.pickNextTry { negative, candidate ->
-            // We continue by modifying the current branch. We save a copy of the branch’s current
-            // state in case the current try fails.
-            toRetry.addLast(branch.copy())
+            // Save a retry snapshot before committing this choice to the current branch.
+            toRetry.addLast(branch.snapshotForRetry())
 
-            val outcome = branch.satisfyAndPropagate(negative, using = candidate)
-            if (outcome == definitelySatisfiable()) return true
+            outcome = branch.satisfyAndPropagate(negative, using = candidate)
           }
         } else {
-          ::candidatesToCheckForTriviallySatisfyingAll.checkInvariant(
-              "is empty before branch switches",
-          ) {
-            it.isEmpty()
-          }
-          ::negativesToCheckForRemainingCandidates.checkInvariant(
-              "is empty before branch switches",
-          ) {
-            it.isEmpty()
-          }
           branch = toRetry.removeLast()
-          // We rely on `pickNextTry` to be cheap and return stable results
-          branch.pickNextTry { negative, candidate ->
-            // This is the combination that failed after this branch had been added to the retry
-            // list. We mark it as impossible and go back into the upper loop if there are other
-            // combinations to try.
-            val outcome = branch.markImpossibleAndPropagate(negative, candidate)
-            if (outcome == definitelySatisfiable()) return true
-          }
+          outcome = branch.restoreForRetry()
         }
+        if (outcome == definitelyInhabited()) return true
       }
 
       return false
@@ -364,98 +532,60 @@ internal class MapComponentConjunction(
         candidates = candidatesPerNegative[negative]
       } while (candidates == null)
 
-      consumer(negative, candidates.any())
+      consumer(negative, candidates.lowest())
     }
 
-    private fun addCandidate(candidate: Candidate) {
-      // The caller supplies only still-open negatives: new partitions filter out satisfied
-      // negatives, and rest candidates inherit the original candidate's up-to-date set. Hence,
-      // their candidatesPerNegative entries cannot be null.
-      val index = candidates.size
-      candidates.add(candidate)
-      candidate.satisfiableNegatives.forEach { negative ->
-        candidatesPerNegative[negative]!!.add(index)
-        negativesToCheckForRemainingCandidates.addLast(negative)
-      }
-      candidatesToCheckForTriviallySatisfyingAll.addLast(index)
-    }
-
-    private fun markSatisfied(negative: Int): PropagationOutcome {
-      val affectedCandidates: BitSet = candidatesPerNegative[negative] ?: return moreToSatisfy()
-      candidatesPerNegative[negative] = null
-      toSatisfy -= 1
-      // Success is terminal: skip the remaining updates and, in satisfyUsing, potentially expensive
-      // type operations.
-      if (allNegativesSatisfied()) return definitelySatisfiable()
-      // The detached set is stable: no propagation runs inside this loop.
-      affectedCandidates.forEach { index ->
-        candidates[index]!!.satisfiableNegatives -= negative
-        candidatesToCheckForTriviallySatisfyingAll.addLast(index)
-      }
-      return moreToSatisfy()
-    }
-
-    private fun removeCandidate(index: Int) {
-      val candidate = candidates.set(index, null)!!
-      candidate.satisfiableNegatives.forEach { negative ->
-        // This set cannot be null: it still contains this candidate, so the negative has not been
-        // satisfied.
-        candidatesPerNegative[negative]!!.remove(index)
-        negativesToCheckForRemainingCandidates.addLast(negative)
-      }
-    }
-
+    context(propagation: PropagationQueues)
     private fun satisfyAndPropagate(negativeIndex: Int, using: Int) =
         satisfyUsing(negativeIndex, using).ifUndecidedTry { propagateDecisions() }
 
+    context(propagation: PropagationQueues)
     private fun satisfyUsing(negative: Int, candidateIndex: Int): PropagationOutcome {
       val candidate = candidates[candidateIndex]!!
-      // TODO check invariant: negative is satisfiable by candidate.
-      candidate.remainingKeys -= 1
+      val exhausted = consumeKey(candidateIndex)
+      // Registration already proved this difference non-empty.
+      val remainingValues = candidate.valuesWithoutNegative[negative]!!
       markSatisfied(negative).ifDecided { decision ->
         return decision
       }
 
-      // The key we used to satisfy the negative might also satisfy another negative. If that is
-      // possible, we need to add a candidate for this possibility, with its values restricted by
-      // the negative we have already satisfied.
-
-      // This cannot be empty, otherwise this would not be a candidate for this negative.
-      // TODO check this invariant to help detect bugs in candidate registration or selection.
-      val remainingValues = candidate.positiveValues without negatives[negative].values
-      val remainingNegatives = candidate.satisfiableNegatives.copy()
-      remainingNegatives.removeAll {
-        // The negative forbids every remaining positive value -> we cannot satisfy it with this
-        // restricted candidate.
-        (remainingValues without negatives[it].values).isEmpty()
+      addSingleKeyContinuation(candidateIndex, remainingValues)
+      if (exhausted) {
+        removeCandidate(candidateIndex).forEach { negative ->
+          propagation.negativesToCheckForRemainingCandidates.addLast(negative)
+        }
       }
-      if (remainingNegatives.isNotEmpty()) {
-        addCandidate(Candidate(candidate.keys, remainingValues, remainingNegatives, 1))
-      }
-      if (candidate.remainingKeys == 0) removeCandidate(candidateIndex)
-      return moreToSatisfy()
+      return undecided()
     }
 
+    /** Keeps the key just used available for further negatives, with its narrowed value type. */
+    context(propagation: PropagationQueues)
+    private fun addSingleKeyContinuation(sourceIndex: Int, remainingValues: MaybeAbsent) {
+      val remainingNegatives = eligibleNegativesPerCandidate[sourceIndex]!!.copy()
+      if (remainingNegatives.isEmpty()) return
+      val differences = computeDifferencesAndFilterNegatives(remainingValues, remainingNegatives)
+      if (remainingNegatives.isEmpty()) return
+
+      val source = candidates[sourceIndex]!!
+      addCandidate(Candidate(source.keys, remainingValues, differences), remainingNegatives)
+      remainingNegatives.forEach { negative ->
+        propagation.negativesToCheckForRemainingCandidates.addLast(negative)
+      }
+    }
+
+    context(propagation: PropagationQueues)
     private fun markImpossibleAndPropagate(negative: Int, candidateIndex: Int): PropagationOutcome {
-      // TODO check invariant: negative is satisfiable by candidate.
-      val candidate = candidates[candidateIndex]!!
-      candidate.satisfiableNegatives.remove(negative)
+      eligibleNegativesPerCandidate[candidateIndex]!!.remove(negative)
       candidatesPerNegative[negative]!!.remove(candidateIndex)
 
-      candidatesToCheckForTriviallySatisfyingAll.addLast(candidateIndex)
-      negativesToCheckForRemainingCandidates.addLast(negative)
+      propagation.candidatesToCheckForTriviallySatisfyingAll.addLast(candidateIndex)
+      propagation.negativesToCheckForRemainingCandidates.addLast(negative)
       return propagateDecisions()
     }
 
-    // potential optimisation: initially and every time we make a change, we can check for
-    // candidates whose positive type and whose set of satisfiable negatives are both equal. We can
-    // merge those candidates, creating a larger key type that may satisfy obligations trivially now
-    // or in the future.
+    context(propagation: PropagationQueues)
     private fun propagateDecisions(): PropagationOutcome {
-      while (
-          candidatesToCheckForTriviallySatisfyingAll.isNotEmpty() ||
-              negativesToCheckForRemainingCandidates.isNotEmpty()
-      ) {
+      while (propagation.isNotEmpty()) {
         propagateCandidates().ifDecided { decision ->
           return decision
         }
@@ -463,41 +593,24 @@ internal class MapComponentConjunction(
           return decision
         }
       }
-      return moreToSatisfy()
+      return undecided()
     }
 
-    private fun propagateCandidates(): PropagationOutcome {
-      while (candidatesToCheckForTriviallySatisfyingAll.isNotEmpty()) {
-        val index = candidatesToCheckForTriviallySatisfyingAll.popFirst()
-        val candidate = candidates[index] ?: continue
-        if (candidate.canTriviallySatisfyAllNegatives()) {
-          removeCandidate(index)
-          candidate.satisfiableNegatives.forEach { negative ->
-            markSatisfied(negative).ifDecided { decision ->
-              return decision
-            }
-          }
-        }
-      }
-      return moreToSatisfy()
-    }
-
+    context(propagation: PropagationQueues)
     private fun propagateNegatives(): PropagationOutcome {
       while (
-          negativesToCheckForRemainingCandidates.isNotEmpty() &&
-              candidatesToCheckForTriviallySatisfyingAll.isEmpty()
+          propagation.negativesToCheckForRemainingCandidates.isNotEmpty() &&
+              propagation.candidatesToCheckForTriviallySatisfyingAll.isEmpty()
       ) {
-        val negative = negativesToCheckForRemainingCandidates.popFirst()
+        val negative = propagation.negativesToCheckForRemainingCandidates.popFirst()
         val remainingCandidates =
             candidatesPerNegative[negative] ?: /* negative is already satisfied */ continue
         when (remainingCandidates.size) {
           0 -> {
             // remove the remaining negatives so the list is cleared for use by the next try.
-            // candidatesToCheckForTriviallySatisfyingAll is empty at this point.
-            negativesToCheckForRemainingCandidates.clear()
-            // mark as definitely unsatisfiable
-            candidates.clear()
-            return definitelyUnsatisfiable()
+            // propagation.candidatesToCheckForTriviallySatisfyingAll is empty at this point.
+            propagation.negativesToCheckForRemainingCandidates.clear()
+            return definitelyNotInhabited()
           }
           // All partitions are known, and this negative can only be satisfied by one candidate. It
           // must take this obligation, so we can make the choice eagerly without branching.
@@ -507,49 +620,47 @@ internal class MapComponentConjunction(
               }
         }
       }
-      return moreToSatisfy()
+      return undecided()
     }
 
-    private fun copy(): NegativesSatisfier {
-      return NegativesSatisfier(
-          negatives,
-          Array(candidatesPerNegative.size) { candidatesPerNegative[it]?.copy() },
-          MutableList(candidates.size) { candidates[it]?.copy() },
-          toSatisfy,
-          this.candidatesToCheckForTriviallySatisfyingAll,
-          this.negativesToCheckForRemainingCandidates,
-      )
-    }
+    /** Shares candidate storage; its checkpoint must be restored before retrying this snapshot. */
+    private fun snapshotForRetry() =
+        InhabitationCheck(
+            negatives,
+            candidates,
+            Array(candidatesPerNegative.size) { candidatesPerNegative[it]?.copy() },
+            MutableList(eligibleNegativesPerCandidate.size) {
+              eligibleNegativesPerCandidate[it]?.copy()
+            },
+            this@InhabitationCheck.leftToSatisfy,
+            remainingKeysPerCandidate.copyOf(),
+        )
 
-    private fun isSatisfied(negativeIndex: Int) = candidatesPerNegative[negativeIndex] == null
-
-    fun allNegativesSatisfied() = toSatisfy == 0
-
-    val isDefinitelyUnsatisfiable: Boolean
-      get() = candidates.isEmpty()
-
-    val mayBeSatisfiable: Boolean
-      get() = candidates.isNotEmpty()
-
-    private class Candidate(
-        val keys: SolvableSet,
-        val positiveValues: MaybeAbsent,
-        val satisfiableNegatives: BitSet,
-        var remainingKeys: Int,
-    ) {
-      // We have enough keys to use a distinct key to satisfy each of the remaining negatives.
-      fun canTriviallySatisfyAllNegatives() = remainingKeys >= satisfiableNegatives.size
-
-      fun copy(): Candidate =
-          Candidate(keys, positiveValues, satisfiableNegatives.copy(), remainingKeys)
+    /**
+     * Restores this snapshot, excludes the failed choice and propagates the consequences. LIFO
+     * retries ensure older snapshots cannot reference the discarded candidate suffix.
+     */
+    context(propagation: PropagationQueues)
+    private fun restoreForRetry(): PropagationOutcome {
+      // TODO better method for checking
+      check(propagation.isEmpty()) {
+        "Propagation queues must be empty before restoring a snapshot"
+      }
+      while (candidates.size > eligibleNegativesPerCandidate.size) {
+        candidates.removeAt(candidates.lastIndex)
+      }
+      // Stable selection recovers the choice made immediately after taking this snapshot.
+      pickNextTry { negative, candidate ->
+        return markImpossibleAndPropagate(negative, candidate)
+      }
     }
   }
 
   @JvmInline
   private value class PropagationOutcome(
       // 0 -> undecided
-      // 1 -> unsatisfiable
-      // 2 -> satisfiable
+      // 1 -> not inhabited
+      // 2 -> inhabited
       private val state: Byte,
   ) {
 
@@ -567,14 +678,14 @@ internal class MapComponentConjunction(
       return if (state == 0.toByte()) next() else this
     }
 
-    fun isDefinitelySatisfiable() = state == 2.toByte()
+    fun isDefinitelyNotInhabited() = state == 1.toByte()
 
     companion object {
-      fun definitelySatisfiable() = PropagationOutcome(2)
+      fun definitelyInhabited() = PropagationOutcome(2)
 
-      fun definitelyUnsatisfiable() = PropagationOutcome(1)
+      fun definitelyNotInhabited() = PropagationOutcome(1)
 
-      fun moreToSatisfy() = PropagationOutcome(0)
+      fun undecided() = PropagationOutcome(0)
     }
   }
 
@@ -603,3 +714,5 @@ internal class MapComponentConjunction(
     private fun CircularIntArray.isNotEmpty() = !isEmpty()
   }
 }
+
+private const val NOTHING_TO_DESCEND = -1
