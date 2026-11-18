@@ -9,6 +9,7 @@ import ch.tutteli.atrium.api.fluent.en_GB.toThrow
 import ch.tutteli.atrium.api.verbs.expect
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.datatest.withData
+import io.kotest.datatest.withDescribes
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.boolean
 import io.kotest.property.arbitrary.int
@@ -318,6 +319,58 @@ class BitSetSpec :
               }
             }
 
+            withDescribes(
+                mapOf("lowest" to BitSet::lowest, "highest" to BitSet::highest),
+            ) { extreme ->
+              describe("rejects empty sets regardless of their capacity") {
+                withData(0, 1, 32, 64, 1000) { capacity ->
+                  expect { extreme(BitSet(capacity)) }
+                      .toThrow<NoSuchElementException>()
+                      .message
+                      .toEqual("BitSet is empty.")
+                }
+              }
+
+              it("returns the only element at every position around word boundaries") {
+                for (element in 0..130) {
+                  expect(extreme(BitSet(1000).apply { add(element) })).toEqual(element)
+                  expect(extreme(BitSet().apply { add(element) })).toEqual(element)
+                }
+              }
+
+              it("rejects a set emptied by removal") {
+                val set = BitSet().apply { add(1000) }
+                set.remove(1000)
+                expect { extreme(set) }.toThrow<NoSuchElementException>()
+              }
+
+              it("rejects a cleared set and finds elements added afterwards") {
+                val set = BitSet().apply { add(1000) }
+                set.clear()
+                expect { extreme(set) }.toThrow<NoSuchElementException>()
+                set.add(31)
+                expect(extreme(set)).toEqual(31)
+              }
+            }
+
+            it("finds the extremes of the remaining elements as elements are removed") {
+              val elements = listOf(150, 3, 64, 0, 199, 31)
+              for (set in listOf(BitSet(1000), BitSet())) {
+                elements.forEach { set.add(it) }
+                for (element in elements.sorted()) {
+                  expect(set.lowest()).toEqual(element)
+                  expect(set.highest()).toEqual(199)
+                  set.remove(element)
+                }
+                elements.forEach { set.add(it) }
+                for (element in elements.sortedDescending()) {
+                  expect(set.highest()).toEqual(element)
+                  expect(set.lowest()).toEqual(0)
+                  set.remove(element)
+                }
+              }
+            }
+
             it("iterates in ascending order, independent of the insertion order") {
               val set = BitSet(200).apply { listOf(150, 3, 64, 0, 199, 31).forEach { add(it) } }
               expect(set.elements()).toContainExactly(0, 3, 31, 64, 150, 199)
@@ -360,10 +413,13 @@ class BitSetSpec :
                     add(Int.MAX_VALUE)
                   }
               expect(set.elements()).toContainExactly(0, Int.MAX_VALUE)
+              expect(set.lowest()).toEqual(0)
+              expect(set.highest()).toEqual(Int.MAX_VALUE)
               expect(set.toString()).toEqual("[0, ${Int.MAX_VALUE}]")
               expect(set.hashCode()).toEqual(setOf(0, Int.MAX_VALUE).hashCode())
               expect(set.removeAll { it == Int.MAX_VALUE }).toEqual(true)
               expect(set.elements()).toContainExactly(0)
+              expect(set.highest()).toEqual(0)
             }
 
             it("iterates over all elements of a full set") {
@@ -389,6 +445,10 @@ class BitSetSpec :
                 expect((0..<maxElement + 2).filter { it in set }).toEqual(model.sorted())
                 expect(set.toString()).toEqual(model.sorted().toString())
                 expect(set.hashCode()).toEqual(model.hashCode())
+                if (model.isNotEmpty()) {
+                  expect(set.lowest()).toEqual(model.min())
+                  expect(set.highest()).toEqual(model.max())
+                }
 
                 val copy = set.copy()
                 expect(copy.removeAll { it % 3 == 0 }).toEqual(model.any { it % 3 == 0 })

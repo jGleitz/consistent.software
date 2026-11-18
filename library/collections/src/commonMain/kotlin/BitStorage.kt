@@ -26,6 +26,12 @@ internal expect class BitStorage(capacity: Int) {
    * is never negative.
    */
   fun nextSetBit(fromIndex: Int): Int
+
+  /**
+   * The index of the last set bit at or before [fromIndex], or `-1` if there is none. [fromIndex]
+   * is never negative.
+   */
+  fun previousSetBit(fromIndex: Int): Int
 }
 
 /** An independent storage with the same capacity and bits. */

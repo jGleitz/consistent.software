@@ -364,7 +364,7 @@ internal class MapComponentConjunction(
         candidates = candidatesPerNegative[negative]
       } while (candidates == null)
 
-      consumer(negative, candidates.any())
+      consumer(negative, candidates.lowest())
     }
 
     private fun addCandidate(candidate: Candidate) {

@@ -112,13 +112,25 @@ public class BitSet private constructor(private val bits: BitStorage, size: Int)
       }
 
   /**
-   * Any element of this set. The choice is deterministic: For two bit sets `a`, `b`, `a == b`
-   * implies `a.any() == b.any()`.
+   * The lowest element of this set.
    *
    * @throws NoSuchElementException if this set is empty.
    */
-  public fun any(): Int {
+  public fun lowest(): Int {
     val element = nextElement(0)
+    if (element == -1) {
+      throw NoSuchElementException("BitSet is empty.")
+    }
+    return element
+  }
+
+  /**
+   * The highest element of this set.
+   *
+   * @throws NoSuchElementException if this set is empty.
+   */
+  public fun highest(): Int {
+    val element = bits.previousSetBit(Int.MAX_VALUE)
     if (element == -1) {
       throw NoSuchElementException("BitSet is empty.")
     }

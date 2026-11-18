@@ -44,6 +44,23 @@ internal actual class BitStorage private constructor(private var words: IntArray
     }
     return (wordIndex shl WORD_SHIFT) + word.countTrailingZeroBits()
   }
+
+  actual fun previousSetBit(fromIndex: Int): Int {
+    val fromWord = fromIndex ushr WORD_SHIFT
+    var wordIndex = minOf(fromWord, words.lastIndex)
+    if (wordIndex < 0) return -1
+    var word = words[wordIndex]
+    if (wordIndex == fromWord) {
+      // Mask out bits after fromIndex within its word.
+      word = word and (-1 ushr (WORD_BITS - 1 - (fromIndex and (WORD_BITS - 1))))
+    }
+    while (word == 0) {
+      wordIndex--
+      if (wordIndex < 0) return -1
+      word = words[wordIndex]
+    }
+    return (wordIndex shl WORD_SHIFT) + WORD_BITS - 1 - word.countLeadingZeroBits()
+  }
 }
 
 internal actual fun BitStorage.copy(): BitStorage = copyOf()
