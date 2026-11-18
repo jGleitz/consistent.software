@@ -1,6 +1,6 @@
 package software.consistent.data.type.solvers
 
-import software.consistent.data.type.solvers.generic.interleaveMembers
+import software.consistent.collections.interleave
 import software.consistent.data.type.solvers.maps.MapSet
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.value.Value
@@ -48,7 +48,7 @@ internal data class TypePartitionUnion(
   override fun anyMember() = symbols.anyMember() ?: numbers.anyMember() ?: maps.anyMember()
 
   override val members
-    get() = interleaveMembers(listOf(symbols.members, numbers.members, maps.members))
+    get() = interleave(listOf(symbols.members, numbers.members, maps.members))
 
   // https://pnwamk.github.io/sst-tutorial/#%28part._.Type_.Operations%29
   override fun with(otherSet: SolvableSet): SolvableSet =

@@ -1,5 +1,6 @@
 package software.consistent.data.type.solvers.generic
 
+import software.consistent.collections.interleave
 import software.consistent.data.invariants.Invariants.hasSameSizeAs
 import software.consistent.data.invariants.Invariants.isNonDecreasing
 import software.consistent.data.invariants.checkInvariant
@@ -169,7 +170,7 @@ protected constructor(
         inside = !inside
       }
       if (inside) intervals.add(membersBetween(lower, null))
-      yieldAll(interleaveMembers(intervals))
+      yieldAll(interleave(intervals))
     }
 
   override fun anyMember(): TValue? {
