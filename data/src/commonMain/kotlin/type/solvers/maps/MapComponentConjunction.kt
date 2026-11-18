@@ -23,7 +23,7 @@ internal class MapComponentConjunction(
      * Hence, we use arrays, which are cheaper to copy.
      */
     /**
-     * The positive atoms of the conjunction, split such that each component’s key type in disjunct
+     * The positive atoms of the conjunction, split such that each component’s key type is disjunct
      * from the key type of any other component.
      */
     val positive: KeyDisjointPositiveConjunction,
@@ -124,7 +124,7 @@ internal class MapComponentConjunction(
     // After emitting a partition, undo inclusions in reverse order and resume descending
     // from the first non-empty difference.
 
-    while (negativeIndex != CANNOT_DESCEND) {
+    while (negativeIndex != NOTHING_TO_DESCEND) {
       while (negativeIndex < negative.size) {
         val negative = negative[negativeIndex]
         val negativeKeyOverlap = remainingKeys overlapWith negative.keys
@@ -138,9 +138,9 @@ internal class MapComponentConjunction(
       // TODO make sure to remove the copy() if and when the BitSet is no longer modified or
       // retained
       consumer(remainingKeys, positiveValues, includedNegatives.copy())
-      negativeIndex = CANNOT_DESCEND
+      negativeIndex = NOTHING_TO_DESCEND
 
-      while (negativeIndex == CANNOT_DESCEND && includedNegatives.isNotEmpty()) {
+      while (negativeIndex == NOTHING_TO_DESCEND && includedNegatives.isNotEmpty()) {
         val previouslyIncludedIndex = includedNegatives.highest()
         includedNegatives.remove(previouslyIncludedIndex)
 
@@ -306,6 +306,9 @@ internal class MapComponentConjunction(
       // A bit means that the candidate can and may satisfy this negative in the current branch.
       // Missing bits include assignments ruled out by the search and negatives satisfied elsewhere.
       // A null entry denotes a removed candidate; the list size is the branch's checkpoint.
+      // optimisation potential: This might be one large “rectangular” BitSet. Depending on the
+      // state size, this would be smaller. More importantly, it might be much cheaper to copy. The
+      // representation complicates other operations, though, so the impact should be measured.
       protected val eligibleNegativesPerCandidate: MutableList<BitSet?> = mutableListOf(),
       protected var leftToSatisfy: Int = negatives.size,
   ) {
@@ -712,4 +715,4 @@ internal class MapComponentConjunction(
   }
 }
 
-private const val CANNOT_DESCEND = -1
+private const val NOTHING_TO_DESCEND = -1
