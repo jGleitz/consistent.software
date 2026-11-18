@@ -1,6 +1,6 @@
 package software.consistent.data.type
 
-import software.consistent.data.type.solvers.DisjunctIntervalUnion
+import software.consistent.data.type.solvers.NumberSet
 import software.consistent.formatting.monospacelayout.Monospace
 import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
@@ -11,7 +11,7 @@ public sealed interface AnyNumber : Type {
 }
 
 private object AnyNumberImpl :
-    AnyNumber, WithMonospaceLayout, Queryable by UsingSolver(DisjunctIntervalUnion.complete()) {
+    AnyNumber, WithMonospaceLayout, Queryable by UsingSolver(NumberSet.complete()) {
   override val monospaceLayout
     get() = Monospace.atom("Number")
 

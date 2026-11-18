@@ -1,6 +1,6 @@
 package software.consistent.data.type
 
-import software.consistent.data.type.solvers.generic.EnumeratedValues
+import software.consistent.data.type.solvers.SymbolSet
 import software.consistent.formatting.monospacelayout.Monospace
 import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
@@ -11,7 +11,7 @@ public sealed interface AnySymbol : Type {
 }
 
 private object AnySymbolImpl :
-    AnySymbol, WithMonospaceLayout, Queryable by UsingSolver(EnumeratedValues.complete()) {
+    AnySymbol, WithMonospaceLayout, Queryable by UsingSolver(SymbolSet.complete()) {
   override val monospaceLayout
     get() = Monospace.atom("Symbol")
 

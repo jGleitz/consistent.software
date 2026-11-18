@@ -1,6 +1,6 @@
 package software.consistent.data.type.solvers
 
-import software.consistent.data.type.solvers.generic.EnumeratedValues
+import software.consistent.data.type.solvers.generic.interleaveMembers
 import software.consistent.data.type.solvers.maps.MapSet
 import software.consistent.data.util.ComparisonCase
 import software.consistent.data.value.Value
@@ -8,8 +8,8 @@ import software.consistent.formatting.monospacelayout.Monospace
 import software.consistent.formatting.monospacelayout.WithMonospaceLayout
 
 internal data class TypePartitionUnion(
-    private val symbols: EnumeratedValues,
-    private val numbers: DisjunctIntervalUnion,
+    private val symbols: SymbolSet,
+    private val numbers: NumberSet,
     private val maps: MapSet,
 ) : SolvableSet, WithMonospaceLayout {
   override fun contains(value: Value) =
@@ -138,12 +138,11 @@ internal data class TypePartitionUnion(
   internal companion object {
     private val complete =
         TypePartitionUnion(
-            EnumeratedValues.complete(),
-            DisjunctIntervalUnion.complete(),
+            SymbolSet.complete(),
+            NumberSet.complete(),
             MapSet.complete(),
         )
-    private val empty =
-        TypePartitionUnion(EnumeratedValues.empty(), DisjunctIntervalUnion.empty(), MapSet.empty())
+    private val empty = TypePartitionUnion(SymbolSet.empty(), NumberSet.empty(), MapSet.empty())
 
     internal fun complete() = complete
 

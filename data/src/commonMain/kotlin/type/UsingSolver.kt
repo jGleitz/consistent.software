@@ -2,18 +2,17 @@ package software.consistent.data.type
 
 import kotlin.jvm.JvmInline
 import software.consistent.data.type.solvers.*
-import software.consistent.data.type.solvers.generic.EnumeratedValues
 import software.consistent.data.type.solvers.maps.MapSet
 import software.consistent.data.value.Value
 
 @JvmInline
 internal value class UsingSolver(override val solver: SolvableSet) : Queryable {
   constructor(
-      symbolsSolver: EnumeratedValues,
+      symbolsSolver: SymbolSet,
   ) : this(TypePartitionUnion.empty().copy(symbols = symbolsSolver))
 
   constructor(
-      numbersSolver: DisjunctIntervalUnion,
+      numbersSolver: NumberSet,
   ) : this(TypePartitionUnion.empty().copy(numbers = numbersSolver))
 
   constructor(mapSolver: MapSet) : this(TypePartitionUnion.empty().copy(maps = mapSolver))

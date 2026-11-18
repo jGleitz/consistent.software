@@ -1,6 +1,6 @@
 package software.consistent.data.type
 
-import software.consistent.data.type.solvers.DisjunctIntervalUnion
+import software.consistent.data.type.solvers.NumberSet
 import software.consistent.data.value.Value
 import software.consistent.data.value.monospaceLayout
 import software.consistent.formatting.monospacelayout.WithMonospaceLayout
@@ -18,7 +18,7 @@ private class GreaterThanImpl(override val comparisonValue: Value.Number) :
     GreaterThan,
     WithMonospaceLayout,
     Queryable by UsingSolver(
-        DisjunctIntervalUnion(1) {
+        NumberSet(1) {
           it.appendBoundary(comparisonValue, isInclusive = false)
           it.rightOpen = true
         },
