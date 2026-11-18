@@ -500,6 +500,54 @@ class MapSpec :
 
               for (keysRequired in listOf(false, true)) {
                 it(
+                    "agrees with exhaustive membership for a shared two-key partition, required keys = $keysRequired",
+                ) {
+                  val values = listOf(one, two, Value.Number(3), Value.Number(4))
+                  val keys = Just(a) or Just(b)
+                  val allowedValues = Just(one) or Just(two) or Just(values[2]) or Just(values[3])
+                  val positive =
+                      Map.Closed(
+                          if (keysRequired) required(keys to allowedValues)
+                          else optional(keys to allowedValues),
+                      )
+                  val exclusions = buildList {
+                    for (left in values.indices) for (right in left + 1 until values.size) {
+                      add(Map.Open(optional(keys to (Just(values[left]) or Just(values[right])))))
+                    }
+                    // Violating this component requires an absent key.
+                    add(Map.Open(required(keys to allowedValues)))
+                  }
+                  val maps = buildList {
+                    for (av in listOf(null) + values) for (bv in listOf(null) + values) {
+                      add(
+                          Value.Map(
+                              listOfNotNull(av?.let { a to it }, bv?.let { b to it }),
+                          ),
+                      )
+                    }
+                  }
+
+                  // Both keys always share a partition. Three or more eligible negatives retain
+                  // a candidate with two keys; its restricted successors each represent one key.
+                  // Membership independently checks every subset of the exclusions against all
+                  // 25 possible maps, including absent keys.
+                  for (mask in 0 until (1 shl exclusions.size)) {
+                    val selected = exclusions.filterIndexed { index, _ ->
+                      mask and (1 shl index) != 0
+                    }
+                    val remaining =
+                        selected.fold<Type, Type>(positive) { type, excluded ->
+                          type butNot excluded
+                        }
+                    val inhabited = maps.any {
+                      positive.allows(it) && selected.none { excluded -> excluded.allows(it) }
+                    }
+                    if (inhabited) expect(remaining).notToBeSubtypeOf(noValues)
+                    else expect(remaining).toBeSubtypeOf(noValues)
+                  }
+                }
+
+                it(
                     "agrees with exhaustive membership for competing obligations, required keys = $keysRequired",
                 ) {
                   val keys = listOf(a, b, c)
